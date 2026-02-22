@@ -1,5 +1,6 @@
 {
-  "name": "HA Device Manager",
+  "name": "Device Manager",
   "render_readme": true,
+  "domains": ["device_manager"],
   "homeassistant": "2024.2.0"
 }
