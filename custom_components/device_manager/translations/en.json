@@ -1,13 +1,13 @@
 {
-  "title": "HA Device Manager",
+  "title": "Device Manager",
   "panel": {
     "title": "Device Manager"
   },
   "config": {
     "step": {
       "user": {
-        "title": "HA Device Manager Configuration",
-        "description": "Configure HA Device Manager"
+        "title": "Device Manager Configuration",
+        "description": "Configure Device Manager"
       }
     }
   },

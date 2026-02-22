@@ -1,4 +1,5 @@
 """API views for HA Device Manager."""
+
 import logging
 from pathlib import Path
 
@@ -13,8 +14,8 @@ _LOGGER = logging.getLogger(__name__)
 class MainView(HomeAssistantView):
     """Serve the main frontend interface."""
 
-    url = "/ha_device_manager"
-    name = "api:ha_device_manager:main"
+    url = "/device_manager"
+    name = "api:device_manager:main"
     requires_auth = False  # Public access for the interface
 
     async def get(self, request):
@@ -25,7 +26,7 @@ class MainView(HomeAssistantView):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA Device Manager</title>
+    <title>Device Manager</title>
     <style>
         body {
             margin: 0;
@@ -39,7 +40,7 @@ class MainView(HomeAssistantView):
 <body>
     <device-manager-app></device-manager-app>
     <script type="module"
-        src="/ha_device_manager_static/device-manager.js">
+        src="/device_manager_static/device-manager.js">
     </script>
 </body>
 </html>
@@ -50,8 +51,8 @@ class MainView(HomeAssistantView):
 class StaticView(HomeAssistantView):
     """Serve static frontend files."""
 
-    url = "/ha_device_manager_static/{filename}"
-    name = "api:ha_device_manager:static"
+    url = "/device_manager_static/{filename}"
+    name = "api:device_manager:static"
     requires_auth = False
 
     async def get(self, request, filename):
@@ -83,8 +84,8 @@ class StaticView(HomeAssistantView):
 class DevicesAPIView(HomeAssistantView):
     """API endpoint for devices list operations."""
 
-    url = "/api/ha_device_manager/devices"
-    name = "api:ha_device_manager:devices"
+    url = "/api/device_manager/devices"
+    name = "api:device_manager:devices"
     requires_auth = False  # Set to True in production
 
     async def get(self, request):
@@ -108,10 +109,7 @@ class DevicesAPIView(HomeAssistantView):
             # Validate input
             name = data.get("name", "").strip()
             if not name:
-                return self.json(
-                    {"error": "Device name is required"},
-                    status_code=400
-                )
+                return self.json({"error": "Device name is required"}, status_code=400)
 
             # Create device
             device_id = await db.create_device(name)
@@ -126,8 +124,8 @@ class DevicesAPIView(HomeAssistantView):
 class DeviceAPIView(HomeAssistantView):
     """API endpoint for individual device operations."""
 
-    url = "/api/ha_device_manager/devices/{device_id}"
-    name = "api:ha_device_manager:device"
+    url = "/api/device_manager/devices/{device_id}"
+    name = "api:device_manager:device"
     requires_auth = False  # Set to True in production
 
     async def get(self, request, device_id):
@@ -138,9 +136,7 @@ class DeviceAPIView(HomeAssistantView):
             device = await db.get_device(int(device_id))
 
             if not device:
-                return self.json(
-                    {"error": "Device not found"}, status_code=404
-                )
+                return self.json({"error": "Device not found"}, status_code=404)
 
             return self.json(device)
         except Exception as err:
@@ -157,16 +153,12 @@ class DeviceAPIView(HomeAssistantView):
             # Validate input
             name = data.get("name", "").strip()
             if not name:
-                return self.json(
-                    {"error": "Device name is required"}, status_code=400
-                )
+                return self.json({"error": "Device name is required"}, status_code=400)
 
             # Check if device exists
             device = await db.get_device(int(device_id))
             if not device:
-                return self.json(
-                    {"error": "Device not found"}, status_code=404
-                )
+                return self.json({"error": "Device not found"}, status_code=404)
 
             # Update device
             await db.update_device(int(device_id), name)
@@ -186,9 +178,7 @@ class DeviceAPIView(HomeAssistantView):
             # Check if device exists
             device = await db.get_device(int(device_id))
             if not device:
-                return self.json(
-                    {"error": "Device not found"}, status_code=404
-                )
+                return self.json({"error": "Device not found"}, status_code=404)
 
             # Delete device
             await db.delete_device(int(device_id))

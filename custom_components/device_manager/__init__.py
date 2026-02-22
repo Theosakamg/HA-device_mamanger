@@ -1,11 +1,12 @@
 """The HA Device Manager integration."""
+
 import logging
 from pathlib import Path
 
+from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.components import frontend
 
 from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView
 from .const import DB_NAME, DOMAIN
@@ -15,8 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the HA Device Manager component."""
-    _LOGGER.info("Setting up HA Device Manager")
+    """Set up the Device Manager component."""
+    _LOGGER.info("Setting up Device Manager")
 
     # Initialize storage
     hass.data.setdefault(DOMAIN, {})
@@ -41,22 +42,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         component_name="iframe",
         sidebar_title=f"component.{DOMAIN}.panel.title",
         sidebar_icon="mdi:devices",
-        frontend_url_path="ha_device_manager",
-        config={"url": "/ha_device_manager"},
+        frontend_url_path="device_manager",
+        config={"url": "/device_manager"},
         require_admin=False,
     )
 
-    _LOGGER.info("HA Device Manager setup complete")
+    _LOGGER.info("Device Manager setup complete")
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up HA Device Manager from a config entry."""
-    _LOGGER.info("Setting up HA Device Manager config entry")
+    """Set up Device Manager from a config entry."""
+    _LOGGER.info("Setting up Device Manager config entry")
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    _LOGGER.info("Unloading HA Device Manager config entry")
+    _LOGGER.info("Unloadin Device Manager config entry")
     return True

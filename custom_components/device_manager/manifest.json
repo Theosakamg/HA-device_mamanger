@@ -1,6 +1,6 @@
 {
-  "domain": "ha_device_manager",
-  "name": "HA Device Manager",
+  "domain": "device_manager",
+  "name": "Device Manager",
   "version": "0.1.0",
   "documentation": "https://github.com/Theosakamg/ha_device_manager",
   "issue_tracker": "https://github.com/Theosakamg/ha_device_manager/issues",

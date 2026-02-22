@@ -1,5 +1,5 @@
 [project]
-name = "ha_device_manager"
+name = "device_manager"
 version = "0.1.0"
 description = "Home Assistant custom component for device management with independent SQLite database"
 readme = "README.md"
@@ -56,6 +56,16 @@ extend-exclude = '''
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    "dev-config",
+]
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -70,16 +80,8 @@ ignore = [
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
 ]
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    ".venv",
-    "dev-config",
-]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 
 [tool.mypy]
@@ -100,10 +102,10 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "--cov=custom_components/ha_device_manager --cov-report=html --cov-report=term-missing"
+addopts = "--cov=custom_components/device_manager --cov-report=html --cov-report=term-missing"
 
 [tool.coverage.run]
-source = ["custom_components/ha_device_manager"]
+source = ["custom_components/device_manager"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",

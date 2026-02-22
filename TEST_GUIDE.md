@@ -21,12 +21,12 @@ Before testing, ensure you have:
 
 **Expected Result**:
 - ✅ No errors during installation
-- ✅ Component copied to `/config/custom_components/ha_device_manager/`
-- ✅ Frontend bundle present at `custom_components/ha_device_manager/frontend/dist/device-manager.js`
+- ✅ Component copied to `/config/custom_components/device_manager/`
+- ✅ Frontend bundle present at `custom_components/device_manager/frontend/dist/device-manager.js`
 
 **Verification**:
 ```bash
-ls -la /config/custom_components/ha_device_manager/
+ls -la /config/custom_components/device_manager/
 # Should show: __init__.py, api.py, database.py, const.py, manifest.json, translations/, frontend/
 ```
 
@@ -41,11 +41,11 @@ npm install
 npm run build
 
 # Copy component
-cp -r custom_components/ha_device_manager /config/custom_components/
+cp -r custom_components/device_manager /config/custom_components/
 
 # Copy frontend bundle
-mkdir -p /config/custom_components/ha_device_manager/frontend/dist
-cp frontend/dist/device-manager.js /config/custom_components/ha_device_manager/frontend/dist/
+mkdir -p /config/custom_components/device_manager/frontend/dist
+cp frontend/dist/device-manager.js /config/custom_components/device_manager/frontend/dist/
 ```
 
 ### 2. Home Assistant Startup Test
@@ -57,21 +57,21 @@ cp frontend/dist/device-manager.js /config/custom_components/ha_device_manager/f
 **Expected Result**:
 ```log
 INFO - Setting up HA Device Manager
-INFO - Database path: /config/custom_components/ha_device_manager/devices.db
+INFO - Database path: /config/custom_components/device_manager/devices.db
 INFO - Database initialized successfully
 INFO - HA Device Manager setup complete
 ```
 
 **Check Logs**:
 ```bash
-tail -f /config/home-assistant.log | grep ha_device_manager
+tail -f /config/home-assistant.log | grep device_manager
 ```
 
 ### 3. Interface Access Test
 
 **Steps**:
 1. Open browser
-2. Navigate to `http://your-ha-url:8123/ha_device_manager`
+2. Navigate to `http://your-ha-url:8123/device_manager`
 
 **Expected Result**:
 - ✅ Page loads without errors (check F12 console)
@@ -103,7 +103,7 @@ tail -f /config/home-assistant.log | grep ha_device_manager
 ```bash
 curl -X GET \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:8123/api/ha_device_manager/devices
+  http://localhost:8123/api/device_manager/devices
 ```
 
 Expected response:
@@ -130,7 +130,7 @@ Expected response:
 
 **Database Verification**:
 ```bash
-sqlite3 /config/custom_components/ha_device_manager/devices.db "SELECT * FROM devices;"
+sqlite3 /config/custom_components/device_manager/devices.db "SELECT * FROM devices;"
 ```
 
 Expected output:
@@ -153,7 +153,7 @@ Expected output:
 
 **Database Verification**:
 ```bash
-sqlite3 /config/custom_components/ha_device_manager/devices.db "SELECT * FROM devices WHERE id=1;"
+sqlite3 /config/custom_components/device_manager/devices.db "SELECT * FROM devices WHERE id=1;"
 ```
 
 #### **DELETE Test**
@@ -170,7 +170,7 @@ sqlite3 /config/custom_components/ha_device_manager/devices.db "SELECT * FROM de
 
 **Database Verification**:
 ```bash
-sqlite3 /config/custom_components/ha_device_manager/devices.db "SELECT * FROM devices;"
+sqlite3 /config/custom_components/device_manager/devices.db "SELECT * FROM devices;"
 ```
 
 Expected: Empty result (no rows)
@@ -243,7 +243,7 @@ Get a long-lived access token from Home Assistant:
 ```bash
 TOKEN="your_token_here"
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8123/api/ha_device_manager/devices
+  http://localhost:8123/api/device_manager/devices
 ```
 
 **Test POST /devices**:
@@ -252,7 +252,7 @@ curl -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "API Test Device"}' \
-  http://localhost:8123/api/ha_device_manager/devices
+  http://localhost:8123/api/device_manager/devices
 ```
 
 **Test PUT /devices/{id}**:
@@ -261,14 +261,14 @@ curl -X PUT \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "Updated API Device"}' \
-  http://localhost:8123/api/ha_device_manager/devices/1
+  http://localhost:8123/api/device_manager/devices/1
 ```
 
 **Test DELETE /devices/{id}**:
 ```bash
 curl -X DELETE \
   -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8123/api/ha_device_manager/devices/1
+  http://localhost:8123/api/device_manager/devices/1
 ```
 
 ### 9. Error Handling Test
@@ -276,7 +276,7 @@ curl -X DELETE \
 **Test 404 - Device not found**:
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8123/api/ha_device_manager/devices/99999
+  http://localhost:8123/api/device_manager/devices/99999
 ```
 
 Expected:
@@ -286,7 +286,7 @@ Expected:
 
 **Test 401 - Unauthorized**:
 ```bash
-curl http://localhost:8123/api/ha_device_manager/devices
+curl http://localhost:8123/api/device_manager/devices
 ```
 
 Expected: 401 Unauthorized
@@ -317,7 +317,7 @@ import asyncio
 import aiosqlite
 
 async def test():
-    async with aiosqlite.connect('/config/custom_components/ha_device_manager/devices.db') as db:
+    async with aiosqlite.connect('/config/custom_components/device_manager/devices.db') as db:
         for i in range(100):
             await db.execute("INSERT INTO devices (name) VALUES (?)", (f"Device {i}",))
         await db.commit()
@@ -353,7 +353,7 @@ asyncio.run(test())
 cd frontend && npm run build
 
 # Recopy bundle
-cp frontend/dist/device-manager.js custom_components/ha_device_manager/frontend/dist/
+cp frontend/dist/device-manager.js custom_components/device_manager/frontend/dist/
 
 # Restart HA
 ```
@@ -372,14 +372,14 @@ cp frontend/dist/device-manager.js custom_components/ha_device_manager/frontend/
 
 **Check**:
 ```bash
-sqlite3 /config/custom_components/ha_device_manager/devices.db ".schema"
+sqlite3 /config/custom_components/device_manager/devices.db ".schema"
 ```
 
 **Solution**:
 ```bash
 # Stop Home Assistant
 # Delete database
-rm /config/custom_components/ha_device_manager/devices.db
+rm /config/custom_components/device_manager/devices.db
 # Restart Home Assistant (will recreate DB)
 ```
 

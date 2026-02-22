@@ -1,7 +1,8 @@
-"""Database manager for HA Device Manager."""
+"""Database manager for Device Manager."""
+
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 import aiosqlite
 
@@ -23,14 +24,16 @@ class DatabaseManager:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS devices (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """)
+                """
+                )
                 await db.commit()
                 _LOGGER.info("Database initialized successfully")
         except Exception as err:
@@ -42,8 +45,7 @@ class DatabaseManager:
         try:
             async with aiosqlite.connect(self.db_path) as db:
                 cursor = await db.execute(
-                    "INSERT INTO devices (name) VALUES (?)",
-                    (name,)
+                    "INSERT INTO devices (name) VALUES (?)", (name,)
                 )
                 await db.commit()
                 device_id = cursor.lastrowid
@@ -55,7 +57,7 @@ class DatabaseManager:
             _LOGGER.error("Failed to create device: %s", err)
             raise
 
-    async def get_devices(self) -> List[Dict[str, Any]]:
+    async def get_devices(self) -> list[dict[str, Any]]:
         """Get all devices."""
         try:
             async with aiosqlite.connect(self.db_path) as db:
@@ -72,7 +74,7 @@ class DatabaseManager:
             _LOGGER.error("Failed to get devices: %s", err)
             raise
 
-    async def get_device(self, device_id: int) -> Optional[Dict[str, Any]]:
+    async def get_device(self, device_id: int) -> dict[str, Any] | None:
         """Get a specific device by ID."""
         try:
             async with aiosqlite.connect(self.db_path) as db:
@@ -80,7 +82,7 @@ class DatabaseManager:
                 cursor = await db.execute(
                     """SELECT id, name, created_at, updated_at
                     FROM devices WHERE id = ?""",
-                    (device_id,)
+                    (device_id,),
                 )
                 row = await cursor.fetchone()
                 if row:
@@ -97,7 +99,7 @@ class DatabaseManager:
                 await db.execute(
                     """UPDATE devices SET name = ?,
                     updated_at = CURRENT_TIMESTAMP WHERE id = ?""",
-                    (name, device_id)
+                    (name, device_id),
                 )
                 await db.commit()
                 _LOGGER.info("Updated device %d: %s", device_id, name)
@@ -110,10 +112,7 @@ class DatabaseManager:
         """Delete a device."""
         try:
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute(
-                    "DELETE FROM devices WHERE id = ?",
-                    (device_id,)
-                )
+                await db.execute("DELETE FROM devices WHERE id = ?", (device_id,))
                 await db.commit()
                 _LOGGER.info("Deleted device %d", device_id)
                 return True

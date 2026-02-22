@@ -34,7 +34,7 @@ This will:
 1. Wait ~30 seconds for Home Assistant to start
 2. Open http://localhost:8123 in your browser
 3. Complete the onboarding wizard (create a user account)
-4. Navigate to http://localhost:8123/ha_device_manager
+4. Navigate to http://localhost:8123/device_manager
 
 **Default credentials** (you'll create these during onboarding):
 - Username: `admin` (or your choice)
@@ -43,7 +43,7 @@ This will:
 ## 📂 Project Structure
 
 ```
-HA_device_manager/
+device_manager/
 ├── docker-compose.yml          # Docker Compose configuration
 ├── dev-config/                 # Home Assistant config for development
 │   └── configuration.yaml      # HA configuration
@@ -60,7 +60,7 @@ HA_device_manager/
 
 ### Workflow 1: Backend Python Changes
 
-1. **Edit Python files** in `custom_components/ha_device_manager/`
+1. **Edit Python files** in `custom_components/device_manager/`
 2. **Restart Home Assistant**:
    ```bash
    docker compose restart
@@ -83,7 +83,7 @@ HA_device_manager/
    ```
 3. **Copy to component**:
    ```bash
-   cp frontend/dist/device-manager.js custom_components/ha_device_manager/frontend/dist/
+   cp frontend/dist/device-manager.js custom_components/device_manager/frontend/dist/
    ```
 4. **Restart Home Assistant**:
    ```bash
@@ -159,7 +159,7 @@ docker compose exec homeassistant /bin/bash
 
 ### Manual Testing
 
-1. **Access the interface**: http://localhost:8123/ha_device_manager
+1. **Access the interface**: http://localhost:8123/device_manager
 2. **Test CRUD operations**:
    - Create device: Add "Test Device"
    - Read devices: Refresh page, verify persistence
@@ -183,33 +183,33 @@ TOKEN="your_token_here"
 
 # List devices
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8123/api/ha_device_manager/devices
+  http://localhost:8123/api/device_manager/devices
 
 # Create device
 curl -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "API Test Device"}' \
-  http://localhost:8123/api/ha_device_manager/devices
+  http://localhost:8123/api/device_manager/devices
 
 # Update device
 curl -X PUT \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "Updated Device"}' \
-  http://localhost:8123/api/ha_device_manager/devices/1
+  http://localhost:8123/api/device_manager/devices/1
 
 # Delete device
 curl -X DELETE \
   -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8123/api/ha_device_manager/devices/1
+  http://localhost:8123/api/device_manager/devices/1
 ```
 
 ### Database Inspection
 
 ```bash
 # Access SQLite database
-docker compose exec homeassistant sqlite3 /config/custom_components/ha_device_manager/devices.db
+docker compose exec homeassistant sqlite3 /config/custom_components/device_manager/devices.db
 
 # Run queries
 sqlite> SELECT * FROM devices;
@@ -220,7 +220,7 @@ sqlite> .exit
 ## 📁 Data Persistence
 
 - **Configuration**: `dev-config/` directory
-- **Database**: `dev-config/custom_components/ha_device_manager/devices.db`
+- **Database**: `dev-config/custom_components/device_manager/devices.db`
 - **Logs**: `dev-config/home-assistant.log`
 
 To reset everything:
@@ -240,7 +240,7 @@ Edit `dev-config/configuration.yaml`:
 # Add your custom configuration
 homeassistant:
   name: My Custom Setup
-  
+
 # Enable additional integrations
 person:
 automation:
@@ -282,7 +282,7 @@ npm run build
 cd ..
 
 # Force copy
-cp frontend/dist/device-manager.js custom_components/ha_device_manager/frontend/dist/
+cp frontend/dist/device-manager.js custom_components/device_manager/frontend/dist/
 
 # Restart HA
 docker compose restart

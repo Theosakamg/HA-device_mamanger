@@ -2,18 +2,20 @@
  * Device Manager Application
  * Main Web Component for HA Device Manager
  */
-import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { APIClient } from './api-client';
-import { i18n } from './i18n';
-import type { Device } from './types';
+import { LitElement, html, css } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { APIClient } from "./api-client";
+import { i18n } from "./i18n";
+import type { Device } from "./types";
 
-@customElement('device-manager-app')
+@customElement("device-manager-app")
 export class DeviceManagerApp extends LitElement {
   static styles = css`
     :host {
       display: block;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+        Arial, sans-serif;
       --primary-color: #03a9f4;
       --primary-dark: #0288d1;
       --danger-color: #f44336;
@@ -264,7 +266,7 @@ export class DeviceManagerApp extends LitElement {
   @state() private loading = false;
   @state() private showForm = false;
   @state() private editingDevice: Device | null = null;
-  @state() private deviceName = '';
+  @state() private deviceName = "";
   @state() private error: string | null = null;
   @state() private success: string | null = null;
 
@@ -281,8 +283,8 @@ export class DeviceManagerApp extends LitElement {
     try {
       this.devices = await this.api.getDevices();
     } catch (error) {
-      console.error('Failed to load devices:', error);
-      this.error = i18n.t('error_loading');
+      console.error("Failed to load devices:", error);
+      this.error = i18n.t("error_loading");
     } finally {
       this.loading = false;
     }
@@ -290,7 +292,7 @@ export class DeviceManagerApp extends LitElement {
 
   private handleAddDevice() {
     this.editingDevice = null;
-    this.deviceName = '';
+    this.deviceName = "";
     this.showForm = true;
     this.error = null;
     this.success = null;
@@ -307,16 +309,16 @@ export class DeviceManagerApp extends LitElement {
   private handleCancelForm() {
     this.showForm = false;
     this.editingDevice = null;
-    this.deviceName = '';
+    this.deviceName = "";
     this.error = null;
   }
 
   private async handleSaveDevice(e: Event) {
     e.preventDefault();
-    
+
     const name = this.deviceName.trim();
     if (!name) {
-      this.error = i18n.t('error_saving');
+      this.error = i18n.t("error_saving");
       return;
     }
 
@@ -326,28 +328,28 @@ export class DeviceManagerApp extends LitElement {
     try {
       if (this.editingDevice) {
         await this.api.updateDevice(this.editingDevice.id, name);
-        this.success = i18n.t('success_updated');
+        this.success = i18n.t("success_updated");
       } else {
         await this.api.createDevice(name);
-        this.success = i18n.t('success_created');
+        this.success = i18n.t("success_created");
       }
       this.showForm = false;
       await this.loadDevices();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         this.success = null;
       }, 3000);
     } catch (error) {
-      console.error('Failed to save device:', error);
-      this.error = i18n.t('error_saving');
+      console.error("Failed to save device:", error);
+      this.error = i18n.t("error_saving");
     } finally {
       this.loading = false;
     }
   }
 
   private async handleDeleteDevice(device: Device) {
-    if (!confirm(i18n.t('confirm_delete'))) {
+    if (!confirm(i18n.t("confirm_delete"))) {
       return;
     }
 
@@ -356,16 +358,16 @@ export class DeviceManagerApp extends LitElement {
 
     try {
       await this.api.deleteDevice(device.id);
-      this.success = i18n.t('success_deleted');
+      this.success = i18n.t("success_deleted");
       await this.loadDevices();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         this.success = null;
       }, 3000);
     } catch (error) {
-      console.error('Failed to delete device:', error);
-      this.error = i18n.t('error_deleting');
+      console.error("Failed to delete device:", error);
+      this.error = i18n.t("error_deleting");
     } finally {
       this.loading = false;
     }
@@ -375,110 +377,115 @@ export class DeviceManagerApp extends LitElement {
     return html`
       <div class="container">
         <header>
-          <h1>${i18n.t('app_title')}</h1>
+          <h1>${i18n.t("app_title")}</h1>
         </header>
 
-        ${this.error ? html`<div class="error">${this.error}</div>` : ''}
-        ${this.success ? html`<div class="success">${this.success}</div>` : ''}
+        ${this.error ? html`<div class="error">${this.error}</div>` : ""}
+        ${this.success ? html`<div class="success">${this.success}</div>` : ""}
 
         <div class="toolbar">
-          <h2>${i18n.t('devices_list')}</h2>
-          <button 
-            class="btn-primary" 
+          <h2>${i18n.t("devices_list")}</h2>
+          <button
+            class="btn-primary"
             @click=${this.handleAddDevice}
             ?disabled=${this.loading}
           >
-            + ${i18n.t('add_device')}
+            + ${i18n.t("add_device")}
           </button>
         </div>
 
-        ${this.loading && this.devices.length === 0 
-          ? html`
-            <div class="loading">
-              ${i18n.t('loading')}
-            </div>
-          `
+        ${this.loading && this.devices.length === 0
+          ? html` <div class="loading">${i18n.t("loading")}</div> `
           : this.devices.length === 0
+            ? html`
+                <div class="empty-state">
+                  <div class="empty-state-icon">📦</div>
+                  <p>${i18n.t("no_devices")}</p>
+                </div>
+              `
+            : html`
+                <div class="devices-list">
+                  ${this.devices.map(
+                    (device) => html`
+                      <div class="device-item">
+                        <div class="device-info">
+                          <h3 class="device-name">${device.name}</h3>
+                          <p class="device-id">ID: ${device.id}</p>
+                        </div>
+                        <div class="device-actions">
+                          <button
+                            class="btn-primary btn-small"
+                            @click=${() => this.handleEditDevice(device)}
+                            ?disabled=${this.loading}
+                          >
+                            ${i18n.t("edit")}
+                          </button>
+                          <button
+                            class="btn-danger btn-small"
+                            @click=${() => this.handleDeleteDevice(device)}
+                            ?disabled=${this.loading}
+                          >
+                            ${i18n.t("delete")}
+                          </button>
+                        </div>
+                      </div>
+                    `
+                  )}
+                </div>
+              `}
+        ${this.showForm
           ? html`
-            <div class="empty-state">
-              <div class="empty-state-icon">📦</div>
-              <p>${i18n.t('no_devices')}</p>
-            </div>
-          `
-          : html`
-            <div class="devices-list">
-              ${this.devices.map(device => html`
-                <div class="device-item">
-                  <div class="device-info">
-                    <h3 class="device-name">${device.name}</h3>
-                    <p class="device-id">ID: ${device.id}</p>
-                  </div>
-                  <div class="device-actions">
-                    <button 
-                      class="btn-primary btn-small" 
-                      @click=${() => this.handleEditDevice(device)}
-                      ?disabled=${this.loading}
-                    >
-                      ${i18n.t('edit')}
-                    </button>
-                    <button 
-                      class="btn-danger btn-small" 
-                      @click=${() => this.handleDeleteDevice(device)}
-                      ?disabled=${this.loading}
-                    >
-                      ${i18n.t('delete')}
-                    </button>
-                  </div>
+              <div
+                class="form-overlay"
+                @click=${(e: Event) => {
+                  if (e.target === e.currentTarget) this.handleCancelForm();
+                }}
+              >
+                <div class="form-container">
+                  <h2 class="form-title">
+                    ${this.editingDevice
+                      ? i18n.t("edit_device")
+                      : i18n.t("add_device")}
+                  </h2>
+                  <form @submit=${this.handleSaveDevice}>
+                    <div class="form-group">
+                      <label for="device-name">${i18n.t("device_name")}</label>
+                      <input
+                        type="text"
+                        id="device-name"
+                        .value=${this.deviceName}
+                        @input=${(e: Event) => {
+                          this.deviceName = (
+                            e.target as HTMLInputElement
+                          ).value;
+                        }}
+                        placeholder=${i18n.t("device_name_placeholder")}
+                        required
+                        autofocus
+                      />
+                    </div>
+                    <div class="form-actions">
+                      <button
+                        type="button"
+                        class="btn-secondary"
+                        @click=${this.handleCancelForm}
+                        ?disabled=${this.loading}
+                      >
+                        ${i18n.t("cancel")}
+                      </button>
+                      <button
+                        type="submit"
+                        class="btn-success"
+                        ?disabled=${this.loading}
+                      >
+                        ${i18n.t("save")}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              `)}
-            </div>
-          `
-        }
-
-        ${this.showForm ? html`
-          <div class="form-overlay" @click=${(e: Event) => {
-            if (e.target === e.currentTarget) this.handleCancelForm();
-          }}>
-            <div class="form-container">
-              <h2 class="form-title">
-                ${this.editingDevice ? i18n.t('edit_device') : i18n.t('add_device')}
-              </h2>
-              <form @submit=${this.handleSaveDevice}>
-                <div class="form-group">
-                  <label for="device-name">${i18n.t('device_name')}</label>
-                  <input
-                    type="text"
-                    id="device-name"
-                    .value=${this.deviceName}
-                    @input=${(e: Event) => {
-                      this.deviceName = (e.target as HTMLInputElement).value;
-                    }}
-                    placeholder=${i18n.t('device_name_placeholder')}
-                    required
-                    autofocus
-                  />
-                </div>
-                <div class="form-actions">
-                  <button 
-                    type="button" 
-                    class="btn-secondary" 
-                    @click=${this.handleCancelForm}
-                    ?disabled=${this.loading}
-                  >
-                    ${i18n.t('cancel')}
-                  </button>
-                  <button 
-                    type="submit" 
-                    class="btn-success"
-                    ?disabled=${this.loading}
-                  >
-                    ${i18n.t('save')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        ` : ''}
+              </div>
+            `
+          : ""}
       </div>
     `;
   }
@@ -486,6 +493,6 @@ export class DeviceManagerApp extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'device-manager-app': DeviceManagerApp;
+    "device-manager-app": DeviceManagerApp;
   }
 }

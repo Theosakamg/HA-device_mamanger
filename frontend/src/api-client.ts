@@ -1,13 +1,35 @@
 /**
  * API Client for HA Device Manager
  */
-import type { Device } from './types';
+import type { Device } from "./types";
+
+/**
+ * Home Assistant Element interface for auth token access
+ */
+interface HomeAssistantElement extends HTMLElement {
+  hass?: {
+    auth?: {
+      data?: {
+        access_token?: string;
+      };
+    };
+    connection?: {
+      options?: {
+        auth?: {
+          data?: {
+            access_token?: string;
+          };
+        };
+      };
+    };
+  };
+}
 
 export class APIClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = '/api/ha_device_manager';
+    this.baseUrl = "/api/device_manager";
   }
 
   /**
@@ -16,19 +38,21 @@ export class APIClient {
   private getAuthToken(): string {
     try {
       // Try to get token from Home Assistant frontend
-      const haElement = document.querySelector('home-assistant') as any;
+      const haElement = document.querySelector(
+        "home-assistant"
+      ) as HomeAssistantElement | null;
       if (haElement?.hass?.auth?.data?.access_token) {
         return haElement.hass.auth.data.access_token;
       }
-      
+
       // Fallback: try to get from connection
       if (haElement?.hass?.connection?.options?.auth?.data?.access_token) {
         return haElement.hass.connection.options.auth.data.access_token;
       }
     } catch (error) {
-      console.error('Failed to get auth token:', error);
+      console.error("Failed to get auth token:", error);
     }
-    return '';
+    return "";
   }
 
   /**
@@ -37,10 +61,10 @@ export class APIClient {
   async getDevices(): Promise<Device[]> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
@@ -57,10 +81,10 @@ export class APIClient {
   async getDevice(id: number): Promise<Device> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices/${id}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
@@ -77,10 +101,10 @@ export class APIClient {
   async createDevice(name: string): Promise<Device> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ name }),
     });
@@ -98,10 +122,10 @@ export class APIClient {
   async updateDevice(id: number, name: string): Promise<Device> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ name }),
     });
@@ -119,10 +143,10 @@ export class APIClient {
   async deleteDevice(id: number): Promise<void> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 

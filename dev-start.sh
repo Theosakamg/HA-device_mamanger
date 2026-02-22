@@ -41,8 +41,8 @@ fi
 
 # Copy frontend to component
 echo "Deploying frontend to component..."
-mkdir -p custom_components/ha_device_manager/frontend/dist
-cp frontend/dist/device-manager.js custom_components/ha_device_manager/frontend/dist/
+mkdir -p custom_components/device_manager/frontend/dist
+cp frontend/dist/device-manager.js custom_components/device_manager/frontend/dist/
 echo ""
 
 # Create dev-config directory if it doesn't exist
@@ -78,13 +78,13 @@ echo ""
 echo -e "${GREEN}✓ Home Assistant is starting!${NC}"
 echo ""
 echo -e "${YELLOW}Access Home Assistant at:${NC} http://localhost:8123"
-echo -e "${YELLOW}Access Device Manager at:${NC} http://localhost:8123/ha_device_manager"
+echo -e "${YELLOW}Access Device Manager at:${NC} http://localhost:8123/device_manager"
 echo ""
 echo -e "${BLUE}Initial setup:${NC}"
 echo "1. Wait ~30 seconds for Home Assistant to start"
 echo "2. Open http://localhost:8123 in your browser"
 echo "3. Complete the onboarding (create user account)"
-echo "4. Navigate to http://localhost:8123/ha_device_manager"
+echo "4. Navigate to http://localhost:8123/device_manager"
 echo ""
 echo -e "${BLUE}Useful commands:${NC}"
 echo "  View logs:     docker compose logs -f homeassistant"
