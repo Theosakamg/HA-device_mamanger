@@ -39,7 +39,7 @@ export class APIClient {
     try {
       // Try to get token from Home Assistant frontend
       const haElement = document.querySelector(
-        "home-assistant",
+        "home-assistant"
       ) as HomeAssistantElement | null;
       if (haElement?.hass?.auth?.data?.access_token) {
         return haElement.hass.auth.data.access_token;
