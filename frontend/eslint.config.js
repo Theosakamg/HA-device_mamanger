@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import litPlugin from 'eslint-plugin-lit';
+import globals from 'globals';
 
 export default [
   js.configs.recommended,
@@ -13,6 +14,10 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.json',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
       },
     },
     plugins: {
@@ -32,6 +37,7 @@ export default [
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-undef': 'off', // TypeScript handles this
     },
   },
   {
