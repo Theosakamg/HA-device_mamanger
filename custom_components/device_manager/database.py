@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 import aiosqlite
 
@@ -57,7 +57,7 @@ class DatabaseManager:
             _LOGGER.error("Failed to create device: %s", err)
             raise
 
-    async def get_devices(self) -> List[Dict[str, Any]]:
+    async def get_devices(self) -> list[dict[str, Any]]:
         """Get all devices."""
         try:
             async with aiosqlite.connect(self.db_path) as db:
@@ -74,7 +74,7 @@ class DatabaseManager:
             _LOGGER.error("Failed to get devices: %s", err)
             raise
 
-    async def get_device(self, device_id: int) -> Optional[Dict[str, Any]]:
+    async def get_device(self, device_id: int) -> dict[str, Any] | None:
         """Get a specific device by ID."""
         try:
             async with aiosqlite.connect(self.db_path) as db:

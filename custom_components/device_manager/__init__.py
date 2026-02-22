@@ -3,10 +3,10 @@
 import logging
 from pathlib import Path
 
+from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.components import frontend
 
 from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView
 from .const import DB_NAME, DOMAIN
