@@ -3,6 +3,28 @@
  */
 import type { Device } from "./types";
 
+/**
+ * Home Assistant Element interface for auth token access
+ */
+interface HomeAssistantElement extends HTMLElement {
+  hass?: {
+    auth?: {
+      data?: {
+        access_token?: string;
+      };
+    };
+    connection?: {
+      options?: {
+        auth?: {
+          data?: {
+            access_token?: string;
+          };
+        };
+      };
+    };
+  };
+}
+
 export class APIClient {
   private baseUrl: string;
 
@@ -16,7 +38,9 @@ export class APIClient {
   private getAuthToken(): string {
     try {
       // Try to get token from Home Assistant frontend
-      const haElement = document.querySelector("home-assistant") as any;
+      const haElement = document.querySelector(
+        "home-assistant",
+      ) as HomeAssistantElement | null;
       if (haElement?.hass?.auth?.data?.access_token) {
         return haElement.hass.auth.data.access_token;
       }
