@@ -1,0 +1,20 @@
+services:
+  homeassistant:
+    image: homeassistant/home-assistant:latest
+    container_name: ha_device_manager_dev
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    volumes:
+      # Mount your config directory
+      - ./dev-config:/config
+      # Mount the custom component for live development
+      - ./custom_components/ha_device_manager:/config/custom_components/ha_device_manager:ro
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - ha_network
+
+networks:
+  ha_network:
+    driver: bridge

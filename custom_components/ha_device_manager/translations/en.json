@@ -1,0 +1,35 @@
+{
+  "title": "HA Device Manager",
+  "panel": {
+    "title": "Device Manager"
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "HA Device Manager Configuration",
+        "description": "Configure HA Device Manager"
+      }
+    }
+  },
+  "ui": {
+    "app_title": "Device Manager",
+    "devices_list": "Devices",
+    "add_device": "Add Device",
+    "edit_device": "Edit Device",
+    "device_name": "Device Name",
+    "device_name_placeholder": "Enter device name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "no_devices": "No devices yet. Add your first device!",
+    "loading": "Loading...",
+    "error_loading": "Error loading devices",
+    "error_saving": "Error saving device",
+    "error_deleting": "Error deleting device",
+    "confirm_delete": "Are you sure you want to delete this device?",
+    "success_created": "Device created successfully",
+    "success_updated": "Device updated successfully",
+    "success_deleted": "Device deleted successfully"
+  }
+}

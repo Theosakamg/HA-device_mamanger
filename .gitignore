@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist-python/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+frontend/dist/
+*.js.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Home Assistant
+*.db
+*.db-shm
+*.db-wal
+
+# Development environment
+dev-config/
+!dev-config/configuration.yaml
+
+# Secrets & Credentials (Security)
+.env
+.env.local
+*.key
+*.pem
+*.crt
+secrets.yaml
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Samples (optional, keep for reference)
+# Samples/
+
+custom_components/ha_device_manager/frontend/dist/device-manager.js

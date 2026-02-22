@@ -1,0 +1,35 @@
+{
+  "title": "HA Device Manager",
+  "panel": {
+    "title": "Gestionnaire d'Équipements"
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration HA Device Manager",
+        "description": "Configurer HA Device Manager"
+      }
+    }
+  },
+  "ui": {
+    "app_title": "Gestionnaire d'Équipements",
+    "devices_list": "Équipements",
+    "add_device": "Ajouter un Équipement",
+    "edit_device": "Modifier l'Équipement",
+    "device_name": "Nom de l'Équipement",
+    "device_name_placeholder": "Entrez le nom de l'équipement",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "no_devices": "Aucun équipement. Ajoutez votre premier équipement !",
+    "loading": "Chargement...",
+    "error_loading": "Erreur lors du chargement des équipements",
+    "error_saving": "Erreur lors de l'enregistrement de l'équipement",
+    "error_deleting": "Erreur lors de la suppression de l'équipement",
+    "confirm_delete": "Êtes-vous sûr de vouloir supprimer cet équipement ?",
+    "success_created": "Équipement créé avec succès",
+    "success_updated": "Équipement mis à jour avec succès",
+    "success_deleted": "Équipement supprimé avec succès"
+  }
+}
