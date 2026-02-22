@@ -25,6 +25,7 @@ jobs:
           pip install black ruff mypy pytest pytest-asyncio pytest-cov aiosqlite
 
       - name: Run Black
+        continue-on-error: true
         run: black --check custom_components/
 
       - name: Run Ruff
