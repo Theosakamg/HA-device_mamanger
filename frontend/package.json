@@ -1,7 +1,7 @@
 {
-  "name": "ha-device-manager-frontend",
+  "name": "device-manager-frontend",
   "version": "0.1.0",
-  "description": "Frontend for HA Device Manager",
+  "description": "Frontend for Device Manager",
   "type": "module",
   "scripts": {
     "dev": "vite",

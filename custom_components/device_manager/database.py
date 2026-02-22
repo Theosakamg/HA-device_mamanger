@@ -1,4 +1,4 @@
-"""Database manager for HA Device Manager."""
+"""Database manager for Device Manager."""
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any

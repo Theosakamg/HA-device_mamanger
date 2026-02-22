@@ -28,7 +28,7 @@ if [ -z "$1" ]; then
 fi
 
 CONFIG_DIR="$1"
-COMPONENT_NAME="ha_device_manager"
+COMPONENT_NAME="device_manager"
 SOURCE_DIR="custom_components/${COMPONENT_NAME}"
 TARGET_DIR="${CONFIG_DIR}/custom_components/${COMPONENT_NAME}"
 
@@ -92,6 +92,6 @@ echo -e "${YELLOW}Next steps:${NC}"
 echo "1. Restart Home Assistant"
 echo "2. Add the integration via:"
 echo "   Configuration > Integrations > Add Integration > HA Device Manager"
-echo "3. Access the interface at: http://your-ha-url/ha_device_manager"
+echo "3. Access the interface at: http://your-ha-url/device_manager"
 echo ""
 echo -e "${GREEN}Installation path: ${TARGET_DIR}${NC}"

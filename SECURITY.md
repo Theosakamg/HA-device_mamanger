@@ -18,7 +18,7 @@ If you discover a security vulnerability within HA Device Manager, please send a
 
 **IMPORTANT**: The current v0.1.0 release is a Proof of Concept (POC) with authentication **disabled** for development purposes.
 
-In `custom_components/ha_device_manager/api.py`, all views have:
+In `custom_components/device_manager/api.py`, all views have:
 ```python
 requires_auth = False  # Development mode only
 ```
@@ -56,7 +56,7 @@ When deploying HA Device Manager:
 2. **Use HTTPS:** Always use encrypted connections in production
 3. **Update Dependencies:** Keep all dependencies up to date
 4. **Monitor Logs:** Watch for unusual API access patterns
-5. **Backup Database:** Regular backups of `ha_device_manager.db`
+5. **Backup Database:** Regular backups of `device_manager.db`
 
 ## Future Security Improvements
 
@@ -82,5 +82,5 @@ For security concerns, contact: [GitHub Issues](https://github.com/Theosakamg/ha
 
 ---
 
-**Last Updated:** 2024-01-01  
+**Last Updated:** 2024-01-01
 **Version:** 0.1.0

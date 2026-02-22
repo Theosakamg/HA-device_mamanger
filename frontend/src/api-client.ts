@@ -7,7 +7,7 @@ export class APIClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = '/api/ha_device_manager';
+    this.baseUrl = '/api/device_manager';
   }
 
   /**

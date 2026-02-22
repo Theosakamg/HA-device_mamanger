@@ -88,19 +88,19 @@ jobs:
 
       - name: Copy frontend build to component
         run: |
-          mkdir -p custom_components/ha_device_manager/frontend/dist
-          cp frontend/dist/device-manager.js custom_components/ha_device_manager/frontend/dist/
+          mkdir -p custom_components/device_manager/frontend/dist
+          cp frontend/dist/device-manager.js custom_components/device_manager/frontend/dist/
 
       - name: Create release artifact
         run: |
           cd custom_components
-          zip -r ../ha_device_manager.zip ha_device_manager/
+          zip -r ../device_manager.zip device_manager/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ha_device_manager
-          path: ha_device_manager.zip
+          name: device_manager
+          path: device_manager.zip
           retention-days: 7
 
   validate-hacs:

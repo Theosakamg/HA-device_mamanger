@@ -50,8 +50,8 @@ See [SECURITY.md](SECURITY.md) for details and recommendations.
 
 ```bash
 # Clone the project
-git clone <repo-url> ha_device_manager
-cd ha_device_manager
+git clone <repo-url> device_manager
+cd device_manager
 
 # Run installation
 ./install.sh /path/to/homeassistant/config
@@ -81,14 +81,14 @@ cd ..
 
 ```bash
 # Create destination folder
-mkdir -p /config/custom_components/ha_device_manager
+mkdir -p /config/custom_components/device_manager
 
 # Copy component
-cp -r custom_components/ha_device_manager /config/custom_components/
+cp -r custom_components/device_manager /config/custom_components/
 
 # Copy compiled frontend
-mkdir -p /config/custom_components/ha_device_manager/frontend/dist
-cp frontend/dist/device-manager.js /config/custom_components/ha_device_manager/frontend/dist/
+mkdir -p /config/custom_components/device_manager/frontend/dist
+cp frontend/dist/device-manager.js /config/custom_components/device_manager/frontend/dist/
 ```
 
 #### 3. Restart Home Assistant
@@ -106,7 +106,7 @@ ha core restart
 
 Once installed and Home Assistant restarted:
 
-1. **Via direct URL**: `http://your-ha-url:8123/ha_device_manager`
+1. **Via direct URL**: `http://your-ha-url:8123/device_manager`
 2. **From menu** (if configured in your sidebar)
 
 ### CRUD Operations
@@ -133,7 +133,7 @@ The extension exposes a complete REST API:
 ```bash
 curl -X GET \
   -H "Authorization: Bearer YOUR_HA_TOKEN" \
-  http://your-ha-url:8123/api/ha_device_manager/devices
+  http://your-ha-url:8123/api/device_manager/devices
 ```
 
 #### Create a device
@@ -142,7 +142,7 @@ curl -X POST \
   -H "Authorization: Bearer YOUR_HA_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "Living Room Light"}' \
-  http://your-ha-url:8123/api/ha_device_manager/devices
+  http://your-ha-url:8123/api/device_manager/devices
 ```
 
 #### Update a device
@@ -151,14 +151,14 @@ curl -X PUT \
   -H "Authorization: Bearer YOUR_HA_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "Bedroom Light"}' \
-  http://your-ha-url:8123/api/ha_device_manager/devices/1
+  http://your-ha-url:8123/api/device_manager/devices/1
 ```
 
 #### Delete a device
 ```bash
 curl -X DELETE \
   -H "Authorization: Bearer YOUR_HA_TOKEN" \
-  http://your-ha-url:8123/api/ha_device_manager/devices/1
+  http://your-ha-url:8123/api/device_manager/devices/1
 ```
 
 ## 🏗️ Architecture
@@ -166,8 +166,8 @@ curl -X DELETE \
 ### Project Structure
 
 ```
-HA_device_manager/
-├── custom_components/ha_device_manager/    # Home Assistant component
+device_manager/
+├── custom_components/device_manager/    # Home Assistant component
 │   ├── __init__.py                        # Entry point, initialization
 │   ├── manifest.json                      # Component metadata
 │   ├── const.py                           # Constants
@@ -208,7 +208,7 @@ HA_device_manager/
 
 The SQLite database is created at:
 ```
-/config/custom_components/ha_device_manager/devices.db
+/config/custom_components/device_manager/devices.db
 ```
 
 **`devices` Table**:
@@ -239,7 +239,7 @@ Test your changes without leaving VSCode using Docker Compose:
 
 # Access the interface
 # Home Assistant: http://localhost:8123
-# Device Manager: http://localhost:8123/ha_device_manager
+# Device Manager: http://localhost:8123/device_manager
 
 # View logs
 ./dev-logs.sh
@@ -263,7 +263,7 @@ See [DEV_GUIDE.md](DEV_GUIDE.md) for detailed instructions.
 ```bash
 # Clone the project
 git clone <repo-url>
-cd ha_device_manager
+cd device_manager
 
 # Install frontend dependencies
 cd frontend
@@ -288,9 +288,9 @@ The bundle will be generated in `frontend/dist/device-manager.js`
 2. **Installation**: Use the `./install.sh` script
 3. **Restart**: Restart Home Assistant
 4. **Verification**:
-   - Access `/ha_device_manager`
+   - Access `/device_manager`
    - Test complete CRUD
-   - Check SQLite database: `sqlite3 /config/custom_components/ha_device_manager/devices.db "SELECT * FROM devices;"`
+   - Check SQLite database: `sqlite3 /config/custom_components/device_manager/devices.db "SELECT * FROM devices;"`
    - Check Home Assistant logs (no errors)
 
 ## 🐛 Troubleshooting
@@ -299,13 +299,13 @@ The bundle will be generated in `frontend/dist/device-manager.js`
 
 1. **Check that frontend is compiled**:
    ```bash
-   ls -lh custom_components/ha_device_manager/frontend/dist/device-manager.js
+   ls -lh custom_components/device_manager/frontend/dist/device-manager.js
    ```
 
 2. **Check Home Assistant logs**:
    ```bash
    # In Home Assistant
-   tail -f /config/home-assistant.log | grep ha_device_manager
+   tail -f /config/home-assistant.log | grep device_manager
    ```
 
 3. **Check browser console** (F12) for JavaScript errors
@@ -320,7 +320,7 @@ The bundle will be generated in `frontend/dist/device-manager.js`
 
 1. **Check permissions**:
    ```bash
-   ls -la /config/custom_components/ha_device_manager/devices.db
+   ls -la /config/custom_components/device_manager/devices.db
    ```
 
 2. **Check logs** for SQLite errors
