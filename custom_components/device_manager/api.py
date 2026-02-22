@@ -1,4 +1,5 @@
 """API views for HA Device Manager."""
+
 import logging
 from pathlib import Path
 
@@ -108,10 +109,7 @@ class DevicesAPIView(HomeAssistantView):
             # Validate input
             name = data.get("name", "").strip()
             if not name:
-                return self.json(
-                    {"error": "Device name is required"},
-                    status_code=400
-                )
+                return self.json({"error": "Device name is required"}, status_code=400)
 
             # Create device
             device_id = await db.create_device(name)
@@ -138,9 +136,7 @@ class DeviceAPIView(HomeAssistantView):
             device = await db.get_device(int(device_id))
 
             if not device:
-                return self.json(
-                    {"error": "Device not found"}, status_code=404
-                )
+                return self.json({"error": "Device not found"}, status_code=404)
 
             return self.json(device)
         except Exception as err:
@@ -157,16 +153,12 @@ class DeviceAPIView(HomeAssistantView):
             # Validate input
             name = data.get("name", "").strip()
             if not name:
-                return self.json(
-                    {"error": "Device name is required"}, status_code=400
-                )
+                return self.json({"error": "Device name is required"}, status_code=400)
 
             # Check if device exists
             device = await db.get_device(int(device_id))
             if not device:
-                return self.json(
-                    {"error": "Device not found"}, status_code=404
-                )
+                return self.json({"error": "Device not found"}, status_code=404)
 
             # Update device
             await db.update_device(int(device_id), name)
@@ -186,9 +178,7 @@ class DeviceAPIView(HomeAssistantView):
             # Check if device exists
             device = await db.get_device(int(device_id))
             if not device:
-                return self.json(
-                    {"error": "Device not found"}, status_code=404
-                )
+                return self.json({"error": "Device not found"}, status_code=404)
 
             # Delete device
             await db.delete_device(int(device_id))

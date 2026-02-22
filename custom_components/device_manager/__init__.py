@@ -1,4 +1,5 @@
 """The HA Device Manager integration."""
+
 import logging
 from pathlib import Path
 
