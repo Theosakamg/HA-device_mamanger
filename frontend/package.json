@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:deploy": "npm run build && cp dist/device-manager.js ../custom_components/device_manager/frontend/dist/device-manager.js || true",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts --max-warnings 0",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.{ts,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,css}\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "lit": "^3.2.1"
@@ -25,6 +27,7 @@
     "globals": "^17.3.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "vitest": "^1.0.0"
   }
 }

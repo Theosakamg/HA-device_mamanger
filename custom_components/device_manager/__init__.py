@@ -8,8 +8,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView
-from .const import DB_NAME, DOMAIN
+from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView, CSVImportAPIView
+from .const import DOMAIN
 from .database import DatabaseManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,16 +35,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.http.register_view(StaticView())
     hass.http.register_view(DevicesAPIView())
     hass.http.register_view(DeviceAPIView())
+    hass.http.register_view(CSVImportAPIView())
 
     # Register panel in sidebar
     frontend.async_register_built_in_panel(
         hass,
         component_name="iframe",
-        sidebar_title=f"component.{DOMAIN}.panel.title",
+        sidebar_title="panel.title",
         sidebar_icon="mdi:devices",
         frontend_url_path="device_manager",
         config={"url": "/device_manager"},
         require_admin=False,
+        config_panel_domain=DOMAIN,
     )
 
     _LOGGER.info("Device Manager setup complete")
