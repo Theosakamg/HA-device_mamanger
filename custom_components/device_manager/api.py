@@ -97,6 +97,7 @@ class DevicesAPIView(HomeAssistantView):
             hass = request.app["hass"]
             db = hass.data[DOMAIN]["db"]
             devices = await db.get_devices()
+
             # Convert snake_case DB columns to camelCase for frontend convenience
             def _to_camel_case_dict(d: dict):
                 out = {}
