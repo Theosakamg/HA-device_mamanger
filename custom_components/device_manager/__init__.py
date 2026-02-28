@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView, CSVImportAPIView
+from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView, CSVImportAPIView, DeployAPIView
 from .const import DOMAIN
 from .database import DatabaseManager
 
@@ -36,6 +36,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.http.register_view(DevicesAPIView())
     hass.http.register_view(DeviceAPIView())
     hass.http.register_view(CSVImportAPIView())
+    hass.http.register_view(DeployAPIView())
 
     # Register panel in sidebar
     frontend.async_register_built_in_panel(
