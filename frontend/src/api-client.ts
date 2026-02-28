@@ -98,7 +98,7 @@ export class APIClient {
   /**
    * Create a new device
    */
-  async createDevice(name: string): Promise<Device> {
+  async createDevice(device: Partial<Device>): Promise<Device> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices`, {
       method: "POST",
@@ -106,7 +106,7 @@ export class APIClient {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(device),
     });
 
     if (!response.ok) {
@@ -119,7 +119,7 @@ export class APIClient {
   /**
    * Update a device
    */
-  async updateDevice(id: number, name: string): Promise<Device> {
+  async updateDevice(id: number, device: Partial<Device>): Promise<Device> {
     const token = this.getAuthToken();
     const response = await fetch(`${this.baseUrl}/devices/${id}`, {
       method: "PUT",
@@ -127,7 +127,7 @@ export class APIClient {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(device),
     });
 
     if (!response.ok) {
@@ -153,5 +153,31 @@ export class APIClient {
     if (!response.ok) {
       throw new Error(`Failed to delete device: ${response.statusText}`);
     }
+  }
+
+  /**
+   * Import devices from CSV file (multipart/form-data)
+   */
+  async importCSV(file: File): Promise<{
+    logs?: { line?: number; status?: string; id?: number; error?: string }[];
+  }> {
+    const token = this.getAuthToken();
+    const form = new FormData();
+    form.append("file", file, file.name);
+
+    const response = await fetch(`${this.baseUrl}/import`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // NOTE: let the browser set Content-Type for multipart
+      },
+      body: form,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to import CSV: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 }

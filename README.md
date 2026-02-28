@@ -26,8 +26,8 @@ This project is a functional POC demonstrating:
 
 ### ⚠️ Security Notice (v0.1.0)
 
-**This POC version has authentication disabled for development purposes.**  
-For production deployment, authentication must be enabled in `api.py`.  
+**This POC version has authentication disabled for development purposes.**
+For production deployment, authentication must be enabled in `api.py`.
 See [SECURITY.md](SECURITY.md) for details and recommendations.
 
 ## 🚀 Quick Installation
@@ -247,6 +247,30 @@ Test your changes without leaving VSCode using Docker Compose:
 # Stop environment
 ./dev-stop.sh
 ```
+
+### Running backend tests (inside Home Assistant container)
+
+If your Python tests import `homeassistant` (for example tests for the integration), run
+them inside the Home Assistant environment (container) to avoid ImportError when running
+locally.
+
+Recommended command (run from the repository root):
+
+```bash
+docker compose exec homeassistant bash -lc "cd /config && PYTHONPATH=/config pytest -q custom_components/device_manager/tests -o addopts="
+```
+
+Notes:
+- `cd /config`: the repository is mounted under `/config` in the Home Assistant container.
+- `PYTHONPATH=/config`: allows importing `custom_components` from the mounted repo.
+- `-o addopts=`: overrides `addopts` from `pyproject.toml` (avoids missing pytest plugins/options).
+
+If `pytest` is not installed in the container, a minimal test runner is provided as a fallback:
+
+```bash
+docker compose exec homeassistant bash -lc "python3 /config/custom_components/device_manager/run_tests.py"
+```
+
 
 **Development workflow**:
 1. Edit code in `custom_components/` or `frontend/src/`
