@@ -1,5 +1,7 @@
 /**
- * Internationalization system
+ * Internationalization system for Device Manager.
+ *
+ * Supports English and French with automatic browser language detection.
  */
 
 type Translations = {
@@ -8,46 +10,312 @@ type Translations = {
 
 const translations: { [lang: string]: Translations } = {
   en: {
+    // Navigation
     app_title: "Device Manager",
+    nav_hierarchy: "Hierarchy",
+    nav_devices: "All Devices",
+    nav_settings: "Settings",
+    nav_maintenance: "Maintenance",
+
+    // Hierarchy
+    hierarchy_title: "Location Hierarchy",
+    home: "Home",
+    homes: "Homes",
+    level: "Level",
+    levels: "Levels",
+    room: "Room",
+    rooms: "Rooms",
+    add_home: "Add Home",
+    add_level: "Add Level",
+    add_room: "Add Room",
+    edit_home: "Edit Home",
+    edit_level: "Edit Level",
+    edit_room: "Edit Room",
+    delete_home: "Delete Home",
+    delete_level: "Delete Level",
+    delete_room: "Delete Room",
+    no_homes: "No homes yet. Create your first home!",
+    no_levels: "No levels in this home.",
+    no_rooms: "No rooms in this level.",
+    no_devices_in_room: "No devices in this room.",
+    device_count: "devices",
+
+    // Devices
     devices_list: "Devices",
+    device: "Device",
+    devices: "Devices",
     add_device: "Add Device",
     edit_device: "Edit Device",
-    device_name: "Device Name",
-    device_name_placeholder: "Enter device name",
+    device_mac: "MAC Address",
+    device_ip: "IP Address",
+    device_enabled: "Enabled",
+    device_level: "Level",
+    device_position_name: "Position Name",
+    device_position_slug: "Position Slug",
+    device_mode: "Mode",
+    device_interlock: "Interlock",
+    device_ha_class: "HA Device Class",
+    device_extra: "Extra",
+    device_room: "Room",
+    device_model: "Model",
+    device_firmware: "Firmware",
+    device_function: "Function",
+    device_target: "Target Device",
+    device_link: "Link",
+    device_hostname: "Hostname",
+    device_mqtt: "MQTT Topic",
+    device_fqdn: "FQDN",
+    select_room: "Select a room",
+    select_model: "Select a model",
+    select_firmware: "Select a firmware",
+    select_function: "Select a function",
+    select_target: "Select target (optional)",
+    no_devices: "No devices yet. Add your first device!",
+
+    // Deploy
+    deploy: "Deploy",
+    deploy_title: "Deploy Firmwares",
+    deploy_select_firmwares: "Select firmwares to deploy",
+    deploy_no_firmwares: "No firmwares available",
+    deploy_confirm: "Confirm Deploy",
+    deploy_result_title: "Deploy Results",
+    deploy_total_devices: "Total devices",
+    deploy_firmware_selected: "Firmwares selected",
+    deploy_no_devices: "No devices match selected firmwares",
+    deploy_select_all: "Select All",
+    deploy_deselect_all: "Deselect All",
+    deploy_firmware: "Firmware",
+    deploy_device_count: "Devices",
+    deploy_device_mac: "MAC",
+    deploy_device_position: "Position",
+    deploy_new: "New Deploy",
+
+    // Settings
+    settings_title: "Settings",
+    tab_models: "Models",
+    tab_firmwares: "Firmwares",
+    tab_functions: "Functions",
+    model_name: "Model Name",
+    model_template: "Template",
+    firmware_name: "Firmware Name",
+    function_name: "Function Name",
+    enabled: "Enabled",
+    disabled: "Disabled",
+    no_models: "No models defined.",
+    no_firmwares: "No firmwares defined.",
+    no_functions: "No functions defined.",
+
+    // Import
+    import_title: "Import CSV",
+    import_select_file: "Select CSV file",
+    import_start: "Start Import",
+    import_success: "Import completed successfully",
+    import_error: "Import failed",
+    import_result_created: "Created",
+    import_result_errors: "Errors",
+    import_result_line: "Line",
+
+    // Export
+    export_title: "Export Data",
+    export_desc: "Download all devices in your preferred format.",
+
+    // Maintenance
+    maint_danger_zone: "Danger Zone",
+    maint_danger_desc: "These operations are irreversible. Proceed with caution.",
+    maint_clean_db: "Clean Database",
+    maint_clean_db_desc: "Delete all data (devices, rooms, levels, homes, models, firmwares, functions).",
+    maint_confirm_title: "Confirm Database Wipe",
+    maint_confirm_desc: "This action will permanently delete ALL data. Type the phrase below to confirm:",
+    maint_confirm_placeholder: "Type the confirmation phrase...",
+    maint_confirm_execute: "Wipe All Data",
+    maint_clean_success: "Database cleaned successfully",
+    maint_rows_deleted: "rows deleted",
+
+    // Common
+    name: "Name",
+    slug: "Slug",
+    description: "Description",
+    image: "Image",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
     edit: "Edit",
-    no_devices: "No devices yet. Add your first device!",
+    add: "Add",
+    close: "Close",
+    confirm: "Confirm",
     loading: "Loading...",
-    error_loading: "Error loading devices",
-    error_saving: "Error saving device",
-    error_deleting: "Error deleting device",
-    confirm_delete: "Are you sure you want to delete this device?",
-    success_created: "Device created successfully",
-    success_updated: "Device updated successfully",
-    success_deleted: "Device deleted successfully",
+    error_loading: "Error loading data",
+    error_saving: "Error saving",
+    error_deleting: "Error deleting",
+    confirm_delete: "Are you sure you want to delete this item?",
+    confirm_delete_cascade: "This will also delete all child items. Continue?",
+    success_created: "Created successfully",
+    success_updated: "Updated successfully",
+    success_deleted: "Deleted successfully",
+    previous: "Previous",
+    next: "Next",
+    reload: "Reload",
+    search: "Search",
+    filter_devices: "Filter devices",
+    clear_filter: "Clear filter",
+    actions: "Actions",
+    id: "ID",
+    created_at: "Created At",
+    updated_at: "Updated At",
   },
   fr: {
+    // Navigation
     app_title: "Gestionnaire d'Équipements",
+    nav_hierarchy: "Hiérarchie",
+    nav_devices: "Tous les Équipements",
+    nav_settings: "Paramètres",
+    nav_maintenance: "Maintenance",
+
+    // Hierarchy
+    hierarchy_title: "Hiérarchie des Emplacements",
+    home: "Maison",
+    homes: "Maisons",
+    level: "Niveau",
+    levels: "Niveaux",
+    room: "Pièce",
+    rooms: "Pièces",
+    add_home: "Ajouter une Maison",
+    add_level: "Ajouter un Niveau",
+    add_room: "Ajouter une Pièce",
+    edit_home: "Modifier la Maison",
+    edit_level: "Modifier le Niveau",
+    edit_room: "Modifier la Pièce",
+    delete_home: "Supprimer la Maison",
+    delete_level: "Supprimer le Niveau",
+    delete_room: "Supprimer la Pièce",
+    no_homes: "Aucune maison. Créez votre première maison !",
+    no_levels: "Aucun niveau dans cette maison.",
+    no_rooms: "Aucune pièce dans ce niveau.",
+    no_devices_in_room: "Aucun équipement dans cette pièce.",
+    device_count: "équipements",
+
+    // Devices
     devices_list: "Équipements",
+    device: "Équipement",
+    devices: "Équipements",
     add_device: "Ajouter un Équipement",
     edit_device: "Modifier l'Équipement",
-    device_name: "Nom de l'Équipement",
-    device_name_placeholder: "Entrez le nom de l'équipement",
+    device_mac: "Adresse MAC",
+    device_ip: "Adresse IP",
+    device_enabled: "Activé",
+    device_level: "Niveau",
+    device_position_name: "Nom de Position",
+    device_position_slug: "Slug de Position",
+    device_mode: "Mode",
+    device_interlock: "Verrouillage",
+    device_ha_class: "Classe HA",
+    device_extra: "Extra",
+    device_room: "Pièce",
+    device_model: "Modèle",
+    device_firmware: "Firmware",
+    device_function: "Fonction",
+    device_target: "Équipement Cible",
+    device_link: "Lien",
+    device_hostname: "Nom d'hôte",
+    device_mqtt: "Topic MQTT",
+    device_fqdn: "FQDN",
+    select_room: "Sélectionner une pièce",
+    select_model: "Sélectionner un modèle",
+    select_firmware: "Sélectionner un firmware",
+    select_function: "Sélectionner une fonction",
+    select_target: "Sélectionner la cible (optionnel)",
+    no_devices: "Aucun équipement. Ajoutez votre premier équipement !",
+
+    // Deploy
+    deploy: "Déployer",
+    deploy_title: "Déployer les Firmwares",
+    deploy_select_firmwares: "Sélectionner les firmwares à déployer",
+    deploy_no_firmwares: "Aucun firmware disponible",
+    deploy_confirm: "Confirmer le Déploiement",
+    deploy_result_title: "Résultats du Déploiement",
+    deploy_total_devices: "Total équipements",
+    deploy_firmware_selected: "Firmwares sélectionnés",
+    deploy_no_devices: "Aucun équipement ne correspond aux firmwares sélectionnés",
+    deploy_select_all: "Tout sélectionner",
+    deploy_deselect_all: "Tout désélectionner",
+    deploy_firmware: "Firmware",
+    deploy_device_count: "Équipements",
+    deploy_device_mac: "MAC",
+    deploy_device_position: "Position",
+    deploy_new: "Nouveau Déploiement",
+
+    // Settings
+    settings_title: "Paramètres",
+    tab_models: "Modèles",
+    tab_firmwares: "Firmwares",
+    tab_functions: "Fonctions",
+    model_name: "Nom du Modèle",
+    model_template: "Template",
+    firmware_name: "Nom du Firmware",
+    function_name: "Nom de la Fonction",
+    enabled: "Activé",
+    disabled: "Désactivé",
+    no_models: "Aucun modèle défini.",
+    no_firmwares: "Aucun firmware défini.",
+    no_functions: "Aucune fonction définie.",
+
+    // Import
+    import_title: "Importer CSV",
+    import_select_file: "Sélectionner le fichier CSV",
+    import_start: "Lancer l'Import",
+    import_success: "Import terminé avec succès",
+    import_error: "L'import a échoué",
+    import_result_created: "Créés",
+    import_result_errors: "Erreurs",
+    import_result_line: "Ligne",
+
+    // Export
+    export_title: "Exporter les Données",
+    export_desc: "Télécharger tous les équipements dans le format souhaité.",
+
+    // Maintenance
+    maint_danger_zone: "Zone de Danger",
+    maint_danger_desc: "Ces opérations sont irréversibles. Procédez avec prudence.",
+    maint_clean_db: "Nettoyer la Base",
+    maint_clean_db_desc: "Supprimer toutes les données (devices, pièces, niveaux, maisons, modèles, firmwares, fonctions).",
+    maint_confirm_title: "Confirmer la suppression",
+    maint_confirm_desc: "Cette action supprimera DÉFINITIVEMENT toutes les données. Saisissez la phrase ci-dessous pour confirmer :",
+    maint_confirm_placeholder: "Saisissez la phrase de confirmation...",
+    maint_confirm_execute: "Tout Supprimer",
+    maint_clean_success: "Base de données nettoyée",
+    maint_rows_deleted: "lignes supprimées",
+
+    // Common
+    name: "Nom",
+    slug: "Slug",
+    description: "Description",
+    image: "Image",
     save: "Enregistrer",
     cancel: "Annuler",
     delete: "Supprimer",
     edit: "Modifier",
-    no_devices: "Aucun équipement. Ajoutez votre premier équipement !",
+    add: "Ajouter",
+    close: "Fermer",
+    confirm: "Confirmer",
     loading: "Chargement...",
-    error_loading: "Erreur lors du chargement des équipements",
-    error_saving: "Erreur lors de l'enregistrement de l'équipement",
-    error_deleting: "Erreur lors de la suppression de l'équipement",
-    confirm_delete: "Êtes-vous sûr de vouloir supprimer cet équipement ?",
-    success_created: "Équipement créé avec succès",
-    success_updated: "Équipement mis à jour avec succès",
-    success_deleted: "Équipement supprimé avec succès",
+    error_loading: "Erreur lors du chargement",
+    error_saving: "Erreur lors de l'enregistrement",
+    error_deleting: "Erreur lors de la suppression",
+    confirm_delete: "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    confirm_delete_cascade: "Cela supprimera aussi tous les éléments enfants. Continuer ?",
+    success_created: "Créé avec succès",
+    success_updated: "Mis à jour avec succès",
+    success_deleted: "Supprimé avec succès",
+    previous: "Précédent",
+    next: "Suivant",
+    reload: "Recharger",
+    search: "Rechercher",
+    filter_devices: "Filtrer les équipements",
+    clear_filter: "Effacer le filtre",
+    actions: "Actions",
+    id: "ID",
+    created_at: "Créé le",
+    updated_at: "Mis à jour le",
   },
 };
 
@@ -55,26 +323,64 @@ class I18n {
   private currentLang: string;
 
   constructor() {
-    // Detect browser language, fallback to English
     const browserLang = navigator.language.toLowerCase().split("-")[0];
     this.currentLang = translations[browserLang] ? browserLang : "en";
   }
 
+  /**
+   * Translate a key to the current language.
+   *
+   * @param key - The translation key.
+   * @returns The translated string or the key itself if not found.
+   */
   t(key: string): string {
     return (
-      translations[this.currentLang][key] || translations["en"][key] || key
+      translations[this.currentLang]?.[key] ?? translations["en"]?.[key] ?? key
     );
   }
 
+  /**
+   * Set the current language and notify all subscribers.
+   *
+   * @param lang - The language code (e.g. 'en', 'fr').
+   */
   setLanguage(lang: string): void {
-    if (translations[lang]) {
+    if (translations[lang] && lang !== this.currentLang) {
       this.currentLang = lang;
+      window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
     }
   }
 
+  /**
+   * Get the current language code.
+   */
   getCurrentLanguage(): string {
     return this.currentLang;
   }
 }
 
 export const i18n = new I18n();
+
+/**
+ * Class decorator that triggers a re-render when the language changes.
+ *
+ * Usage: add `@localized` before `@customElement(...)` on any LitElement class.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function localized(constructor: any): void {
+  const origConnected = constructor.prototype.connectedCallback;
+  const origDisconnected = constructor.prototype.disconnectedCallback;
+
+  constructor.prototype.connectedCallback = function (this: any) {
+    origConnected?.call(this);
+    this.__langHandler = () => this.requestUpdate();
+    window.addEventListener('lang-changed', this.__langHandler);
+  };
+
+  constructor.prototype.disconnectedCallback = function (this: any) {
+    if (this.__langHandler) {
+      window.removeEventListener('lang-changed', this.__langHandler);
+    }
+    origDisconnected?.call(this);
+  };
+}
