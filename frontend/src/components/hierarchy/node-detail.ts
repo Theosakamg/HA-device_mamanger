@@ -5,7 +5,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
-import type { HierarchyNode, DmDevice } from "../../types/index";
+import type { HierarchyNode, DmDevice } from "../../types/device";
 import { DeviceClient } from "../../api/device-client";
 import { HomeClient } from "../../api/home-client";
 import { LevelClient } from "../../api/level-client";

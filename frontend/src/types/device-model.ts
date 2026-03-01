@@ -1,11 +1,8 @@
 /**
  * DmDeviceModel - Reference entity for device models/hardware types.
  */
-export interface DmDeviceModel {
-  id?: number;
-  enabled: boolean;
-  name: string;
+import type { NamedEntity } from "./base";
+
+export interface DmDeviceModel extends NamedEntity {
   template?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }

@@ -4,7 +4,7 @@ import csv
 import io
 import logging
 import re
-from typing import Any
+from typing import Any, Dict, Optional
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -131,7 +131,11 @@ class CSVImportService:
                     "default_home_name", "Home"
                 )
                 if home_key not in home_cache:
-                    home_id = await self._find_or_create_home(home_key)
+                    home_id = await self._find_or_create_hierarchy(
+                        "home", "name", home_key,
+                        {"name": home_key, "slug": _sanitize_slug(home_key),
+                         "description": "", "image": ""},
+                    )
                     home_cache[home_key] = home_id
 
                 # 2. Ensure Level exists
@@ -140,8 +144,12 @@ class CSVImportService:
                 level_slug = f"l{level_raw}"
                 level_key = f"{home_cache[home_key]}:{level_slug}"
                 if level_key not in level_cache:
-                    level_id = await self._find_or_create_level(
-                        level_name, level_slug, home_cache[home_key]
+                    level_id = await self._find_or_create_hierarchy(
+                        "level", "slug", level_slug,
+                        {"name": level_name, "slug": level_slug,
+                         "description": "", "image": "",
+                         "home_id": home_cache[home_key]},
+                        parent_id=home_cache[home_key],
                     )
                     level_cache[level_key] = level_id
 
@@ -154,8 +162,12 @@ class CSVImportService:
                     room_name = _titleize(room_slug) or "Unknown"
                 room_key = f"{level_cache[level_key]}:{room_slug}"
                 if room_key not in room_cache:
-                    room_id = await self._find_or_create_room(
-                        room_name, room_slug, level_cache[level_key]
+                    room_id = await self._find_or_create_hierarchy(
+                        "room", "slug", room_slug,
+                        {"name": room_name, "slug": room_slug,
+                         "description": "", "image": "",
+                         "level_id": level_cache[level_key]},
+                        parent_id=level_cache[level_key],
                     )
                     room_cache[room_key] = room_id
 
@@ -285,78 +297,35 @@ class CSVImportService:
         )
         return key in ("enable", "enable-hot")
 
-    async def _find_or_create_home(self, name: str) -> int:
-        """Find an existing home by name or create a new one.
-
-        Args:
-            name: The home name.
-
-        Returns:
-            The home ID.
-        """
-        repo = self.repos["home"]
-        items = await repo.find_all()
-        for item in items:
-            if item.get("name") == name:
-                return item["id"]
-        return await repo.create({
-            "name": name,
-            "slug": _sanitize_slug(name),
-            "description": "",
-            "image": "",
-        })
-
-    async def _find_or_create_level(
-        self, name: str, slug: str, home_id: int
+    async def _find_or_create_hierarchy(
+        self,
+        repo_key: str,
+        match_field: str,
+        match_value: str,
+        create_data: Dict[str, Any],
+        parent_id: Optional[int] = None,
     ) -> int:
-        """Find an existing level by slug within a home, or create one.
+        """Find or create a hierarchical entity (home, level, room).
 
         Args:
-            name: The level display name.
-            slug: The level slug.
-            home_id: The parent home ID.
+            repo_key: The repository key (e.g. "home", "level", "room").
+            match_field: The field to match on (e.g. "name", "slug").
+            match_value: The value to match.
+            create_data: Data dict for creation if not found.
+            parent_id: Optional parent ID for child entities.
 
         Returns:
-            The level ID.
+            The entity ID.
         """
-        repo = self.repos["level"]
-        items = await repo.find_by_parent(home_id)
+        repo = self.repos[repo_key]
+        if parent_id is not None:
+            items = await repo.find_by_parent(parent_id)
+        else:
+            items = await repo.find_all()
         for item in items:
-            if item.get("slug") == slug:
+            if item.get(match_field) == match_value:
                 return item["id"]
-        return await repo.create({
-            "name": name,
-            "slug": slug,
-            "description": "",
-            "image": "",
-            "home_id": home_id,
-        })
-
-    async def _find_or_create_room(
-        self, name: str, slug: str, level_id: int
-    ) -> int:
-        """Find an existing room by slug within a level, or create one.
-
-        Args:
-            name: The room display name.
-            slug: The room slug.
-            level_id: The parent level ID.
-
-        Returns:
-            The room ID.
-        """
-        repo = self.repos["room"]
-        items = await repo.find_by_parent(level_id)
-        for item in items:
-            if item.get("slug") == slug:
-                return item["id"]
-        return await repo.create({
-            "name": name,
-            "slug": slug,
-            "description": "",
-            "image": "",
-            "level_id": level_id,
-        })
+        return await repo.create(create_data)
 
     async def _find_or_create_ref(self, repo: Any, name: str) -> int:
         """Find or create a reference entity by name.

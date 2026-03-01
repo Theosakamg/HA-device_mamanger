@@ -5,7 +5,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
-import type { HierarchyNode, HierarchyTree } from "../../types/index";
+import type { HierarchyNode, HierarchyTree } from "../../types/device";
 import { HierarchyClient } from "../../api/hierarchy-client";
 import type { DmHierarchyTreeComponent } from "./hierarchy-tree";
 import "./hierarchy-tree";

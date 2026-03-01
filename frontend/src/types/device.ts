@@ -49,41 +49,45 @@ export interface ComputedDeviceFields {
 }
 
 /**
- * Allowed device function values.
+ * Allowed device function values (single source of truth).
  */
-export type DeviceFunction =
-  | "button"
-  | "door"
-  | "doorbell"
-  | "heater"
-  | "light"
-  | "motion"
-  | "shutter"
-  | "tv"
-  | "window"
-  | "thermal"
-  | "ir"
-  | "presence"
-  | "energy"
-  | "infra"
-  | "water"
-  | "gaz"
-  | "sensor"
-  | string;
+export const DEVICE_FUNCTIONS = [
+  "button",
+  "door",
+  "doorbell",
+  "heater",
+  "light",
+  "motion",
+  "shutter",
+  "tv",
+  "window",
+  "thermal",
+  "ir",
+  "presence",
+  "energy",
+  "infra",
+  "water",
+  "gaz",
+  "sensor",
+] as const;
+
+export type DeviceFunction = (typeof DEVICE_FUNCTIONS)[number] | string;
 
 /**
- * Allowed firmware values.
+ * Allowed device firmware values (single source of truth).
  */
-export type DeviceFirmware =
-  | "embeded"
-  | "tasmota"
-  | "tuya"
-  | "zigbee"
-  | "na"
-  | "android"
-  | "android-cast"
-  | "wled"
-  | string;
+export const DEVICE_FIRMWARES = [
+  "embeded",
+  "tasmota",
+  "tuya",
+  "zigbee",
+  "na",
+  "android",
+  "android-cast",
+  "wled",
+] as const;
+
+export type DeviceFirmware = (typeof DEVICE_FIRMWARES)[number] | string;
 
 /**
  * Hierarchy tree node for the tree view.

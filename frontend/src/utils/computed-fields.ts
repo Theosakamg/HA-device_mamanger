@@ -6,6 +6,7 @@
  */
 import type { DmDevice, ComputedDeviceFields } from "../types/device";
 import { getSettings } from "../api/settings-client";
+import { toSlug } from "./slug";
 
 // Re-export DmDevice alias so callers migrating from old types can use it.
 export type { DmDevice, ComputedDeviceFields };
@@ -18,11 +19,7 @@ export type { DmDevice, ComputedDeviceFields };
  */
 export function sanitizeSlug(value?: string | null): string {
   if (!value) return "";
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9\-_.]/g, "");
+  return toSlug(value);
 }
 
 /**

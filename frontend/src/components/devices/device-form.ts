@@ -6,13 +6,11 @@ import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { getSettings } from "../../api/settings-client";
-import type {
-  DmDevice,
-  DmRoom,
-  DmDeviceModel,
-  DmDeviceFirmware,
-  DmDeviceFunction,
-} from "../../types/index";
+import type { DmDevice } from "../../types/device";
+import type { DmRoom } from "../../types/room";
+import type { DmDeviceModel } from "../../types/device-model";
+import type { DmDeviceFirmware } from "../../types/device-firmware";
+import type { DmDeviceFunction } from "../../types/device-function";
 import { RoomClient } from "../../api/room-client";
 
 import { DeviceModelClient } from "../../api/device-model-client";

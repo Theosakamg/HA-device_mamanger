@@ -5,10 +5,12 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
-import type { HierarchyTree, HierarchyNode } from "../../types/index";
+import type { HierarchyTree, HierarchyNode } from "../../types/device";
 import { HomeClient } from "../../api/home-client";
 import { LevelClient } from "../../api/level-client";
 import { RoomClient } from "../../api/room-client";
+import { toSlug } from "../../utils/slug";
+import "../shared/confirm-dialog";
 
 @localized
 @customElement("dm-hierarchy-tree")
@@ -89,6 +91,9 @@ export class DmHierarchyTreeComponent extends LitElement {
   @state() private _expandedNodes: Set<string> = new Set();
   @state() private _addingTo: string | null = null;
   @state() private _newName = "";
+  @state() private _confirmOpen = false;
+  @state() private _pendingDeleteType: string | null = null;
+  @state() private _pendingDeleteId: number | null = null;
 
   private static readonly _STORAGE_KEY = "dm_tree_expanded";
 
@@ -143,6 +148,14 @@ export class DmHierarchyTreeComponent extends LitElement {
 
       ${this._addingTo === "home:0" ? this._renderInlineAdd("home") : nothing}
       ${this.tree?.homes.map((home) => this._renderHomeNode(home)) ?? nothing}
+
+      <dm-confirm-dialog
+        .open=${this._confirmOpen}
+        .message=${i18n.t("confirm_delete")}
+        .cascade=${true}
+        @dialog-confirm=${this._onConfirmDelete}
+        @dialog-cancel=${this._onCancelDelete}
+      ></dm-confirm-dialog>
     `;
   }
 
@@ -185,7 +198,7 @@ export class DmHierarchyTreeComponent extends LitElement {
               title="${i18n.t("delete_home")}"
               @click=${(e: Event) => {
                 e.stopPropagation();
-                this._deleteNode("home", home.id);
+                this._requestDelete("home", home.id);
               }}
             >
               🗑
@@ -243,7 +256,7 @@ export class DmHierarchyTreeComponent extends LitElement {
               title="${i18n.t("delete_level")}"
               @click=${(e: Event) => {
                 e.stopPropagation();
-                this._deleteNode("level", level.id);
+                this._requestDelete("level", level.id);
               }}
             >
               🗑
@@ -280,7 +293,7 @@ export class DmHierarchyTreeComponent extends LitElement {
             title="${i18n.t("delete_room")}"
             @click=${(e: Event) => {
               e.stopPropagation();
-              this._deleteNode("room", room.id);
+              this._requestDelete("room", room.id);
             }}
           >
             🗑
@@ -380,17 +393,9 @@ export class DmHierarchyTreeComponent extends LitElement {
     this._newName = "";
   }
 
-  private _slugify(name: string): string {
-    return name
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9\-_.]/g, "");
-  }
-
   private async _confirmAdd(type: string) {
     if (!this._newName.trim()) return;
-    const slug = this._slugify(this._newName);
+    const slug = toSlug(this._newName);
     const parentId = parseInt(this._addingTo?.split(":")[1] ?? "0", 10);
     try {
       if (type === "home") {
@@ -417,8 +422,19 @@ export class DmHierarchyTreeComponent extends LitElement {
     }
   }
 
-  private async _deleteNode(type: string, id: number) {
-    if (!confirm(i18n.t("confirm_delete_cascade"))) return;
+  private _requestDelete(type: string, id: number) {
+    this._pendingDeleteType = type;
+    this._pendingDeleteId = id;
+    this._confirmOpen = true;
+  }
+
+  private async _onConfirmDelete() {
+    this._confirmOpen = false;
+    const type = this._pendingDeleteType;
+    const id = this._pendingDeleteId;
+    this._pendingDeleteType = null;
+    this._pendingDeleteId = null;
+    if (!type || id == null) return;
     try {
       if (type === "home") await this._homeClient.remove(id);
       else if (type === "level") await this._levelClient.remove(id);
@@ -429,5 +445,11 @@ export class DmHierarchyTreeComponent extends LitElement {
     } catch (err) {
       console.error(`Failed to delete ${type}:`, err);
     }
+  }
+
+  private _onCancelDelete() {
+    this._confirmOpen = false;
+    this._pendingDeleteType = null;
+    this._pendingDeleteId = null;
   }
 }

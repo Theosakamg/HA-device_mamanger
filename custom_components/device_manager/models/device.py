@@ -9,37 +9,12 @@ populated by repository JOIN queries and are **not** persisted.
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
-import re
-
-
-def _to_camel_case(snake_str: str) -> str:
-    """Convert a snake_case string to camelCase.
-
-    Args:
-        snake_str: The snake_case string to convert.
-
-    Returns:
-        The camelCase equivalent.
-    """
-    parts = snake_str.split("_")
-    return parts[0] + "".join(p.capitalize() for p in parts[1:])
-
-
-def _to_snake_case(camel_str: str) -> str:
-    """Convert a camelCase string to snake_case.
-
-    Args:
-        camel_str: The camelCase string to convert.
-
-    Returns:
-        The snake_case equivalent.
-    """
-    s = re.sub(r"([A-Z])", r"_\1", camel_str).lower()
-    return s.lstrip("_")
+from ..utils.case_convert import to_camel_case, to_snake_case
+from .base import SerializableMixin
 
 
 @dataclass
-class DmDevice:
+class DmDevice(SerializableMixin):
     """Dataclass representing a physical device.
 
     Attributes:
@@ -95,46 +70,7 @@ class DmDevice:
     # Serialization helpers
     # ------------------------------------------------------------------
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Serialize the instance to a dict with snake_case keys.
-
-        Fields starting with ``_`` (transient) are excluded.  The ``id`` key
-        is omitted when its value is None.
-
-        Returns:
-            A dictionary representation suitable for persistence.
-        """
-        data: Dict[str, Any] = {
-            "mac": self.mac,
-            "ip": self.ip,
-            "enabled": self.enabled,
-            "position_name": self.position_name,
-            "position_slug": self.position_slug,
-            "mode": self.mode,
-            "interlock": self.interlock,
-            "ha_device_class": self.ha_device_class,
-            "extra": self.extra,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-            "room_id": self.room_id,
-            "model_id": self.model_id,
-            "firmware_id": self.firmware_id,
-            "function_id": self.function_id,
-            "target_id": self.target_id,
-        }
-        if self.id is not None:
-            data["id"] = self.id
-        return data
-
-    def to_camel_dict(self) -> Dict[str, Any]:
-        """Serialize the instance to a dict with camelCase keys.
-
-        Suitable for JSON API responses.  Transient fields are excluded.
-
-        Returns:
-            A dictionary with camelCase keys.
-        """
-        return {_to_camel_case(k): v for k, v in self.to_dict().items()}
+    # to_dict() and to_camel_dict() are inherited from SerializableMixin.
 
     def to_camel_dict_full(
         self,
@@ -167,7 +103,7 @@ class DmDevice:
             "firmware_name": self._firmware_name,
         }
         for key, value in transient.items():
-            data[_to_camel_case(key)] = value
+            data[to_camel_case(key)] = value
 
         # Extract configurable prefixes/suffixes from settings.
         s = settings or {}
@@ -279,7 +215,7 @@ class DmDevice:
         """
         normalized: Dict[str, Any] = {}
         for key, value in data.items():
-            normalized[_to_snake_case(key)] = value
+            normalized[to_snake_case(key)] = value
 
         # Normalize empty-string ip to None (DB expects NULL for missing IP)
         raw_ip = normalized.get("ip")

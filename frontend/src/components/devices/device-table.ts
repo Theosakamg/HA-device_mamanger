@@ -7,9 +7,14 @@ import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { DeviceClient } from "../../api/device-client";
 import { getSettings } from "../../api/settings-client";
-import type { DmDevice } from "../../types/index";
-
-type SortDir = "asc" | "desc" | null;
+import type { DmDevice } from "../../types/device";
+import "../shared/confirm-dialog";
+import {
+  SortState,
+  toggleSort,
+  sortIndicator,
+  sortItems,
+} from "../../utils/sorting";
 
 /** Column definition for device table sorting. */
 interface DeviceColumn {
@@ -97,8 +102,9 @@ export class DmDeviceTable extends LitElement {
   @state() private _showForm = false;
   @state() private _showDeploy = false;
   @state() private _editingDevice: DmDevice | null = null;
-  @state() private _sortKey: string | null = null;
-  @state() private _sortDir: SortDir = null;
+  @state() private _sort: SortState = { key: null, dir: null };
+  @state() private _confirmOpen = false;
+  @state() private _pendingDeleteDevice: DmDevice | null = null;
 
   private _client = new DeviceClient();
 
@@ -177,45 +183,17 @@ export class DmDeviceTable extends LitElement {
 
   /** Return filtered items sorted by current sort state. */
   private get _sortedDevices(): DmDevice[] {
-    if (!this._sortKey || !this._sortDir) return this._filteredDevices;
-    const key = this._sortKey as keyof DmDevice;
-    const dir = this._sortDir === "asc" ? 1 : -1;
-    return [...this._filteredDevices].sort((a, b) => {
-      const va = a[key];
-      const vb = b[key];
-      if (va == null && vb == null) return 0;
-      if (va == null) return dir;
-      if (vb == null) return -dir;
-      if (typeof va === "boolean" && typeof vb === "boolean") {
-        return (Number(va) - Number(vb)) * dir;
-      }
-      if (typeof va === "number" && typeof vb === "number") {
-        return (va - vb) * dir;
-      }
-      return String(va).localeCompare(String(vb)) * dir;
-    });
+    return sortItems(this._filteredDevices, this._sort);
   }
 
   /** Toggle sort on a column. */
   private _toggleSort(key: string) {
-    if (this._sortKey === key) {
-      if (this._sortDir === "asc") this._sortDir = "desc";
-      else {
-        this._sortKey = null;
-        this._sortDir = null;
-      }
-    } else {
-      this._sortKey = key;
-      this._sortDir = "asc";
-    }
+    this._sort = toggleSort(this._sort, key);
   }
 
   /** Sort indicator for a column header. */
   private _sortIcon(key: string): string {
-    if (this._sortKey === key) {
-      return this._sortDir === "asc" ? "▲" : "▼";
-    }
-    return "⇅";
+    return sortIndicator(this._sort, key);
   }
 
   render() {
@@ -271,7 +249,7 @@ export class DmDeviceTable extends LitElement {
                   ${this._columns.map(
                     (col) => html`
                       <th
-                        class="sortable ${this._sortKey === col.key
+                        class="sortable ${this._sort.key === col.key
                           ? "sort-active"
                           : ""}"
                         @click=${() => this._toggleSort(col.key)}
@@ -324,7 +302,7 @@ export class DmDeviceTable extends LitElement {
                         <button
                           class="btn-icon"
                           title="${i18n.t("delete")}"
-                          @click=${() => this._delete(device)}
+                          @click=${() => this._requestDelete(device)}
                         >
                           🗑️
                         </button>
@@ -357,6 +335,13 @@ export class DmDeviceTable extends LitElement {
             ></dm-deploy-modal>
           `
         : nothing}
+
+      <dm-confirm-dialog
+        .open=${this._confirmOpen}
+        .message=${i18n.t("confirm_delete")}
+        @dialog-confirm=${this._onConfirmDelete}
+        @dialog-cancel=${this._onCancelDelete}
+      ></dm-confirm-dialog>
     `;
   }
 
@@ -385,14 +370,26 @@ export class DmDeviceTable extends LitElement {
     }
   }
 
-  private async _delete(device: DmDevice) {
-    if (!confirm(i18n.t("confirm_delete"))) return;
+  private _requestDelete(device: DmDevice) {
+    this._pendingDeleteDevice = device;
+    this._confirmOpen = true;
+  }
+
+  private async _onConfirmDelete() {
+    this._confirmOpen = false;
+    if (!this._pendingDeleteDevice) return;
     try {
-      await this._client.remove(device.id!);
+      await this._client.remove(this._pendingDeleteDevice.id!);
+      this._pendingDeleteDevice = null;
       await this._load();
     } catch (err) {
       console.error("Failed to delete device:", err);
     }
+  }
+
+  private _onCancelDelete() {
+    this._confirmOpen = false;
+    this._pendingDeleteDevice = null;
   }
 
   /** Build a proper URL from an IP value (handles numeric-only last octets and existing protocols). */

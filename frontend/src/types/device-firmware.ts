@@ -1,10 +1,6 @@
 /**
  * DmDeviceFirmware - Reference entity for firmware types.
  */
-export interface DmDeviceFirmware {
-  id?: number;
-  enabled: boolean;
-  name: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { NamedEntity } from "./base";
+
+export interface DmDeviceFirmware extends NamedEntity {}

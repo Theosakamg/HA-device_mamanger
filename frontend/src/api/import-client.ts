@@ -1,7 +1,7 @@
 /**
  * API client for CSV import operations.
  */
-import type { ImportResult } from "../types/index";
+import type { ImportResult } from "../types/device";
 import { BaseClient } from "./base-client";
 
 export class ImportClient extends BaseClient {

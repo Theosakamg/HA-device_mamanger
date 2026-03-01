@@ -5,6 +5,13 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
+import {
+  SortState,
+  toggleSort,
+  sortIndicator,
+  sortItems,
+} from "../../utils/sorting";
+import "./confirm-dialog";
 
 export interface CrudColumn {
   key: string;
@@ -22,8 +29,6 @@ export interface CrudConfig {
   /** Custom empty-state message (i18n key or literal). Falls back to 'no_items'. */
   emptyMessage?: string;
 }
-
-type SortDirection = "asc" | "desc" | null;
 
 @localized
 @customElement("dm-crud-table")
@@ -82,50 +87,23 @@ export class DmCrudTable extends LitElement {
   @state() private _showForm = false;
   @state() private _editingItem: Record<string, unknown> | null = null;
   @state() private _formData: Record<string, unknown> = {};
-  @state() private _sortKey: string | null = null;
-  @state() private _sortDir: SortDirection = null;
+  @state() private _sort: SortState = { key: null, dir: null };
+  @state() private _confirmOpen = false;
+  @state() private _pendingDeleteItem: Record<string, unknown> | null = null;
 
   /** Return items sorted according to current sort state. */
   private get _sortedItems(): Record<string, unknown>[] {
-    if (!this._sortKey || !this._sortDir) return this.items;
-    const key = this._sortKey;
-    const dir = this._sortDir === "asc" ? 1 : -1;
-    return [...this.items].sort((a, b) => {
-      const va = a[key];
-      const vb = b[key];
-      if (va == null && vb == null) return 0;
-      if (va == null) return dir;
-      if (vb == null) return -dir;
-      if (typeof va === "boolean" && typeof vb === "boolean") {
-        return (Number(va) - Number(vb)) * dir;
-      }
-      if (typeof va === "number" && typeof vb === "number") {
-        return (va - vb) * dir;
-      }
-      return String(va).localeCompare(String(vb)) * dir;
-    });
+    return sortItems(this.items, this._sort);
   }
 
   /** Toggle sort on a column key. */
   private _toggleSort(key: string) {
-    if (this._sortKey === key) {
-      if (this._sortDir === "asc") this._sortDir = "desc";
-      else if (this._sortDir === "desc") {
-        this._sortKey = null;
-        this._sortDir = null;
-      }
-    } else {
-      this._sortKey = key;
-      this._sortDir = "asc";
-    }
+    this._sort = toggleSort(this._sort, key);
   }
 
   /** Render sort indicator arrow for a column. */
   private _sortIndicator(key: string) {
-    if (this._sortKey === key) {
-      return this._sortDir === "asc" ? "▲" : "▼";
-    }
-    return "⇅";
+    return sortIndicator(this._sort, key);
   }
 
   render() {
@@ -153,7 +131,7 @@ export class DmCrudTable extends LitElement {
               <thead>
                 <tr>
                   <th
-                    class="sortable ${this._sortKey === "id"
+                    class="sortable ${this._sort.key === "id"
                       ? "sort-active"
                       : ""}"
                     @click=${() => this._toggleSort("id")}
@@ -165,7 +143,7 @@ export class DmCrudTable extends LitElement {
                   ${this.config.columns.map(
                     (col) =>
                       html` <th
-                        class="sortable ${this._sortKey === col.key
+                        class="sortable ${this._sort.key === col.key
                           ? "sort-active"
                           : ""}"
                         @click=${() => this._toggleSort(col.key)}
@@ -219,7 +197,7 @@ export class DmCrudTable extends LitElement {
                         <button
                           class="btn-icon"
                           title="${i18n.t("delete")}"
-                          @click=${() => this._confirmDelete(item)}
+                          @click=${() => this._requestDelete(item)}
                         >
                           🗑️
                         </button>
@@ -231,6 +209,13 @@ export class DmCrudTable extends LitElement {
             </table>
           `
         : nothing}
+      <dm-confirm-dialog
+        .open=${this._confirmOpen}
+        .message=${i18n.t("confirm_delete")}
+        @dialog-confirm=${this._onConfirmDelete}
+        @dialog-cancel=${this._onCancelDelete}
+      ></dm-confirm-dialog>
+
       ${this._showForm ? this._renderForm() : nothing}
     `;
   }
@@ -340,16 +325,27 @@ export class DmCrudTable extends LitElement {
     this._closeForm();
   }
 
-  private _confirmDelete(item: Record<string, unknown>) {
-    if (confirm(i18n.t("confirm_delete"))) {
-      this.dispatchEvent(
-        new CustomEvent("crud-delete", {
-          detail: { id: item.id },
-          bubbles: true,
-          composed: true,
-        })
-      );
-    }
+  private _requestDelete(item: Record<string, unknown>) {
+    this._pendingDeleteItem = item;
+    this._confirmOpen = true;
+  }
+
+  private _onConfirmDelete() {
+    this._confirmOpen = false;
+    if (!this._pendingDeleteItem) return;
+    this.dispatchEvent(
+      new CustomEvent("crud-delete", {
+        detail: { id: this._pendingDeleteItem.id },
+        bubbles: true,
+        composed: true,
+      })
+    );
+    this._pendingDeleteItem = null;
+  }
+
+  private _onCancelDelete() {
+    this._confirmOpen = false;
+    this._pendingDeleteItem = null;
   }
 
   /** Navigate to devices view filtered by this item's name. */

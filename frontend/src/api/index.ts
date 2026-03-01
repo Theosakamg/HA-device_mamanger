@@ -1,4 +1,5 @@
 export { BaseClient } from "./base-client";
+export { CrudClient } from "./crud-client";
 export { HomeClient } from "./home-client";
 export { LevelClient } from "./level-client";
 export { RoomClient } from "./room-client";

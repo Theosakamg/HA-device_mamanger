@@ -1,7 +1,7 @@
 /**
  * API client for hierarchy tree operations.
  */
-import type { HierarchyTree } from "../types/index";
+import type { HierarchyTree } from "../types/device";
 import { BaseClient } from "./base-client";
 
 export class HierarchyClient extends BaseClient {

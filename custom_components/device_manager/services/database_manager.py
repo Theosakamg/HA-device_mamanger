@@ -8,6 +8,40 @@ import aiosqlite
 
 _LOGGER = logging.getLogger(__name__)
 
+_DEVICES_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mac TEXT UNIQUE DEFAULT '',
+        ip TEXT UNIQUE DEFAULT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        position_name TEXT DEFAULT '',
+        position_slug TEXT DEFAULT '',
+        mode TEXT DEFAULT '',
+        interlock TEXT DEFAULT '',
+        ha_device_class TEXT DEFAULT '',
+        extra TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        room_id INTEGER NOT NULL,
+        model_id INTEGER NOT NULL,
+        firmware_id INTEGER NOT NULL,
+        function_id INTEGER NOT NULL,
+        target_id INTEGER,
+        FOREIGN KEY (room_id) REFERENCES dm_rooms(id)
+            ON DELETE CASCADE,
+        FOREIGN KEY (model_id) REFERENCES dm_device_models(id)
+            ON DELETE RESTRICT,
+        FOREIGN KEY (firmware_id)
+            REFERENCES dm_device_firmwares(id)
+            ON DELETE RESTRICT,
+        FOREIGN KEY (function_id)
+            REFERENCES dm_device_functions(id)
+            ON DELETE RESTRICT,
+        FOREIGN KEY (target_id) REFERENCES dm_devices(id)
+            ON DELETE SET NULL
+    )
+"""
+
 
 class DatabaseManager:
     """Manage the SQLite database lifecycle for Device Manager.
@@ -136,39 +170,7 @@ class DatabaseManager:
             """)
 
             # 7. Devices
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_devices (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    mac TEXT UNIQUE DEFAULT '',
-                    ip TEXT UNIQUE DEFAULT NULL,
-                    enabled INTEGER NOT NULL DEFAULT 1,
-                    position_name TEXT DEFAULT '',
-                    position_slug TEXT DEFAULT '',
-                    mode TEXT DEFAULT '',
-                    interlock TEXT DEFAULT '',
-                    ha_device_class TEXT DEFAULT '',
-                    extra TEXT DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    room_id INTEGER NOT NULL,
-                    model_id INTEGER NOT NULL,
-                    firmware_id INTEGER NOT NULL,
-                    function_id INTEGER NOT NULL,
-                    target_id INTEGER,
-                    FOREIGN KEY (room_id) REFERENCES dm_rooms(id)
-                        ON DELETE CASCADE,
-                    FOREIGN KEY (model_id) REFERENCES dm_device_models(id)
-                        ON DELETE RESTRICT,
-                    FOREIGN KEY (firmware_id)
-                        REFERENCES dm_device_firmwares(id)
-                        ON DELETE RESTRICT,
-                    FOREIGN KEY (function_id)
-                        REFERENCES dm_device_functions(id)
-                        ON DELETE RESTRICT,
-                    FOREIGN KEY (target_id) REFERENCES dm_devices(id)
-                        ON DELETE SET NULL
-                )
-            """)
+            await db.execute(_DEVICES_DDL)
 
             # 8. Settings (key/value pairs for user-configurable constants)
             await db.execute("""
@@ -225,44 +227,7 @@ class DatabaseManager:
                     "ALTER TABLE dm_devices"
                     " RENAME TO _dm_devices_old"
                 )
-                await db.execute("""
-                    CREATE TABLE dm_devices (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        mac TEXT UNIQUE DEFAULT '',
-                        ip TEXT UNIQUE DEFAULT NULL,
-                        enabled INTEGER NOT NULL DEFAULT 1,
-                        position_name TEXT DEFAULT '',
-                        position_slug TEXT DEFAULT '',
-                        mode TEXT DEFAULT '',
-                        interlock TEXT DEFAULT '',
-                        ha_device_class TEXT DEFAULT '',
-                        extra TEXT DEFAULT '',
-                        created_at TIMESTAMP
-                            DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP
-                            DEFAULT CURRENT_TIMESTAMP,
-                        room_id INTEGER NOT NULL,
-                        model_id INTEGER NOT NULL,
-                        firmware_id INTEGER NOT NULL,
-                        function_id INTEGER NOT NULL,
-                        target_id INTEGER,
-                        FOREIGN KEY (room_id)
-                            REFERENCES dm_rooms(id)
-                            ON DELETE CASCADE,
-                        FOREIGN KEY (model_id)
-                            REFERENCES dm_device_models(id)
-                            ON DELETE RESTRICT,
-                        FOREIGN KEY (firmware_id)
-                            REFERENCES dm_device_firmwares(id)
-                            ON DELETE RESTRICT,
-                        FOREIGN KEY (function_id)
-                            REFERENCES dm_device_functions(id)
-                            ON DELETE RESTRICT,
-                        FOREIGN KEY (target_id)
-                            REFERENCES dm_devices(id)
-                            ON DELETE SET NULL
-                    )
-                """)
+                await db.execute(_DEVICES_DDL)
                 await db.execute("""
                     INSERT INTO dm_devices
                     SELECT

@@ -6,7 +6,7 @@ import { customElement, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { ImportClient } from "../../api/import-client";
-import type { ImportResult } from "../../types/index";
+import type { ImportResult } from "../../types/device";
 
 @localized
 @customElement("dm-import-view")
@@ -47,54 +47,6 @@ export class DmImportView extends LitElement {
       .result-card {
         margin-top: 24px;
       }
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 12px;
-        margin: 16px 0;
-      }
-      .stat-box {
-        text-align: center;
-        padding: 16px;
-        border-radius: 8px;
-        background: #f5f5f5;
-      }
-      .stat-value {
-        font-size: 24px;
-        font-weight: bold;
-      }
-      .stat-label {
-        font-size: 12px;
-        color: var(--dm-text-secondary);
-        margin-top: 4px;
-      }
-      .stat-box.created {
-        background: #e8f5e9;
-        color: #2e7d32;
-      }
-      .stat-box.updated {
-        background: #e3f2fd;
-        color: #1565c0;
-      }
-      .stat-box.skipped {
-        background: #fff3e0;
-        color: #ef6c00;
-      }
-      .stat-box.errors {
-        background: #fce4ec;
-        color: #c62828;
-        cursor: pointer;
-      }
-      .stat-box.errors:hover {
-        background: #f8bbd0;
-      }
-      .log-table {
-        max-height: 300px;
-        overflow-y: auto;
-      }
-      .log-table table {
-        font-size: 13px;
-      }
       .log-status {
         padding: 2px 8px;
         border-radius: 12px;
@@ -116,47 +68,6 @@ export class DmImportView extends LitElement {
       .log-status-error {
         background: #fce4ec;
         color: #c62828;
-      }
-      .error-panel {
-        margin-top: 16px;
-        border: 1px solid #e57373;
-        border-radius: 8px;
-        background: #ffebee;
-        overflow: hidden;
-      }
-      .error-panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        background: #ef9a9a;
-        color: #b71c1c;
-        font-weight: 600;
-        cursor: pointer;
-        user-select: none;
-      }
-      .error-panel-header:hover {
-        background: #e57373;
-      }
-      .error-panel-body {
-        max-height: 300px;
-        overflow-y: auto;
-        padding: 0;
-      }
-      .error-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-      .error-list li {
-        padding: 8px 16px;
-        border-bottom: 1px solid #ffcdd2;
-        font-size: 13px;
-        color: #b71c1c;
-        font-family: monospace;
-      }
-      .error-list li:last-child {
-        border-bottom: none;
       }
       .error-row-num {
         font-weight: bold;
