@@ -35,14 +35,62 @@ export class DmSettingsView extends LitElement {
         max-width: 1000px;
         margin: 0 auto;
       }
+      .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(0, 0, 0, 0.12);
+        color: var(--secondary-text-color, #666);
+        margin-left: 6px;
+      }
+      .tab.active .tab-badge {
+        background: var(--primary-color, #03a9f4);
+        color: #fff;
+      }
     `,
   ];
 
   @state() private _activeTab: SettingsTab = "models";
+  @state() private _modelCount = 0;
+  @state() private _firmwareCount = 0;
+  @state() private _functionCount = 0;
+
+  async connectedCallback() {
+    super.connectedCallback();
+    await this._loadCounts();
+  }
+
+  private async _loadCounts() {
+    try {
+      const [models, firmwares, functions] = await Promise.all([
+        _modelClient.getAll(),
+        _firmwareClient.getAll(),
+        _functionClient.getAll(),
+      ]);
+      this._modelCount = models.length;
+      this._firmwareCount = firmwares.length;
+      this._functionCount = functions.length;
+    } catch {
+      // Counts stay at 0 on error
+    }
+  }
+
+  /** Refresh counts when a crud-tab saves or deletes. */
+  private async _onCrudChange() {
+    // Small delay to let the crud-tab reload first
+    setTimeout(() => this._loadCounts(), 300);
+  }
 
   private get _modelConfig(): CrudConfig {
     return {
       entityName: i18n.t("tab_models"),
+      description: i18n.t("tab_models_desc"),
       filterDevicesKey: "name",
       columns: [
         {
@@ -70,6 +118,7 @@ export class DmSettingsView extends LitElement {
   private get _firmwareConfig(): CrudConfig {
     return {
       entityName: i18n.t("tab_firmwares"),
+      description: i18n.t("tab_firmwares_desc"),
       filterDevicesKey: "name",
       columns: [
         {
@@ -91,6 +140,7 @@ export class DmSettingsView extends LitElement {
   private get _functionConfig(): CrudConfig {
     return {
       entityName: i18n.t("tab_functions"),
+      description: i18n.t("tab_functions_desc"),
       filterDevicesKey: "name",
       columns: [
         {
@@ -122,6 +172,7 @@ export class DmSettingsView extends LitElement {
             }}
           >
             ${i18n.t("tab_models")}
+            <span class="tab-badge">${this._modelCount}</span>
           </button>
           <button
             class="tab ${this._activeTab === "firmwares" ? "active" : ""}"
@@ -130,6 +181,7 @@ export class DmSettingsView extends LitElement {
             }}
           >
             ${i18n.t("tab_firmwares")}
+            <span class="tab-badge">${this._firmwareCount}</span>
           </button>
           <button
             class="tab ${this._activeTab === "functions" ? "active" : ""}"
@@ -138,12 +190,15 @@ export class DmSettingsView extends LitElement {
             }}
           >
             ${i18n.t("tab_functions")}
+            <span class="tab-badge">${this._functionCount}</span>
           </button>
         </div>
 
         <div
           @crud-filter=${(e: CustomEvent) =>
             navigateToDevicesWithFilter(e.detail.value)}
+          @crud-save=${() => this._onCrudChange()}
+          @crud-delete=${() => this._onCrudChange()}
         >
           ${this._activeTab === "models"
             ? html`<dm-crud-tab

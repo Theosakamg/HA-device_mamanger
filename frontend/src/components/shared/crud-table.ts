@@ -3,6 +3,8 @@
  */
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { marked } from "marked";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import {
@@ -24,6 +26,8 @@ export interface CrudColumn {
 export interface CrudConfig {
   columns: CrudColumn[];
   entityName: string;
+  /** Optional description displayed above the table toolbar. */
+  description?: string;
   /** Column key whose value is used for the "filter devices" action button. */
   filterDevicesKey?: string;
   /** Custom empty-state message (i18n key or literal). Falls back to 'no_items'. */
@@ -44,9 +48,36 @@ export class DmCrudTable extends LitElement {
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .toolbar h3 {
         margin: 0;
+      }
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .search-input {
+        padding: 6px 10px;
+        border: 1px solid var(--divider-color, #e0e0e0);
+        border-radius: 4px;
+        font-size: 13px;
+        outline: none;
+        min-width: 180px;
+        transition: border-color 0.15s;
+      }
+      .search-input:focus {
+        border-color: var(--primary-color, #03a9f4);
+      }
+      .search-input::placeholder {
+        color: var(--secondary-text-color, #999);
+      }
+      .item-count {
+        font-size: 12px;
+        color: var(--secondary-text-color, #888);
+        white-space: nowrap;
       }
       .enabled-cell {
         display: flex;
@@ -67,6 +98,80 @@ export class DmCrudTable extends LitElement {
       }
       th.sortable:hover {
         background: rgba(0, 0, 0, 0.04);
+      }
+      .tab-description-wrapper {
+        margin: 0 0 16px 0;
+        background: var(--secondary-background-color, #f5f5f5);
+        border-left: 3px solid var(--primary-color, #03a9f4);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .tab-description-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .tab-description-header:hover {
+        background: rgba(0, 0, 0, 0.03);
+      }
+      .tab-description-summary {
+        color: var(--secondary-text-color, #666);
+        font-size: 13px;
+        line-height: 1.4;
+        margin: 0;
+        flex: 1;
+      }
+      .tab-description-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 0 0 12px;
+        color: var(--secondary-text-color, #888);
+        transition: transform 0.2s;
+        line-height: 1;
+      }
+      .tab-description-toggle.expanded {
+        transform: rotate(180deg);
+      }
+      .tab-description-body {
+        color: var(--secondary-text-color, #666);
+        font-size: 13px;
+        line-height: 1.6;
+        padding: 0 16px 12px 16px;
+        border-top: 1px solid var(--divider-color, #e0e0e0);
+      }
+      .tab-description-body p {
+        margin: 8px 0;
+      }
+      .tab-description-body p:first-child {
+        margin-top: 8px;
+      }
+      .tab-description-body p:last-child {
+        margin-bottom: 0;
+      }
+      .tab-description-body strong {
+        color: var(--primary-text-color, #333);
+      }
+      .tab-description-body em {
+        font-style: italic;
+      }
+      .tab-description-body code {
+        background: var(--divider-color, #e0e0e0);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+      .tab-description-body ul {
+        margin: 6px 0;
+        padding-left: 20px;
+      }
+      .tab-description-body li {
+        margin-bottom: 3px;
       }
       .sort-indicator {
         display: inline-block;
@@ -90,10 +195,62 @@ export class DmCrudTable extends LitElement {
   @state() private _sort: SortState = { key: null, dir: null };
   @state() private _confirmOpen = false;
   @state() private _pendingDeleteItem: Record<string, unknown> | null = null;
+  @state() private _descExpanded = false;
+  @state() private _searchQuery = "";
+
+  /** Storage key for the description collapsed state. */
+  private get _descStorageKey(): string {
+    return `dm-desc-expanded-${this.config?.entityName ?? "default"}`;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._descExpanded =
+      localStorage.getItem(this._descStorageKey) !== "collapsed";
+  }
+
+  private _toggleDescription() {
+    this._descExpanded = !this._descExpanded;
+    localStorage.setItem(
+      this._descStorageKey,
+      this._descExpanded ? "expanded" : "collapsed"
+    );
+  }
+
+  /** Extract the first sentence from the description for the collapsed view. */
+  private _firstSentence(desc: string): string {
+    const firstLine = desc.split("\n")[0];
+    const match = firstLine.match(/^(.+?[.!?])\s/);
+    return match ? match[1] : firstLine;
+  }
+
+  /** Return description without the first line (shown in the header). */
+  private _restOfDescription(desc: string): string {
+    const lines = desc.split("\n");
+    // Remove the first line and any immediately following blank line
+    const rest = lines.slice(1);
+    while (rest.length > 0 && rest[0].trim() === "") {
+      rest.shift();
+    }
+    return rest.join("\n");
+  }
 
   /** Return items sorted according to current sort state. */
   private get _sortedItems(): Record<string, unknown>[] {
-    return sortItems(this.items, this._sort);
+    return sortItems(this._filteredItems, this._sort);
+  }
+
+  /** Return items filtered by search query. */
+  private get _filteredItems(): Record<string, unknown>[] {
+    const q = this._searchQuery.toLowerCase().trim();
+    if (!q) return this.items;
+    return this.items.filter((item) =>
+      this.config.columns.some((col) => {
+        const val = item[col.key];
+        if (val == null) return false;
+        return String(val).toLowerCase().includes(q);
+      })
+    );
   }
 
   /** Toggle sort on a column key. */
@@ -108,11 +265,58 @@ export class DmCrudTable extends LitElement {
 
   render() {
     return html`
+      ${this.config?.description
+        ? html`<div class="tab-description-wrapper">
+            <div
+              class="tab-description-header"
+              @click=${this._toggleDescription}
+            >
+              <span class="tab-description-summary">
+                ${unsafeHTML(
+                  marked.parseInline(
+                    this._firstSentence(this.config.description)
+                  ) as string
+                )}
+              </span>
+              <span
+                class="tab-description-toggle ${this._descExpanded
+                  ? "expanded"
+                  : ""}"
+                >▼</span
+              >
+            </div>
+            ${this._descExpanded
+              ? html`<div class="tab-description-body">
+                  ${unsafeHTML(
+                    marked.parse(
+                      this._restOfDescription(this.config.description)
+                    ) as string
+                  )}
+                </div>`
+              : nothing}
+          </div>`
+        : nothing}
       <div class="toolbar">
         <h3>${this.config?.entityName ?? ""}</h3>
-        <button class="btn btn-primary" @click=${this._openCreate}>
-          + ${i18n.t("add")}
-        </button>
+        <div class="toolbar-right">
+          <input
+            class="search-input"
+            type="text"
+            placeholder="${i18n.t("search")}..."
+            .value=${this._searchQuery}
+            @input=${(e: Event) => {
+              this._searchQuery = (e.target as HTMLInputElement).value;
+            }}
+          />
+          <span class="item-count">
+            ${this._filteredItems.length !== this.items.length
+              ? `${this._filteredItems.length} / ${this.items.length}`
+              : this.items.length}
+          </span>
+          <button class="btn btn-primary" @click=${this._openCreate}>
+            + ${i18n.t("add")}
+          </button>
+        </div>
       </div>
 
       ${this.loading

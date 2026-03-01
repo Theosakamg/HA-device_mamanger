@@ -16,9 +16,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "lit": "^3.2.1"
+    "lit": "^3.2.1",
+    "marked": "^17.0.3"
   },
   "devDependencies": {
+    "@types/marked": "^5.0.2",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
