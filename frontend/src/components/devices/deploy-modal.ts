@@ -85,8 +85,8 @@ export class DmDeployModal extends LitElement {
         border-radius: 12px;
         font-size: 11px;
         font-weight: 500;
-        background: #e3f2fd;
-        color: #1565c0;
+        background: #e0e0e0;
+        color: var(--dm-text-secondary);
       }
 
       .empty-fw {

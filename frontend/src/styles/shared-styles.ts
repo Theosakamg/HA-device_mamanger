@@ -193,8 +193,8 @@ export const sharedStyles = css`
     border-radius: 10px;
     font-size: 11px;
     font-weight: 600;
-    background: var(--dm-primary);
-    color: white;
+    background: #e0e0e0;
+    color: var(--dm-text-secondary);
   }
 
   .badge-success {
