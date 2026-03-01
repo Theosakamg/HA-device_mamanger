@@ -9,6 +9,18 @@ from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+# Whitelist of tables that can be cleaned — protects against injection
+# if the table list were ever made dynamic.
+_CLEANABLE_TABLES = (
+    "dm_devices",
+    "dm_rooms",
+    "dm_levels",
+    "dm_homes",
+    "dm_device_models",
+    "dm_device_firmwares",
+    "dm_device_functions",
+)
+
 
 class MaintenanceCleanDBAPIView(HomeAssistantView):
     """API endpoint to wipe all data from the database."""
@@ -44,24 +56,15 @@ class MaintenanceCleanDBAPIView(HomeAssistantView):
             conn = await db_mgr.get_connection()
 
             # Delete in order respecting FK constraints
-            tables = [
-                "dm_devices",
-                "dm_rooms",
-                "dm_levels",
-                "dm_homes",
-                "dm_device_models",
-                "dm_device_firmwares",
-                "dm_device_functions",
-            ]
             counts: dict[str, int] = {}
-            for table in tables:
+            for table in _CLEANABLE_TABLES:
                 cursor = await conn.execute(
-                    f"DELETE FROM {table}"  # noqa: S608
+                    f"DELETE FROM {table}"  # noqa: S608 — table from whitelist
                 )
                 counts[table] = cursor.rowcount
 
             # Reset autoincrement counters (sqlite_sequence)
-            for table in tables:
+            for table in _CLEANABLE_TABLES:
                 await conn.execute(
                     "DELETE FROM sqlite_sequence WHERE name = ?",
                     (table,),
@@ -77,10 +80,8 @@ class MaintenanceCleanDBAPIView(HomeAssistantView):
                 "deleted": counts,
             })
         except Exception as err:
-            _LOGGER.error(
-                "Database clean failed: %s", err
-            )
+            _LOGGER.exception("Database clean failed")
             return self.json(
-                {"error": str(err)},
+                {"error": "Database clean failed. Check server logs."},
                 status_code=500,
             )

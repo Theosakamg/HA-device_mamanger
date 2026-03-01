@@ -1,6 +1,7 @@
 """API controller for DmDevice CRUD operations."""
 
 import logging
+import re
 
 from aiohttp import web
 
@@ -9,6 +10,12 @@ from .base import get_repos
 from ..utils.case_convert import to_camel_case_dict, to_snake_case_dict
 
 _LOGGER = logging.getLogger(__name__)
+
+# MAC address validation: XX:XX:XX:XX:XX:XX
+_MAC_RE = re.compile(r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")
+
+# IP address validation: basic dotted-quad or numeric last octet
+_IP_RE = re.compile(r"^(\d{1,3}\.){3}\d{1,3}$|^\d{1,3}$")
 
 
 def _normalize_device_data(snake_data: dict) -> dict:
@@ -54,6 +61,31 @@ class DevicesAPIView(CrudListView):
             if not snake_data.get(field):
                 return self.json(
                     {"error": f"{field} is required"}, status_code=400
+                )
+
+        # Validate MAC format
+        mac = str(snake_data.get("mac", ""))
+        if not _MAC_RE.match(mac):
+            return self.json(
+                {"error": "Invalid MAC format (expected XX:XX:XX:XX:XX:XX)"},
+                status_code=400,
+            )
+
+        # Validate IP format if provided
+        ip = snake_data.get("ip")
+        if ip and not _IP_RE.match(str(ip)):
+            return self.json(
+                {"error": "Invalid IP format"}, status_code=400
+            )
+
+        # Validate FK IDs are integers
+        for fk_field in ("room_id", "model_id", "firmware_id", "function_id"):
+            try:
+                snake_data[fk_field] = int(snake_data[fk_field])
+            except (ValueError, TypeError):
+                return self.json(
+                    {"error": f"{fk_field} must be an integer"},
+                    status_code=400,
                 )
 
         device_id = await repos[self.repo_key].create(snake_data)

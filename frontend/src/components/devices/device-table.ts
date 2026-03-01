@@ -290,7 +290,7 @@ export class DmDeviceTable extends LitElement {
                               title="Open"
                               href="${this._buildDeviceUrl(device.ip)}"
                               target="_blank"
-                              rel="noopener"
+                              rel="noopener noreferrer"
                               >🔗</a
                             >`
                           : nothing}
@@ -394,13 +394,25 @@ export class DmDeviceTable extends LitElement {
     this._pendingDeleteDevice = null;
   }
 
-  /** Build a proper URL from an IP value (handles numeric-only last octets and existing protocols). */
+  /** Build a proper URL from an IP value.
+   *
+   * Only allows numeric last octets (with ip_prefix) or valid IPv4 addresses.
+   * Rejects arbitrary URLs to prevent open redirect / phishing.
+   */
   private _buildDeviceUrl(ip: string): string {
-    if (ip.startsWith("http://") || ip.startsWith("https://")) return ip;
-    if (/^\d+$/.test(ip)) {
+    const s = ip.trim();
+    // Numeric-only: last octet, prepend ip_prefix
+    if (/^\d+$/.test(s) && Number(s) >= 0 && Number(s) <= 255) {
       const { ip_prefix } = getSettings();
-      return `http://${ip_prefix}.${ip}/`;
+      // Validate ip_prefix is a valid partial IP (e.g. "192.168.0")
+      if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip_prefix)) return "#";
+      return `http://${ip_prefix}.${s}/`;
     }
-    return `http://${ip}/`;
+    // Full dotted-quad IPv4
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s)) {
+      return `http://${s}/`;
+    }
+    // Reject everything else (URLs, javascript:, etc.)
+    return "#";
   }
 }

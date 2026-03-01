@@ -12,7 +12,9 @@ export class RoomClient extends CrudClient<DmRoom> {
   /** Get all rooms, optionally filtered by level. */
   override async getAll(levelId?: number | string): Promise<DmRoom[]> {
     const query =
-      levelId !== undefined && levelId !== "" ? `?level_id=${levelId}` : "";
+      levelId !== undefined && levelId !== ""
+        ? `?level_id=${encodeURIComponent(String(levelId))}`
+        : "";
     return super.getAll(query);
   }
 }

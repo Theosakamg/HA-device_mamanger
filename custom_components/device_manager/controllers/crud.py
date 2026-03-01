@@ -16,6 +16,30 @@ from ..utils.case_convert import to_camel_case_dict, to_snake_case_dict
 
 _LOGGER = logging.getLogger(__name__)
 
+# Maximum allowed length for string fields to prevent abuse
+_MAX_FIELD_LENGTH = 5_000
+
+
+def _safe_int(value: str, field_name: str = "id") -> int | None:
+    """Convert a string to int, returning None if invalid."""
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def _validate_string_lengths(
+    data: dict[str, Any], max_length: int = _MAX_FIELD_LENGTH
+) -> str | None:
+    """Check that all string values are within max_length.
+
+    Returns an error message if validation fails, None otherwise.
+    """
+    for key, val in data.items():
+        if isinstance(val, str) and len(val) > max_length:
+            return f"Field '{key}' exceeds maximum length ({max_length})"
+    return None
+
 
 # ------------------------------------------------------------------
 # Helper utilities
@@ -60,8 +84,11 @@ def _handle_errors(entity_name: str):
                 return await func(self, request, *args, **kwargs)
             except Exception as err:
                 action = func.__name__  # get / post / put / delete
-                _LOGGER.error("Failed to %s %s: %s", action, entity_name, err)
-                return self.json({"error": str(err)}, status_code=500)
+                _LOGGER.exception("Failed to %s %s", action, entity_name)
+                return self.json(
+                    {"error": "Internal server error"},
+                    status_code=500,
+                )
 
         # Preserve the method name so that aiohttp routing works.
         wrapper.__name__ = func.__name__
@@ -105,8 +132,14 @@ class CrudListView(HomeAssistantView):
         if self.filter_param and self.filter_method:
             parent_id = request.query.get(self.filter_param)
             if parent_id:
+                parent_id_int = _safe_int(parent_id, self.filter_param)
+                if parent_id_int is None:
+                    return self.json(
+                        {"error": f"Invalid {self.filter_param} format"},
+                        status_code=400,
+                    )
                 items = await getattr(repos[self.repo_key], self.filter_method)(
-                    int(parent_id)
+                    parent_id_int
                 )
                 return self.json([to_camel_case_dict(i) for i in items])
         items = await repos[self.repo_key].find_all()
@@ -118,6 +151,10 @@ class CrudListView(HomeAssistantView):
         repos = get_repos(request)
         data = await request.json()
         snake_data = to_snake_case_dict(data)
+        # Validate string lengths
+        length_err = _validate_string_lengths(snake_data)
+        if length_err:
+            return self.json({"error": length_err}, status_code=400)
         if self.normalize_data:
             snake_data = self.normalize_data(snake_data)
         new_id = await repos[self.repo_key].create(snake_data)
@@ -147,7 +184,10 @@ class CrudDetailView(HomeAssistantView):
     async def get(self, request: web.Request, entity_id: str) -> web.Response:
         """Get a single entity by ID."""
         repos = get_repos(request)
-        result = await _get_or_404(self, repos, self.repo_key, int(entity_id), self.entity_name)
+        eid = _safe_int(entity_id)
+        if eid is None:
+            return self.json({"error": "Invalid ID format"}, status_code=400)
+        result = await _get_or_404(self, repos, self.repo_key, eid, self.entity_name)
         if isinstance(result, web.Response):
             return result
         return self.json(to_camel_case_dict(result))
@@ -156,23 +196,33 @@ class CrudDetailView(HomeAssistantView):
     async def put(self, request: web.Request, entity_id: str) -> web.Response:
         """Update an entity by ID."""
         repos = get_repos(request)
-        result = await _get_or_404(self, repos, self.repo_key, int(entity_id), self.entity_name)
+        eid = _safe_int(entity_id)
+        if eid is None:
+            return self.json({"error": "Invalid ID format"}, status_code=400)
+        result = await _get_or_404(self, repos, self.repo_key, eid, self.entity_name)
         if isinstance(result, web.Response):
             return result
         data = await request.json()
         snake_data = to_snake_case_dict(data)
+        # Validate string lengths
+        length_err = _validate_string_lengths(snake_data)
+        if length_err:
+            return self.json({"error": length_err}, status_code=400)
         if self.normalize_data:
             snake_data = self.normalize_data(snake_data)
-        await repos[self.repo_key].update(int(entity_id), snake_data)
-        updated = await repos[self.repo_key].find_by_id(int(entity_id))
+        await repos[self.repo_key].update(eid, snake_data)
+        updated = await repos[self.repo_key].find_by_id(eid)
         return self.json(to_camel_case_dict(updated))
 
     @_handle_errors("entity")
     async def delete(self, request: web.Request, entity_id: str) -> web.Response:
         """Delete an entity by ID."""
         repos = get_repos(request)
-        result = await _get_or_404(self, repos, self.repo_key, int(entity_id), self.entity_name)
+        eid = _safe_int(entity_id)
+        if eid is None:
+            return self.json({"error": "Invalid ID format"}, status_code=400)
+        result = await _get_or_404(self, repos, self.repo_key, eid, self.entity_name)
         if isinstance(result, web.Response):
             return result
-        await repos[self.repo_key].delete(int(entity_id))
+        await repos[self.repo_key].delete(eid)
         return self.json({"result": "ok"})

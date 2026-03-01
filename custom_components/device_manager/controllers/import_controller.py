@@ -11,6 +11,9 @@ from ..services.csv_import_service import CSVImportService
 
 _LOGGER = logging.getLogger(__name__)
 
+# Maximum CSV upload size: 10 MB
+_MAX_CSV_SIZE = 10 * 1024 * 1024
+
 
 class CSVImportAPIView(HomeAssistantView):
     """API endpoint for CSV device import."""
@@ -36,7 +39,12 @@ class CSVImportAPIView(HomeAssistantView):
             if not file_field:
                 return self.json({"error": "No file provided"}, status_code=400)
 
-            raw = file_field.file.read()
+            raw = file_field.file.read(_MAX_CSV_SIZE + 1)
+            if len(raw) > _MAX_CSV_SIZE:
+                return self.json(
+                    {"error": "File too large (max 10 MB)"},
+                    status_code=413,
+                )
             try:
                 text = raw.decode("utf-8")
             except Exception:
@@ -52,5 +60,8 @@ class CSVImportAPIView(HomeAssistantView):
 
             return self.json(result)
         except Exception as err:
-            _LOGGER.error("CSV import failed: %s", err)
-            return self.json({"error": str(err)}, status_code=500)
+            _LOGGER.exception("CSV import failed")
+            return self.json(
+                {"error": "Import failed. Check server logs."},
+                status_code=500,
+            )

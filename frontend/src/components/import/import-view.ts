@@ -283,8 +283,12 @@ export class DmImportView extends LitElement {
   private _onDrop(e: DragEvent) {
     e.preventDefault();
     this._dragging = false;
-    if (e.dataTransfer?.files?.[0]) {
-      this._file = e.dataTransfer.files[0];
+    const file = e.dataTransfer?.files?.[0];
+    if (
+      file &&
+      (file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv")
+    ) {
+      this._file = file;
       this._result = null;
     }
   }

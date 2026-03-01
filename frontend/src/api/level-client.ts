@@ -12,7 +12,9 @@ export class LevelClient extends CrudClient<DmLevel> {
   /** Get all levels, optionally filtered by home. */
   override async getAll(homeId?: number | string): Promise<DmLevel[]> {
     const query =
-      homeId !== undefined && homeId !== "" ? `?home_id=${homeId}` : "";
+      homeId !== undefined && homeId !== ""
+        ? `?home_id=${encodeURIComponent(String(homeId))}`
+        : "";
     return super.getAll(query);
   }
 }

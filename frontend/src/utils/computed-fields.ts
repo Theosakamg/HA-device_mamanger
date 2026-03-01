@@ -31,14 +31,18 @@ export function sanitizeSlug(value?: string | null): string {
 export function buildHttpFromIp(ip?: string | null): string | null {
   if (!ip) return null;
   const s = String(ip).trim();
-  if (/^https?:\/\//i.test(s)) return s;
+  // Numeric-only: last octet, prepend ip_prefix
   if (/^\d+$/.test(s) && Number(s) >= 0 && Number(s) <= 255) {
     const { ip_prefix } = getSettings();
+    // Validate ip_prefix is a valid partial IP (e.g. "192.168.0")
+    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip_prefix)) return null;
     return `http://${ip_prefix}.${s}`;
   }
+  // Full dotted-quad IPv4
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s)) {
     return `http://${s}`;
   }
+  // Reject everything else (arbitrary URLs, javascript:, etc.)
   return null;
 }
 

@@ -18,7 +18,12 @@ export class MaintenanceClient extends BaseClient {
 
   /** Export all devices in the given format as a file download. */
   async exportData(format: ExportFormat): Promise<void> {
-    const url = `${this.baseUrl}/export?format=${format}`;
+    // Runtime validation of format
+    const allowedFormats: ExportFormat[] = ["csv", "json", "yaml"];
+    if (!allowedFormats.includes(format)) {
+      throw new Error(`Invalid export format: ${format}`);
+    }
+    const url = `${this.baseUrl}/export?format=${encodeURIComponent(format)}`;
     const headers = this.buildHeaders();
     const response = await fetch(url, {
       method: "GET",

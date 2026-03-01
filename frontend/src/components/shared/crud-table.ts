@@ -5,6 +5,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import {
@@ -273,9 +274,11 @@ export class DmCrudTable extends LitElement {
             >
               <span class="tab-description-summary">
                 ${unsafeHTML(
-                  marked.parseInline(
-                    this._firstSentence(this.config.description)
-                  ) as string
+                  DOMPurify.sanitize(
+                    marked.parseInline(
+                      this._firstSentence(this.config.description)
+                    ) as string
+                  )
                 )}
               </span>
               <span
@@ -288,9 +291,11 @@ export class DmCrudTable extends LitElement {
             ${this._descExpanded
               ? html`<div class="tab-description-body">
                   ${unsafeHTML(
-                    marked.parse(
-                      this._restOfDescription(this.config.description)
-                    ) as string
+                    DOMPurify.sanitize(
+                      marked.parse(
+                        this._restOfDescription(this.config.description)
+                      ) as string
+                    )
                   )}
                 </div>`
               : nothing}
@@ -484,7 +489,11 @@ export class DmCrudTable extends LitElement {
                               const num = Number(raw);
                               this._updateForm(
                                 col.key,
-                                raw === "" ? null : Number.isNaN(num) ? raw : num
+                                raw === ""
+                                  ? null
+                                  : Number.isNaN(num)
+                                    ? raw
+                                    : num
                               );
                             } else {
                               this._updateForm(col.key, raw);

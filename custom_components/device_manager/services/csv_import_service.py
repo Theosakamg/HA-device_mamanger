@@ -111,6 +111,7 @@ class CSVImportService:
         errors: list[str] = []
         created = 0
         total = 0
+        max_rows = 10_000
 
         # Caches to avoid re-creating entities
         home_cache: dict[str, int] = {}
@@ -121,6 +122,9 @@ class CSVImportService:
         function_cache: dict[str, int] = {}
 
         for i, row in enumerate(reader, start=1):
+            if i > max_rows:
+                errors.append(f"Import limited to {max_rows} rows")
+                break
             total = i
             try:
                 # Extract fields from CSV

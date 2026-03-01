@@ -1,11 +1,27 @@
 """Base repository with generic CRUD operations."""
 
 import logging
+import re
 from typing import Any, Optional
 
 from ..services.database_manager import DatabaseManager
 
 _LOGGER = logging.getLogger(__name__)
+
+# Whitelist of valid table names — defence-in-depth against SQL injection.
+_VALID_TABLE_NAMES = frozenset({
+    "dm_homes",
+    "dm_levels",
+    "dm_rooms",
+    "dm_devices",
+    "dm_device_models",
+    "dm_device_firmwares",
+    "dm_device_functions",
+    "dm_settings",
+})
+
+# Regex for safe SQL identifiers (column names)
+_SAFE_IDENTIFIER_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 
 class BaseRepository:
@@ -25,7 +41,15 @@ class BaseRepository:
 
         Args:
             db_manager: The database manager providing the shared connection.
+
+        Raises:
+            ValueError: If table_name is not in the allowed whitelist.
         """
+        if self.table_name and self.table_name not in _VALID_TABLE_NAMES:
+            raise ValueError(
+                f"Invalid table name '{self.table_name}'. "
+                f"Must be one of {_VALID_TABLE_NAMES}"
+            )
         self.db = db_manager
 
     async def find_all(self) -> list[dict[str, Any]]:
@@ -83,6 +107,10 @@ class BaseRepository:
             return int(cursor.lastrowid)
 
         cols = list(filtered.keys())
+        # Validate column names are safe identifiers
+        for col in cols:
+            if not _SAFE_IDENTIFIER_RE.match(col):
+                raise ValueError(f"Invalid column name: {col}")
         placeholders = ", ".join(["?"] * len(cols))
         col_list = ", ".join(cols)
         values = [filtered[c] for c in cols]
@@ -115,6 +143,11 @@ class BaseRepository:
         filtered = {k: v for k, v in data.items() if k in self.allowed_columns}
         if not filtered:
             return False
+
+        # Validate column names are safe identifiers
+        for k in filtered:
+            if not _SAFE_IDENTIFIER_RE.match(k):
+                raise ValueError(f"Invalid column name: {k}")
 
         sets = [f"{k} = ?" for k in filtered]
         sets.append("updated_at = CURRENT_TIMESTAMP")

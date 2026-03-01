@@ -13,6 +13,9 @@ from .base import get_repos
 
 _LOGGER = logging.getLogger(__name__)
 
+# Allowed export formats (validated against user input)
+_ALLOWED_FORMATS = frozenset({"csv", "json", "yaml"})
+
 # Column order for CSV export — mirrors the original import CSV layout
 # (see samples/Electrique - Domotique.csv and HEADER_MAP in
 # csv_import_service.py).  Computed/read-only columns that the importer
@@ -36,6 +39,18 @@ CSV_COLUMNS = [
     "HA_device_class",
     "Extra",
 ]
+
+
+def _sanitize_csv_value(val: str) -> str:
+    """Prefix dangerous leading characters to prevent CSV formula injection.
+
+    Spreadsheet applications (Excel, LibreOffice) interpret cells starting
+    with =, +, -, @, \t, \r as formulas. Prefixing them with a single
+    quote (') is the standard defence.
+    """
+    if val and val[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + val
+    return val
 
 
 def _device_to_row(device: dict[str, Any]) -> dict[str, str]:
@@ -78,14 +93,16 @@ def _device_to_row(device: dict[str, Any]) -> dict[str, str]:
 
 
 def _build_csv(devices: list[dict[str, Any]]) -> str:
-    """Build a CSV string from device records."""
+    """Build a CSV string from device records with formula-injection protection."""
     output = io.StringIO()
     writer = csv.DictWriter(
         output, fieldnames=CSV_COLUMNS, extrasaction="ignore"
     )
     writer.writeheader()
     for device in devices:
-        writer.writerow(_device_to_row(device))
+        row = _device_to_row(device)
+        sanitized = {k: _sanitize_csv_value(str(v)) for k, v in row.items()}
+        writer.writerow(sanitized)
     return output.getvalue()
 
 
@@ -96,22 +113,37 @@ def _build_json(devices: list[dict[str, Any]]) -> str:
 
 
 def _build_yaml(devices: list[dict[str, Any]]) -> str:
-    """Build a YAML string from device records (no PyYAML dependency)."""
+    """Build a YAML string from device records (no PyYAML dependency).
+
+    Escapes special YAML characters (newlines, backslashes, control chars)
+    in addition to double-quotes.
+    """
     lines: list[str] = []
     for device in devices:
         row = _device_to_row(device)
-        lines.append("- MAC: \"%s\"" % row["MAC"])
+        lines.append('- MAC: "%s"' % _yaml_escape(row["MAC"]))
         for col in CSV_COLUMNS[1:]:
             val = row[col]
-            # Quote strings that could be misinterpreted
+            key = col.replace(" ", "_")
             if val == "":
-                lines.append("  %s: \"\"" % col.replace(" ", "_"))
+                lines.append('  %s: ""' % key)
             elif val in ("true", "false"):
-                lines.append("  %s: %s" % (col.replace(" ", "_"), val))
+                lines.append("  %s: %s" % (key, val))
             else:
-                escaped = val.replace('"', '\\"')
-                lines.append("  %s: \"%s\"" % (col.replace(" ", "_"), escaped))
+                lines.append('  %s: "%s"' % (key, _yaml_escape(val)))
     return "\n".join(lines) + "\n"
+
+
+def _yaml_escape(val: str) -> str:
+    """Escape a string for safe embedding in double-quoted YAML values."""
+    return (
+        val.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+        .replace("\0", "\\0")
+    )
 
 
 class ExportAPIView(HomeAssistantView):
@@ -162,9 +194,10 @@ class ExportAPIView(HomeAssistantView):
                 },
             )
         except Exception as err:
-            _LOGGER.error("Export failed: %s", err)
+            _LOGGER.exception("Export failed")
             return web.json_response(
-                {"error": str(err)}, status=500
+                {"error": "Export failed. Check server logs."},
+                status=500,
             )
 
     @staticmethod

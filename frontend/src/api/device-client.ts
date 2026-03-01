@@ -12,7 +12,9 @@ export class DeviceClient extends CrudClient<DmDevice> {
   /** Get all devices, optionally filtered by room. */
   override async getAll(roomId?: number | string): Promise<DmDevice[]> {
     const query =
-      roomId !== undefined && roomId !== "" ? `?room_id=${roomId}` : "";
+      roomId !== undefined && roomId !== ""
+        ? `?room_id=${encodeURIComponent(String(roomId))}`
+        : "";
     return super.getAll(query);
   }
 }

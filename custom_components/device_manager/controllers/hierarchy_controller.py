@@ -116,5 +116,8 @@ class HierarchyAPIView(HomeAssistantView):
                 "totalDevices": total_devices,
             })
         except Exception as err:
-            _LOGGER.error("Failed to build hierarchy: %s", err)
-            return self.json({"error": str(err)}, status_code=500)
+            _LOGGER.exception("Failed to build hierarchy")
+            return self.json(
+                {"error": "Internal server error"},
+                status_code=500,
+            )

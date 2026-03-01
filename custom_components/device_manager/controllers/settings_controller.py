@@ -1,6 +1,7 @@
 """API controller for user-configurable settings."""
 
 import logging
+import re
 
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
@@ -8,6 +9,17 @@ from homeassistant.components.http import HomeAssistantView
 from ..const import DEFAULT_SETTINGS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
+# Validation patterns for specific settings
+_SETTING_VALIDATORS: dict[str, re.Pattern] = {
+    "ip_prefix": re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}$"),
+    "dns_suffix": re.compile(r"^[a-zA-Z0-9._-]+$"),
+    "mqtt_topic_prefix": re.compile(r"^[a-zA-Z0-9/_-]+$"),
+    "default_home_name": re.compile(r"^.{1,100}$"),
+}
+
+# Maximum length for any setting value
+_MAX_SETTING_LENGTH = 255
 
 
 class SettingsAPIView(HomeAssistantView):
@@ -28,8 +40,11 @@ class SettingsAPIView(HomeAssistantView):
             settings = await repo.get_all()
             return self.json(settings)
         except Exception as err:
-            _LOGGER.error("Failed to load settings: %s", err)
-            return self.json({"error": str(err)}, status_code=500)
+            _LOGGER.exception("Failed to load settings")
+            return self.json(
+                {"error": "Internal server error"},
+                status_code=500,
+            )
 
     async def put(self, request: web.Request) -> web.Response:
         """Update one or more settings.
@@ -57,6 +72,20 @@ class SettingsAPIView(HomeAssistantView):
                 status_code=400,
             )
 
+        # Validate setting values
+        for key, val in filtered.items():
+            if len(val) > _MAX_SETTING_LENGTH:
+                return self.json(
+                    {"error": f"Setting '{key}' exceeds maximum length"},
+                    status_code=400,
+                )
+            pattern = _SETTING_VALIDATORS.get(key)
+            if pattern and not pattern.match(val):
+                return self.json(
+                    {"error": f"Invalid format for setting '{key}'"},
+                    status_code=400,
+                )
+
         try:
             hass = request.app["hass"]
             repo = hass.data[DOMAIN]["repos"]["settings"]
@@ -64,5 +93,8 @@ class SettingsAPIView(HomeAssistantView):
             _LOGGER.info("Settings updated: %s", list(filtered.keys()))
             return self.json(result)
         except Exception as err:
-            _LOGGER.error("Failed to update settings: %s", err)
-            return self.json({"error": str(err)}, status_code=500)
+            _LOGGER.exception("Failed to update settings")
+            return self.json(
+                {"error": "Internal server error"},
+                status_code=500,
+            )

@@ -8,13 +8,17 @@ from homeassistant.components.http import HomeAssistantView
 
 _LOGGER = logging.getLogger(__name__)
 
+# Pre-computed dist directory (resolved once at import time)
+_COMPONENT_PATH = Path(__file__).parent.parent
+_DIST_DIR = (_COMPONENT_PATH / "frontend" / "dist").resolve()
+
 
 class MainView(HomeAssistantView):
     """Serve the main frontend HTML page."""
 
     url = "/device_manager"
     name = "api:device_manager:main"
-    requires_auth = False
+    requires_auth = True
 
     async def get(self, request: web.Request) -> web.Response:
         """Serve the main HTML page with the web component."""
@@ -44,8 +48,14 @@ class StaticView(HomeAssistantView):
     name = "api:device_manager:static"
     requires_auth = False
 
+    # Allowed file extensions for static assets
+    _ALLOWED_EXTENSIONS = {".js", ".css", ".html", ".map", ".svg", ".png", ".ico"}
+
     async def get(self, request: web.Request, filename: str) -> web.Response:
         """Serve a static file by name.
+
+        Validates that the resolved path stays within the dist directory
+        to prevent path traversal attacks.
 
         Args:
             request: The aiohttp request.
@@ -55,11 +65,22 @@ class StaticView(HomeAssistantView):
             The file content with appropriate content type.
         """
         try:
-            component_path = Path(__file__).parent.parent
-            static_path = component_path / "frontend" / "dist" / filename
+            # Validate filename: reject hidden files and path separators
+            if not filename or filename.startswith(".") or "/" in filename or "\\" in filename:
+                return web.Response(status=400, text="Invalid filename")
+
+            # Validate extension
+            ext = Path(filename).suffix.lower()
+            if ext not in self._ALLOWED_EXTENSIONS:
+                return web.Response(status=403, text="Forbidden file type")
+
+            # Resolve and verify the path stays within dist/
+            static_path = (_DIST_DIR / filename).resolve()
+            if not str(static_path).startswith(str(_DIST_DIR)):
+                _LOGGER.warning("Path traversal attempt blocked: %s", filename)
+                return web.Response(status=403, text="Forbidden")
 
             if not static_path.exists():
-                _LOGGER.error("Static file not found: %s", static_path)
                 return web.Response(status=404, text="File not found")
 
             hass = request.app["hass"]
@@ -68,10 +89,14 @@ class StaticView(HomeAssistantView):
             )
 
             content_type = "application/javascript"
-            if filename.endswith(".css"):
+            if ext == ".css":
                 content_type = "text/css"
-            elif filename.endswith(".html"):
+            elif ext == ".html":
                 content_type = "text/html"
+            elif ext == ".svg":
+                content_type = "image/svg+xml"
+            elif ext in (".png", ".ico"):
+                content_type = "image/png"
 
             return web.Response(body=content, content_type=content_type)
         except Exception as err:
