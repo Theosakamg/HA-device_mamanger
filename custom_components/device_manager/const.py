@@ -34,8 +34,22 @@ STATE_MAP = {
     "ko": "KO",
 }
 
-# DNS suffix for FQDN
-DNS_SUFFIX = "domo.in-res.net"
+# Table for user settings
+TABLE_SETTINGS = "dm_settings"
 
-# Default IP prefix for short numeric IPs
-DEFAULT_IP_PREFIX = "192.168.0"
+# Settings keys and their defaults
+SETTING_DNS_SUFFIX = "dns_suffix"
+SETTING_IP_PREFIX = "ip_prefix"
+SETTING_MQTT_PREFIX = "mqtt_topic_prefix"
+SETTING_DEFAULT_HOME = "default_home_name"
+
+DEFAULT_SETTINGS: dict[str, str] = {
+    SETTING_DNS_SUFFIX: "domo.local",
+    SETTING_IP_PREFIX: "192.168.0",
+    SETTING_MQTT_PREFIX: "home",
+    SETTING_DEFAULT_HOME: "Home",
+}
+
+# Legacy aliases (for backward compat in code that imported these directly)
+DNS_SUFFIX = DEFAULT_SETTINGS[SETTING_DNS_SUFFIX]
+DEFAULT_IP_PREFIX = DEFAULT_SETTINGS[SETTING_IP_PREFIX]

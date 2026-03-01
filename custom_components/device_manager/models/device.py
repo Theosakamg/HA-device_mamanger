@@ -136,12 +136,20 @@ class DmDevice:
         """
         return {_to_camel_case(k): v for k, v in self.to_dict().items()}
 
-    def to_camel_dict_full(self) -> Dict[str, Any]:
+    def to_camel_dict_full(
+        self,
+        settings: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
         """Serialize all data including computed and transient fields.
 
         Transient fields are included **without** the leading underscore so
         they can be consumed directly by API clients.  Computed properties
         (``link``, ``mqttTopic``, ``hostname``, ``fqdn``) are also added.
+
+        Args:
+            settings: Optional dict of application settings.  Recognised
+                keys: ``ip_prefix``, ``dns_suffix``, ``mqtt_topic_prefix``.
+                When ``None`` the compiled-in defaults are used.
 
         Returns:
             A complete camelCase dictionary with computed values.
@@ -161,11 +169,17 @@ class DmDevice:
         for key, value in transient.items():
             data[_to_camel_case(key)] = value
 
+        # Extract configurable prefixes/suffixes from settings.
+        s = settings or {}
+        ip_prefix = s.get("ip_prefix", "192.168.0")
+        mqtt_prefix = s.get("mqtt_topic_prefix", "home")
+        dns_suffix = s.get("dns_suffix", "domo.local")
+
         # Include computed properties.
-        data["link"] = self.link()
-        data["mqttTopic"] = self.mqtt_topic()
+        data["link"] = self.link(ip_prefix=ip_prefix)
+        data["mqttTopic"] = self.mqtt_topic(mqtt_prefix=mqtt_prefix)
         data["hostname"] = self.hostname()
-        data["fqdn"] = self.fqdn()
+        data["fqdn"] = self.fqdn(dns_suffix=dns_suffix)
 
         return data
 
@@ -173,11 +187,14 @@ class DmDevice:
     # Computed methods
     # ------------------------------------------------------------------
 
-    def link(self) -> Optional[str]:
+    def link(self, ip_prefix: str = "192.168.0") -> Optional[str]:
         """Return the device URL based on its IP address.
 
-        If *ip* is a plain integer it is treated as the last octet of a
-        ``192.168.0.X`` address.  A full dotted IP is used as-is.
+        If *ip* is a plain integer it is treated as the last octet of an
+        ``{ip_prefix}.X`` address.  A full dotted IP is used as-is.
+
+        Args:
+            ip_prefix: Network prefix for numeric-only IPs.
 
         Returns:
             The URL string or ``None`` when no IP is available.
@@ -186,17 +203,17 @@ class DmDevice:
             return None
 
         if self.ip.isdigit():
-            return f"http://192.168.0.{self.ip}"
+            return f"http://{ip_prefix}.{self.ip}"
 
         return f"http://{self.ip}"
 
-    def mqtt_topic(self) -> Optional[str]:
+    def mqtt_topic(self, mqtt_prefix: str = "home") -> Optional[str]:
         """Return the MQTT topic for this device.
 
-        Format: ``home/l{level}/{room_slug}/{function}/{position_slug}``
+        Format: ``{mqtt_prefix}/l{level}/{room_slug}/{function}/{position_slug}``
 
-        The method relies on transient fields populated by JOIN queries.  If
-        insufficient data is available, ``None`` is returned.
+        Args:
+            mqtt_prefix: First segment of the MQTT topic.
 
         Returns:
             The MQTT topic string or ``None``.
@@ -206,7 +223,7 @@ class DmDevice:
 
         function_slug = self._function_name.lower().replace(" ", "_")
         return (
-            f"home/{self._level_slug}/{self._room_slug}"
+            f"{mqtt_prefix}/{self._level_slug}/{self._room_slug}"
             f"/{function_slug}/{self.position_slug}"
         )
 
@@ -227,10 +244,13 @@ class DmDevice:
             f"_{function_slug}_{self.position_slug}"
         )
 
-    def fqdn(self) -> Optional[str]:
+    def fqdn(self, dns_suffix: str = "domo.local") -> Optional[str]:
         """Return the fully-qualified domain name for this device.
 
-        Format: ``{hostname}.domo.in-res.net``
+        Format: ``{hostname}.{dns_suffix}``
+
+        Args:
+            dns_suffix: Domain suffix appended to the hostname.
 
         Returns:
             The FQDN string or ``None`` when hostname cannot be computed.
@@ -238,7 +258,7 @@ class DmDevice:
         host = self.hostname()
         if host is None:
             return None
-        return f"{host}.domo.in-res.net"
+        return f"{host}.{dns_suffix}"
 
     # ------------------------------------------------------------------
     # Factory

@@ -1,5 +1,5 @@
 /**
- * Maintenance view - import and database operations.
+ * Maintenance view - import, settings and database operations.
  */
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -7,6 +7,8 @@ import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { MaintenanceClient } from "../../api/maintenance-client";
 import type { CleanDBResult, ExportFormat } from "../../api/maintenance-client";
+import { SettingsClient, refreshSettings } from "../../api/settings-client";
+import type { AppSettings } from "../../api/settings-client";
 import "../import/import-view";
 
 @localized
@@ -210,6 +212,55 @@ export class DmMaintenanceView extends LitElement {
         color: #666;
         margin-top: 8px;
       }
+      /* Settings form */
+      .settings-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .settings-field label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      .settings-field input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      .settings-field input:focus {
+        outline: none;
+        border-color: var(--dm-primary, #03a9f4);
+        box-shadow: 0 0 0 2px rgba(3, 169, 244, 0.15);
+      }
+      .settings-field .hint {
+        font-size: 12px;
+        color: #888;
+        margin-top: 4px;
+      }
+      .settings-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .settings-toast {
+        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 4px;
+      }
+      .settings-toast.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .settings-toast.error {
+        background: #fce4ec;
+        color: #c62828;
+      }
     `,
   ];
 
@@ -221,12 +272,37 @@ export class DmMaintenanceView extends LitElement {
   @state() private _exporting = false;
   @state() private _exportError: string | null = null;
 
+  // Settings state
+  @state() private _settingsForm: AppSettings | null = null;
+  @state() private _settingsSaving = false;
+  @state() private _settingsToast: { msg: string; ok: boolean } | null = null;
+
   private _maintenanceClient = new MaintenanceClient();
+  private _settingsClient = new SettingsClient();
   private readonly _confirmPhrase = "DELETE ALL DATA";
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._loadSettings();
+  }
 
   render() {
     return html`
       <h2>🔧 ${i18n.t("nav_maintenance")}</h2>
+
+      <!-- Settings Section -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">⚙️</span>
+          <h3>${i18n.t("config_title")}</h3>
+        </div>
+        <p style="color:#666; font-size:14px; margin:0 0 16px 0;">
+          ${i18n.t("config_desc")}
+        </p>
+        ${this._settingsForm
+          ? this._renderSettingsForm()
+          : html`<p>${i18n.t("config_loading")}</p>`}
+      </div>
 
       <!-- Export Section -->
       <div class="section">
@@ -398,5 +474,110 @@ export class DmMaintenanceView extends LitElement {
       this._exportError = String(err);
     }
     this._exporting = false;
+  }
+
+  // ------------------------------------------------------------------
+  // Settings
+  // ------------------------------------------------------------------
+
+  private async _loadSettings() {
+    try {
+      const s = await this._settingsClient.getAll();
+      this._settingsForm = { ...s };
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+    }
+  }
+
+  private _renderSettingsForm() {
+    const f = this._settingsForm!;
+    return html`
+      <div class="settings-grid">
+        <div class="settings-field">
+          <label>${i18n.t("config_ip_prefix")}</label>
+          <input
+            type="text"
+            .value=${f.ip_prefix}
+            @input=${(e: Event) => this._updateSetting("ip_prefix", e)}
+          />
+          <div class="hint">${i18n.t("config_ip_prefix_hint")}</div>
+        </div>
+        <div class="settings-field">
+          <label>${i18n.t("config_dns_suffix")}</label>
+          <input
+            type="text"
+            .value=${f.dns_suffix}
+            @input=${(e: Event) => this._updateSetting("dns_suffix", e)}
+          />
+          <div class="hint">${i18n.t("config_dns_suffix_hint")}</div>
+        </div>
+        <div class="settings-field">
+          <label>${i18n.t("config_mqtt_prefix")}</label>
+          <input
+            type="text"
+            .value=${f.mqtt_topic_prefix}
+            @input=${(e: Event) => this._updateSetting("mqtt_topic_prefix", e)}
+          />
+          <div class="hint">${i18n.t("config_mqtt_prefix_hint")}</div>
+        </div>
+        <div class="settings-field">
+          <label>${i18n.t("config_default_home")}</label>
+          <input
+            type="text"
+            .value=${f.default_home_name}
+            @input=${(e: Event) => this._updateSetting("default_home_name", e)}
+          />
+          <div class="hint">${i18n.t("config_default_home_hint")}</div>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button
+          class="btn btn-primary"
+          ?disabled=${this._settingsSaving}
+          @click=${this._saveSettings}
+        >
+          ${this._settingsSaving ? i18n.t("loading") : i18n.t("save")}
+        </button>
+        ${this._settingsToast
+          ? html`<span
+              class="settings-toast ${this._settingsToast.ok
+                ? "success"
+                : "error"}"
+              >${this._settingsToast.msg}</span
+            >`
+          : nothing}
+      </div>
+    `;
+  }
+
+  private _updateSetting(key: keyof AppSettings, e: Event) {
+    if (!this._settingsForm) return;
+    this._settingsForm = {
+      ...this._settingsForm,
+      [key]: (e.target as HTMLInputElement).value,
+    };
+  }
+
+  private async _saveSettings() {
+    if (!this._settingsForm) return;
+    this._settingsSaving = true;
+    this._settingsToast = null;
+    try {
+      const result = await this._settingsClient.save(this._settingsForm);
+      this._settingsForm = { ...result };
+      // Refresh the global settings cache used by computed-fields etc.
+      await refreshSettings();
+      this._settingsToast = { msg: i18n.t("config_saved"), ok: true };
+    } catch (err) {
+      this._settingsToast = {
+        msg: `${i18n.t("config_save_error")}: ${err}`,
+        ok: false,
+      };
+    }
+    this._settingsSaving = false;
+    // Auto-hide toast after 4s
+    setTimeout(() => {
+      this._settingsToast = null;
+    }, 4000);
   }
 }

@@ -12,6 +12,7 @@ from .hierarchy_controller import HierarchyAPIView
 from .import_controller import CSVImportAPIView
 from .export_controller import ExportAPIView
 from .maintenance_controller import MaintenanceCleanDBAPIView
+from .settings_controller import SettingsAPIView
 
 ALL_VIEWS = [
     MainView,
@@ -34,4 +35,5 @@ ALL_VIEWS = [
     CSVImportAPIView,
     ExportAPIView,
     MaintenanceCleanDBAPIView,
+    SettingsAPIView,
 ]

@@ -1,6 +1,8 @@
 /**
  * Device interface
  */
+import { getSettings } from "./api/settings-client";
+
 export interface Device {
   id?: number;
   name?: string | null;
@@ -170,9 +172,10 @@ function buildHttpFromIp(ip?: string | number | null): string | null {
   if (!ip && ip !== 0) return null;
   const s = String(ip).trim();
   if (/^https?:\/\//i.test(s)) return s;
-  // numeric like "77" -> assume 192.168.0.X
+  // numeric like "77" -> assume {ip_prefix}.X
   if (/^[0-9]+$/.test(s) && Number(s) >= 0 && Number(s) <= 255) {
-    return `http://192.168.0.${s}`;
+    const { ip_prefix } = getSettings();
+    return `http://${ip_prefix}.${s}`;
   }
   // IPv4 dotted
   if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(s)) {
@@ -185,14 +188,16 @@ function buildHttpFromIp(ip?: string | number | null): string | null {
  * Compute derived fields that are not stored but constructed from base fields.
  * Rules inferred from samples:
  * - hostname: l{level}_{roomSlug}_{function}_{positionSlug}
- * - mqttTopic: home/l{level}/{roomSlug}/{function}/{positionSlug}
- * - dns: hostname + '.domo.in-res.net'
- * - link: built from `ip` (numeric last-octet -> 192.168.0.X ; dotted -> http://IP)
+ * - mqttTopic: {mqtt_prefix}/l{level}/{roomSlug}/{function}/{positionSlug}
+ * - dns: hostname + '.{dns_suffix}'
+ * - link: built from `ip` (numeric last-octet -> {ip_prefix}.X ; dotted -> http://IP)
  * - countTopic: stringified `count` if present
  */
 export function computeDerivedFields(
   device: Partial<Device>
 ): ComputedDeviceFields {
+  const { dns_suffix, mqtt_topic_prefix } = getSettings();
+
   const level =
     typeof device.level === "number"
       ? device.level
@@ -216,9 +221,11 @@ export function computeDerivedFields(
   if (hostnameParts.length) hostname = hostnameParts.join("_");
 
   const mqttTopic =
-    room && func && pos ? `home/${levelPrefix}/${room}/${func}/${pos}` : null;
+    room && func && pos
+      ? `${mqtt_topic_prefix}/${levelPrefix}/${room}/${func}/${pos}`
+      : null;
 
-  const dns = hostname ? `${hostname}.domo.in-res.net` : null;
+  const dns = hostname ? `${hostname}.${dns_suffix}` : null;
   const link = buildHttpFromIp(device.ip ?? null);
   const countTopic = hostname ? hostname.length : null;
   const { enabled } = normalizeState(device.state ?? device.status ?? null);

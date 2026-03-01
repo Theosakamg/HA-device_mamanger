@@ -18,6 +18,7 @@ from .repositories import (
     DeviceModelRepository,
     DeviceFirmwareRepository,
     DeviceFunctionRepository,
+    SettingsRepository,
 )
 from .services.database_manager import DatabaseManager
 
@@ -49,6 +50,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "device_model": DeviceModelRepository(db_manager),
         "device_firmware": DeviceFirmwareRepository(db_manager),
         "device_function": DeviceFunctionRepository(db_manager),
+        "settings": SettingsRepository(db_manager),
     }
     hass.data[DOMAIN]["repos"] = repos
 

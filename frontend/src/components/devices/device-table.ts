@@ -6,9 +6,8 @@ import { customElement, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { DeviceClient } from "../../api/device-client";
+import { getSettings } from "../../api/settings-client";
 import type { DmDevice } from "../../types/index";
-import "./device-form";
-import "./deploy-modal";
 
 type SortDir = "asc" | "desc" | null;
 
@@ -399,7 +398,10 @@ export class DmDeviceTable extends LitElement {
   /** Build a proper URL from an IP value (handles numeric-only last octets and existing protocols). */
   private _buildDeviceUrl(ip: string): string {
     if (ip.startsWith("http://") || ip.startsWith("https://")) return ip;
-    if (/^\d+$/.test(ip)) return `http://192.168.0.${ip}/`;
+    if (/^\d+$/.test(ip)) {
+      const { ip_prefix } = getSettings();
+      return `http://${ip_prefix}.${ip}/`;
+    }
     return `http://${ip}/`;
   }
 }

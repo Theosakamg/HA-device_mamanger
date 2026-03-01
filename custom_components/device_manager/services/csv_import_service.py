@@ -82,16 +82,20 @@ class CSVImportService:
     records with proper foreign keys.
     """
 
-    def __init__(self, repositories: dict) -> None:
+    def __init__(
+        self,
+        repositories: dict,
+        settings: dict[str, str] | None = None,
+    ) -> None:
         """Initialize the CSV import service.
 
         Args:
-            repositories: Dict of repository instances keyed by name:
-                         'home', 'level', 'room', 'device',
-                         'device_model', 'device_firmware',
-                         'device_function'
+            repositories: Dict of repository instances keyed by name.
+            settings: Optional dict of application settings.  Recognised
+                keys: ``ip_prefix``, ``default_home_name``.
         """
         self.repos = repositories
+        self._settings = settings or {}
 
     async def import_csv(self, csv_text: str) -> dict[str, Any]:
         """Import devices from CSV text.
@@ -122,8 +126,10 @@ class CSVImportService:
                 # Extract fields from CSV
                 parsed = self._parse_row(row)
 
-                # 1. Ensure Home exists (default "Home")
-                home_key = "Home"
+                # 1. Ensure Home exists (use configured default name)
+                home_key = self._settings.get(
+                    "default_home_name", "Home"
+                )
                 if home_key not in home_cache:
                     home_id = await self._find_or_create_home(home_key)
                     home_cache[home_key] = home_id
@@ -182,11 +188,12 @@ class CSVImportService:
                 enabled = self._parse_enabled(state_raw)
 
                 # 8. Build IP: if the CSV value is a plain number,
-                #    treat it as the last octet of 192.168.0.X
+                #    treat it as the last octet of {ip_prefix}.X
+                ip_prefix = self._settings.get("ip_prefix", "192.168.0")
                 raw_ip = (parsed.get("ip", "") or "").strip()
                 if raw_ip:
                     if raw_ip.isdigit():
-                        ip_value: str | None = f"192.168.0.{raw_ip}"
+                        ip_value: str | None = f"{ip_prefix}.{raw_ip}"
                     else:
                         ip_value = raw_ip
                 else:

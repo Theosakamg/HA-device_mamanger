@@ -5,12 +5,10 @@
  * context (room, level, home). They are NOT stored in the database.
  */
 import type { DmDevice, ComputedDeviceFields } from "../types/device";
+import { getSettings } from "../api/settings-client";
 
 // Re-export DmDevice alias so callers migrating from old types can use it.
 export type { DmDevice, ComputedDeviceFields };
-
-const DNS_SUFFIX = "domo.in-res.net";
-const DEFAULT_IP_PREFIX = "192.168.0";
 
 /**
  * Sanitize a string into a URL-safe slug.
@@ -38,7 +36,8 @@ export function buildHttpFromIp(ip?: string | null): string | null {
   const s = String(ip).trim();
   if (/^https?:\/\//i.test(s)) return s;
   if (/^\d+$/.test(s) && Number(s) >= 0 && Number(s) <= 255) {
-    return `http://${DEFAULT_IP_PREFIX}.${s}`;
+    const { ip_prefix } = getSettings();
+    return `http://${ip_prefix}.${s}`;
   }
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s)) {
     return `http://${s}`;
@@ -56,6 +55,8 @@ export function buildHttpFromIp(ip?: string | null): string | null {
 export function computeDerivedFields(
   device: Partial<DmDevice>
 ): ComputedDeviceFields {
+  const { dns_suffix, mqtt_topic_prefix } = getSettings();
+
   const levelSlug = sanitizeSlug(device.levelSlug) || "l0";
   const roomSlug = sanitizeSlug(device.roomSlug);
   const functionName = sanitizeSlug(device.functionName);
@@ -69,14 +70,14 @@ export function computeDerivedFields(
   if (posSlug) hostParts.push(posSlug);
   const hostname = hostParts.length > 0 ? hostParts.join("_") : null;
 
-  // MQTT topic: home/{levelSlug}/{roomSlug}/{function}/{positionSlug}
+  // MQTT topic: {mqtt_prefix}/{levelSlug}/{roomSlug}/{function}/{positionSlug}
   const mqttTopic =
     roomSlug && functionName && posSlug
-      ? `home/${levelSlug}/${roomSlug}/${functionName}/${posSlug}`
+      ? `${mqtt_topic_prefix}/${levelSlug}/${roomSlug}/${functionName}/${posSlug}`
       : null;
 
-  // FQDN: {hostname}.domo.in-res.net
-  const fqdn = hostname ? `${hostname}.${DNS_SUFFIX}` : null;
+  // FQDN: {hostname}.{dns_suffix}
+  const fqdn = hostname ? `${hostname}.${dns_suffix}` : null;
 
   // Link: HTTP URL from IP
   const link = buildHttpFromIp(device.ip);

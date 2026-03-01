@@ -7,6 +7,7 @@ from .device_repository import DeviceRepository
 from .device_model_repository import DeviceModelRepository
 from .device_firmware_repository import DeviceFirmwareRepository
 from .device_function_repository import DeviceFunctionRepository
+from .settings_repository import SettingsRepository
 
 __all__ = [
     "HomeRepository",
@@ -16,4 +17,5 @@ __all__ = [
     "DeviceModelRepository",
     "DeviceFirmwareRepository",
     "DeviceFunctionRepository",
+    "SettingsRepository",
 ]

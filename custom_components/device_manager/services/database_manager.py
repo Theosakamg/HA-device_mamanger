@@ -170,6 +170,14 @@ class DatabaseManager:
                 )
             """)
 
+            # 8. Settings (key/value pairs for user-configurable constants)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS dm_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL DEFAULT ''
+                )
+            """)
+
             await db.commit()
 
             # Migration: recreate dm_devices if ip has wrong constraint

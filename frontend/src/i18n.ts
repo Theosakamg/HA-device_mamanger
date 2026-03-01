@@ -119,6 +119,25 @@ const translations: { [lang: string]: Translations } = {
     export_title: "Export Data",
     export_desc: "Download all devices in your preferred format.",
 
+    // Configuration (user-configurable parameters)
+    config_title: "Configuration",
+    config_desc:
+      "Configure network prefixes and domain defaults used across the application.",
+    config_ip_prefix: "IP Prefix",
+    config_ip_prefix_hint:
+      "Prefix for numeric-only IP addresses (e.g. 192.168.0)",
+    config_dns_suffix: "DNS Suffix",
+    config_dns_suffix_hint:
+      "Domain appended to hostnames for FQDN (e.g. domo.local)",
+    config_mqtt_prefix: "MQTT Topic Prefix",
+    config_mqtt_prefix_hint: "First segment of MQTT topics (e.g. home)",
+    config_default_home: "Default Home Name",
+    config_default_home_hint:
+      "Name used when importing devices without an explicit home",
+    config_saved: "Settings saved successfully",
+    config_save_error: "Failed to save settings",
+    config_loading: "Loading settings…",
+
     // Maintenance
     maint_danger_zone: "Danger Zone",
     maint_danger_desc:
@@ -277,6 +296,25 @@ const translations: { [lang: string]: Translations } = {
     // Export
     export_title: "Exporter les Données",
     export_desc: "Télécharger tous les équipements dans le format souhaité.",
+
+    // Configuration (user-configurable parameters)
+    config_title: "Configuration",
+    config_desc:
+      "Configurez les préfixes réseau et les domaines par défaut utilisés dans l'application.",
+    config_ip_prefix: "Préfixe IP",
+    config_ip_prefix_hint:
+      "Préfixe pour les IP numériques courtes (ex: 192.168.0)",
+    config_dns_suffix: "Suffixe DNS",
+    config_dns_suffix_hint:
+      "Domaine ajouté aux hostnames pour le FQDN (ex: domo.local)",
+    config_mqtt_prefix: "Préfixe MQTT",
+    config_mqtt_prefix_hint: "Premier segment des topics MQTT (ex: home)",
+    config_default_home: "Nom de Maison par Défaut",
+    config_default_home_hint:
+      "Nom utilisé lors de l'import sans maison explicite",
+    config_saved: "Paramètres enregistrés avec succès",
+    config_save_error: "Échec de l'enregistrement des paramètres",
+    config_loading: "Chargement des paramètres…",
 
     // Maintenance
     maint_danger_zone: "Zone de Danger",

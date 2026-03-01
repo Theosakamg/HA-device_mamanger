@@ -5,6 +5,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { sharedStyles } from "../styles/shared-styles";
 import { i18n, localized } from "../i18n";
+import { loadSettings } from "../api/settings-client";
 import "./hierarchy/hierarchy-view";
 import "./settings/settings-view";
 import "./devices/device-table";
@@ -102,6 +103,10 @@ export class DmAppShell extends LitElement {
     super.connectedCallback();
     this._route = this._getRouteFromHash();
     window.addEventListener("hashchange", this._onHashChange);
+    // Pre-load user settings so computed fields use the right values.
+    loadSettings().catch((err) =>
+      console.warn("Failed to pre-load settings:", err)
+    );
   }
 
   disconnectedCallback() {

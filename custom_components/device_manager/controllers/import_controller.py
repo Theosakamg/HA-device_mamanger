@@ -5,6 +5,7 @@ import logging
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 
+from ..const import DOMAIN
 from .base import get_repos
 from ..services.csv_import_service import CSVImportService
 
@@ -41,7 +42,12 @@ class CSVImportAPIView(HomeAssistantView):
             except Exception:
                 text = raw.decode("latin-1", errors="replace")
 
-            service = CSVImportService(repos)
+            # Load user settings for IP prefix, default home name, etc.
+            hass = request.app["hass"]
+            settings_repo = hass.data[DOMAIN]["repos"].get("settings")
+            settings = await settings_repo.get_all() if settings_repo else {}
+
+            service = CSVImportService(repos, settings=settings)
             result = await service.import_csv(text)
 
             return self.json(result)

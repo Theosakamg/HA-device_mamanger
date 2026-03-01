@@ -5,6 +5,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
+import { getSettings } from "../../api/settings-client";
 import type {
   DmDevice,
   DmRoom,
@@ -162,7 +163,7 @@ export class DmDeviceForm extends LitElement {
               <input
                 type="text"
                 .value=${String(this._form.ip ?? "")}
-                placeholder="192.168.x.x"
+                placeholder="${getSettings().ip_prefix}.x"
                 @input=${(e: Event) =>
                   this._updateField("ip", (e.target as HTMLInputElement).value)}
               />

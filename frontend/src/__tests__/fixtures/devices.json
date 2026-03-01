@@ -20,7 +20,7 @@
       "hostname": "l0_office_button_lunch",
       "mqttTopic": "home/l0/office/button/lunch",
       "link": "http://192.168.0.77",
-      "dns": "l0_office_button_lunch.domo.in-res.net",
+      "dns": "l0_office_button_lunch.domo.local",
       "countTopic": 22,
       "enabled": true
     }
@@ -46,7 +46,7 @@
       "hostname": "l0_office_door_lunch",
       "mqttTopic": "home/l0/office/door/lunch",
       "link": null,
-      "dns": "l0_office_door_lunch.domo.in-res.net",
+      "dns": "l0_office_door_lunch.domo.local",
       "countTopic": 20,
       "enabled": false
     }
@@ -72,7 +72,7 @@
       "hostname": "l0_office_door_lake",
       "mqttTopic": "home/l0/office/door/lake",
       "link": null,
-      "dns": "l0_office_door_lake.domo.in-res.net",
+      "dns": "l0_office_door_lake.domo.local",
       "countTopic": 19,
       "enabled": true
     }
@@ -98,7 +98,7 @@
       "hostname": "l0_office_energy_desk",
       "mqttTopic": "home/l0/office/energy/desk",
       "link": "http://192.168.0.189",
-      "dns": "l0_office_energy_desk.domo.in-res.net",
+      "dns": "l0_office_energy_desk.domo.local",
       "countTopic": 21,
       "enabled": true
     }
@@ -125,7 +125,7 @@
       "hostname": "l0_office_heater_bed",
       "mqttTopic": "home/l0/office/heater/bed",
       "link": null,
-      "dns": "l0_office_heater_bed.domo.in-res.net",
+      "dns": "l0_office_heater_bed.domo.local",
       "countTopic": 20,
       "enabled": true
     }
@@ -151,7 +151,7 @@
       "hostname": "l0_cellar_light_ceiling",
       "mqttTopic": "home/l0/cellar/light/ceiling",
       "link": null,
-      "dns": "l0_cellar_light_ceiling.domo.in-res.net",
+      "dns": "l0_cellar_light_ceiling.domo.local",
       "countTopic": 23,
       "enabled": false
     }
@@ -177,7 +177,7 @@
       "hostname": "l0_bed_motion_door",
       "mqttTopic": "home/l0/bed/motion/door",
       "link": null,
-      "dns": "l0_bed_motion_door.domo.in-res.net",
+      "dns": "l0_bed_motion_door.domo.local",
       "countTopic": 18,
       "enabled": false
     }
