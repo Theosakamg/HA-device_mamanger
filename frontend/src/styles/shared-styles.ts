@@ -178,6 +178,13 @@ export const sharedStyles = css`
     vertical-align: middle;
   }
 
+  /* Action column: align icons to the right */
+  th:last-child,
+  td:last-child {
+    text-align: right;
+    white-space: nowrap;
+  }
+
   tr:hover {
     background: rgba(0, 0, 0, 0.02);
   }

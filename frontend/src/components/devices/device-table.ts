@@ -9,6 +9,8 @@ import { DeviceClient } from "../../api/device-client";
 import { getSettings } from "../../api/settings-client";
 import type { DmDevice } from "../../types/device";
 import "../shared/confirm-dialog";
+import "./deploy-modal";
+import "./device-form";
 import {
   SortState,
   toggleSort,
