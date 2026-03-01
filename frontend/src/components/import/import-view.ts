@@ -93,7 +93,11 @@ export class DmImportView extends LitElement {
         ? html`
             <div
               class="upload-zone ${this._dragging ? "dragging" : ""}"
+              role="button"
+              tabindex="0"
+              aria-label="${i18n.t("import_file")}"
               @click=${this._openFilePicker}
+              @keydown=${this._onKeyDown}
               @dragover=${this._onDragOver}
               @dragleave=${this._onDragLeave}
               @drop=${this._onDrop}
@@ -258,6 +262,13 @@ export class DmImportView extends LitElement {
       }
     };
     input.click();
+  }
+
+  private _onKeyDown(e: KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      this._openFilePicker();
+    }
   }
 
   private _onDragOver(e: DragEvent) {

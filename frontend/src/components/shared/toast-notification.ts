@@ -48,6 +48,14 @@ export class DmToast extends LitElement {
 
   private _timeout?: ReturnType<typeof setTimeout>;
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._timeout) {
+      clearTimeout(this._timeout);
+      this._timeout = undefined;
+    }
+  }
+
   show(
     message: string,
     type: "success" | "error" | "info" = "info",

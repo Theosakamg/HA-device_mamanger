@@ -13,41 +13,66 @@ from .base import get_repos
 
 _LOGGER = logging.getLogger(__name__)
 
-# Column order for CSV export — matches the original import CSV layout.
+# Column order for CSV export — mirrors the original import CSV layout
+# (see samples/Electrique - Domotique.csv and HEADER_MAP in
+# csv_import_service.py).  Computed/read-only columns that the importer
+# ignores (Link, MQTT, Hostname …) are intentionally omitted.
 CSV_COLUMNS = [
+    "Check",
     "MAC",
-    "IP",
-    "Enabled",
+    "State",
     "Level",
-    "Room",
-    "Position Name",
-    "Position Slug",
+    "Room FR",
+    "Position FR",
     "Function",
+    "Room SLUG",
+    "Position SLUG",
     "Firmware",
     "Model",
-    "Mode",
+    "IP",
     "Interlock",
-    "HA Device Class",
+    "Mode",
+    "Target",
+    "HA_device_class",
     "Extra",
 ]
 
 
 def _device_to_row(device: dict[str, Any]) -> dict[str, str]:
-    """Convert a joined device dict into a flat export row."""
+    """Convert a joined device dict into a flat export row.
+
+    The returned keys must match :data:`CSV_COLUMNS` exactly so that an
+    exported CSV can be re-imported by :class:`CSVImportService`.
+    """
+    # Extract the numeric level value from the slug
+    # (e.g. "l0" → "0")
+    level_slug = device.get("level_slug", "") or ""
+    if level_slug.startswith("l"):
+        level_num = level_slug.lstrip("l")
+    else:
+        level_num = level_slug
+
+    # Map enabled boolean back to the State vocabulary used in the CSV
+    enabled = device.get("enabled")
+    state = "Enable" if enabled else "Disable"
+
     return {
+        "Check": "",
         "MAC": device.get("mac", ""),
-        "IP": device.get("ip", "") or "",
-        "Enabled": "true" if device.get("enabled") else "false",
-        "Level": device.get("level_name", "") or "",
-        "Room": device.get("room_name", "") or "",
-        "Position Name": device.get("position_name", ""),
-        "Position Slug": device.get("position_slug", ""),
+        "State": state,
+        "Level": level_num,
+        "Room FR": device.get("room_name", "") or "",
+        "Position FR": device.get("position_name", ""),
         "Function": device.get("function_name", "") or "",
+        "Room SLUG": device.get("room_slug", "") or "",
+        "Position SLUG": device.get("position_slug", ""),
         "Firmware": device.get("firmware_name", "") or "",
         "Model": device.get("model_name", "") or "",
-        "Mode": device.get("mode", ""),
+        "IP": device.get("ip", "") or "",
         "Interlock": device.get("interlock", ""),
-        "HA Device Class": device.get("ha_device_class", ""),
+        "Mode": device.get("mode", ""),
+        "Target": device.get("target_mac", "") or "",
+        "HA_device_class": device.get("ha_device_class", ""),
         "Extra": device.get("extra", ""),
     }
 

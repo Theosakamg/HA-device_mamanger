@@ -49,10 +49,12 @@ class DevicesAPIView(CrudListView):
         snake_data = _normalize_device_data(to_snake_case_dict(data))
 
         # Validate required fields
-        if not snake_data.get("mac"):
-            return self.json({"error": "mac is required"}, status_code=400)
-        if not snake_data.get("room_id"):
-            return self.json({"error": "room_id is required"}, status_code=400)
+        required = ("mac", "room_id", "model_id", "firmware_id", "function_id")
+        for field in required:
+            if not snake_data.get(field):
+                return self.json(
+                    {"error": f"{field} is required"}, status_code=400
+                )
 
         device_id = await repos[self.repo_key].create(snake_data)
         device = await repos[self.repo_key].find_by_id(device_id)

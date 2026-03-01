@@ -182,6 +182,7 @@ export class DmCrudTable extends LitElement {
                           ? html`<button
                               class="btn-icon btn-filter"
                               title="${i18n.t("filter_devices")}"
+                              aria-label="${i18n.t("filter_devices")}"
                               @click=${() => this._filterDevices(item)}
                             >
                               🔍
@@ -190,6 +191,7 @@ export class DmCrudTable extends LitElement {
                         <button
                           class="btn-icon"
                           title="${i18n.t("edit")}"
+                          aria-label="${i18n.t("edit")}"
                           @click=${() => this._openEdit(item)}
                         >
                           ✏️
@@ -197,6 +199,7 @@ export class DmCrudTable extends LitElement {
                         <button
                           class="btn-icon"
                           title="${i18n.t("delete")}"
+                          aria-label="${i18n.t("delete")}"
                           @click=${() => this._requestDelete(item)}
                         >
                           🗑️
@@ -230,7 +233,13 @@ export class DmCrudTable extends LitElement {
               ${isEdit ? i18n.t("edit") : i18n.t("add")}
               ${this.config.entityName}
             </h2>
-            <button class="btn-icon" @click=${this._closeForm}>✕</button>
+            <button
+              class="btn-icon"
+              aria-label="${i18n.t("close") || "Close"}"
+              @click=${this._closeForm}
+            >
+              ✕
+            </button>
           </div>
           ${this.config.columns
             .filter((col) => col.editable !== false)
@@ -265,11 +274,18 @@ export class DmCrudTable extends LitElement {
                         <input
                           type="${col.type === "number" ? "number" : "text"}"
                           .value=${String(this._formData[col.key] ?? "")}
-                          @input=${(e: Event) =>
-                            this._updateForm(
-                              col.key,
-                              (e.target as HTMLInputElement).value
-                            )}
+                          @input=${(e: Event) => {
+                            const raw = (e.target as HTMLInputElement).value;
+                            if (col.type === "number") {
+                              const num = Number(raw);
+                              this._updateForm(
+                                col.key,
+                                raw === "" ? null : Number.isNaN(num) ? raw : num
+                              );
+                            } else {
+                              this._updateForm(col.key, raw);
+                            }
+                          }}
                         />
                       `}
                 </div>
