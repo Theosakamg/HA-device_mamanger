@@ -52,44 +52,44 @@ export interface ComputedDeviceFields {
  * Allowed device function values.
  */
 export type DeviceFunction =
-  | 'button'
-  | 'door'
-  | 'doorbell'
-  | 'heater'
-  | 'light'
-  | 'motion'
-  | 'shutter'
-  | 'tv'
-  | 'window'
-  | 'thermal'
-  | 'ir'
-  | 'presence'
-  | 'energy'
-  | 'infra'
-  | 'water'
-  | 'gaz'
-  | 'sensor'
+  | "button"
+  | "door"
+  | "doorbell"
+  | "heater"
+  | "light"
+  | "motion"
+  | "shutter"
+  | "tv"
+  | "window"
+  | "thermal"
+  | "ir"
+  | "presence"
+  | "energy"
+  | "infra"
+  | "water"
+  | "gaz"
+  | "sensor"
   | string;
 
 /**
  * Allowed firmware values.
  */
 export type DeviceFirmware =
-  | 'embeded'
-  | 'tasmota'
-  | 'tuya'
-  | 'zigbee'
-  | 'na'
-  | 'android'
-  | 'android-cast'
-  | 'wled'
+  | "embeded"
+  | "tasmota"
+  | "tuya"
+  | "zigbee"
+  | "na"
+  | "android"
+  | "android-cast"
+  | "wled"
   | string;
 
 /**
  * Hierarchy tree node for the tree view.
  */
 export interface HierarchyNode {
-  type: 'home' | 'level' | 'room';
+  type: "home" | "level" | "room";
   id: number;
   name: string;
   slug: string;
@@ -123,7 +123,7 @@ export interface ImportResult {
 
 export interface ImportLogEntry {
   row: number;
-  status: 'created' | 'updated' | 'skipped' | 'error';
+  status: "created" | "updated" | "skipped" | "error";
   message: string;
   id?: number;
   mac?: string;

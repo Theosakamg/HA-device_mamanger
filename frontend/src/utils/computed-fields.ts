@@ -4,13 +4,13 @@
  * These fields are derived from the device's base data and its hierarchical
  * context (room, level, home). They are NOT stored in the database.
  */
-import type { DmDevice, ComputedDeviceFields } from '../types/device';
+import type { DmDevice, ComputedDeviceFields } from "../types/device";
 
 // Re-export DmDevice alias so callers migrating from old types can use it.
 export type { DmDevice, ComputedDeviceFields };
 
-const DNS_SUFFIX = 'domo.in-res.net';
-const DEFAULT_IP_PREFIX = '192.168.0';
+const DNS_SUFFIX = "domo.in-res.net";
+const DEFAULT_IP_PREFIX = "192.168.0";
 
 /**
  * Sanitize a string into a URL-safe slug.
@@ -19,12 +19,12 @@ const DEFAULT_IP_PREFIX = '192.168.0';
  * @returns A lowercase slug or empty string.
  */
 export function sanitizeSlug(value?: string | null): string {
-  if (!value) return '';
+  if (!value) return "";
   return value
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9\-_.]/g, '');
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-_.]/g, "");
 }
 
 /**
@@ -53,8 +53,10 @@ export function buildHttpFromIp(ip?: string | null): string | null {
  *   roomSlug, levelSlug, functionName for meaningful results).
  * @returns The computed fields object.
  */
-export function computeDerivedFields(device: Partial<DmDevice>): ComputedDeviceFields {
-  const levelSlug = sanitizeSlug(device.levelSlug) || 'l0';
+export function computeDerivedFields(
+  device: Partial<DmDevice>
+): ComputedDeviceFields {
+  const levelSlug = sanitizeSlug(device.levelSlug) || "l0";
   const roomSlug = sanitizeSlug(device.roomSlug);
   const functionName = sanitizeSlug(device.functionName);
   const posSlug = sanitizeSlug(device.positionSlug);
@@ -65,7 +67,7 @@ export function computeDerivedFields(device: Partial<DmDevice>): ComputedDeviceF
   if (roomSlug) hostParts.push(roomSlug);
   if (functionName) hostParts.push(functionName);
   if (posSlug) hostParts.push(posSlug);
-  const hostname = hostParts.length > 0 ? hostParts.join('_') : null;
+  const hostname = hostParts.length > 0 ? hostParts.join("_") : null;
 
   // MQTT topic: home/{levelSlug}/{roomSlug}/{function}/{positionSlug}
   const mqttTopic =

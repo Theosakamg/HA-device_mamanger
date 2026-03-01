@@ -1,13 +1,13 @@
 /**
  * API client for hierarchy tree operations.
  */
-import type { HierarchyTree } from '../types/index';
-import { BaseClient } from './base-client';
+import type { HierarchyTree } from "../types/index";
+import { BaseClient } from "./base-client";
 
 export class HierarchyClient extends BaseClient {
   /** Get the full hierarchy tree (homes → levels → rooms with device counts). */
   async getTree(): Promise<HierarchyTree> {
-    return this.get<HierarchyTree>('/hierarchy');
+    return this.get<HierarchyTree>("/hierarchy");
   }
 
   /** Get a subtree for a specific home. */

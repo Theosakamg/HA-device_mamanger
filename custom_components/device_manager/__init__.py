@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN
+from .const import DB_NAME, DOMAIN
 from .controllers import ALL_VIEWS
 from .repositories import (
     HomeRepository,
@@ -35,7 +35,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     # Initialize database
-    db_path = Path(hass.config.config_dir) / f"{DOMAIN}.db"
+    db_path = Path(hass.config.config_dir) / DB_NAME
     db_manager = DatabaseManager(db_path)
     await db_manager.initialize()
     hass.data[DOMAIN]["db"] = db_manager

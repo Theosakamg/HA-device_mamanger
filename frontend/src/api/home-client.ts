@@ -1,13 +1,13 @@
 /**
  * API client for DmHome CRUD operations.
  */
-import type { DmHome } from '../types/index';
-import { BaseClient } from './base-client';
+import type { DmHome } from "../types/index";
+import { BaseClient } from "./base-client";
 
 export class HomeClient extends BaseClient {
   /** Get all homes. */
   async getAll(): Promise<DmHome[]> {
-    return this.get<DmHome[]>('/homes');
+    return this.get<DmHome[]>("/homes");
   }
 
   /** Get a single home by ID. */
@@ -17,7 +17,7 @@ export class HomeClient extends BaseClient {
 
   /** Create a new home. */
   async create(home: Partial<DmHome>): Promise<DmHome> {
-    return this.post<DmHome>('/homes', home);
+    return this.post<DmHome>("/homes", home);
   }
 
   /** Update an existing home. */

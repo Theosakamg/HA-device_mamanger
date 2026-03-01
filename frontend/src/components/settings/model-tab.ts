@@ -1,17 +1,17 @@
 /**
  * Model tab - CRUD management for device models.
  */
-import { LitElement, html } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { sharedStyles } from '../../styles/shared-styles';
-import { i18n, localized } from '../../i18n';
-import { DeviceModelClient } from '../../api/device-model-client';
-import type { DmDeviceModel } from '../../types/index';
-import type { CrudConfig } from '../shared/crud-table';
-import '../shared/crud-table';
+import { LitElement, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { sharedStyles } from "../../styles/shared-styles";
+import { i18n, localized } from "../../i18n";
+import { DeviceModelClient } from "../../api/device-model-client";
+import type { DmDeviceModel } from "../../types/index";
+import type { CrudConfig } from "../shared/crud-table";
+import "../shared/crud-table";
 
 @localized
-@customElement('dm-model-tab')
+@customElement("dm-model-tab")
 export class DmModelTab extends LitElement {
   static styles = [sharedStyles];
 
@@ -22,12 +22,27 @@ export class DmModelTab extends LitElement {
 
   private get _config(): CrudConfig {
     return {
-      entityName: i18n.t('tab_models'),
-      filterDevicesKey: 'name',
+      entityName: i18n.t("tab_models"),
+      filterDevicesKey: "name",
       columns: [
-        { key: 'name', label: i18n.t('model_name'), type: 'text', editable: true },
-        { key: 'template', label: i18n.t('model_template'), type: 'text', editable: true },
-        { key: 'enabled', label: i18n.t('enabled'), type: 'boolean', editable: true },
+        {
+          key: "name",
+          label: i18n.t("model_name"),
+          type: "text",
+          editable: true,
+        },
+        {
+          key: "template",
+          label: i18n.t("model_template"),
+          type: "text",
+          editable: true,
+        },
+        {
+          key: "enabled",
+          label: i18n.t("enabled"),
+          type: "boolean",
+          editable: true,
+        },
       ],
     };
   }
@@ -42,7 +57,7 @@ export class DmModelTab extends LitElement {
     try {
       this._items = await this._client.getAll();
     } catch (err) {
-      console.error('Failed to load models:', err);
+      console.error("Failed to load models:", err);
     }
     this._loading = false;
   }
@@ -69,7 +84,7 @@ export class DmModelTab extends LitElement {
       }
       await this._load();
     } catch (err) {
-      console.error('Failed to save model:', err);
+      console.error("Failed to save model:", err);
     }
   }
 
@@ -78,7 +93,7 @@ export class DmModelTab extends LitElement {
       await this._client.remove(e.detail.id);
       await this._load();
     } catch (err) {
-      console.error('Failed to delete model:', err);
+      console.error("Failed to delete model:", err);
     }
   }
 }

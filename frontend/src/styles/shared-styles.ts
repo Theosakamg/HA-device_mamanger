@@ -1,13 +1,14 @@
 /**
  * Shared CSS styles for Device Manager components.
  */
-import { css } from 'lit';
+import { css } from "lit";
 
 export const sharedStyles = css`
   :host {
     display: block;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-      'Helvetica Neue', Arial, sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
     color: var(--primary-text-color, #212121);
     --dm-primary: #03a9f4;
     --dm-primary-dark: #0288d1;
@@ -59,7 +60,9 @@ export const sharedStyles = css`
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    transition: background-color 0.2s, opacity 0.2s;
+    transition:
+      background-color 0.2s,
+      opacity 0.2s;
   }
 
   button:disabled,
@@ -325,7 +328,9 @@ export const sharedStyles = css`
     color: var(--dm-text-secondary);
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
-    transition: color 0.2s, border-color 0.2s;
+    transition:
+      color 0.2s,
+      border-color 0.2s;
     background: none;
     border-top: none;
     border-left: none;

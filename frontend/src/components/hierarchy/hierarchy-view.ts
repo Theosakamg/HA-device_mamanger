@@ -1,40 +1,57 @@
 /**
  * Hierarchy view - combined tree + detail panel.
  */
-import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { sharedStyles } from '../../styles/shared-styles';
-import { i18n, localized } from '../../i18n';
-import type { HierarchyNode, HierarchyTree } from '../../types/index';
-import { HierarchyClient } from '../../api/hierarchy-client';
-import type { DmHierarchyTreeComponent } from './hierarchy-tree';
-import './hierarchy-tree';
-import './node-detail';
+import { LitElement, html, css } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { sharedStyles } from "../../styles/shared-styles";
+import { i18n, localized } from "../../i18n";
+import type { HierarchyNode, HierarchyTree } from "../../types/index";
+import { HierarchyClient } from "../../api/hierarchy-client";
+import type { DmHierarchyTreeComponent } from "./hierarchy-tree";
+import "./hierarchy-tree";
+import "./node-detail";
 
 @localized
-@customElement('dm-hierarchy-view')
+@customElement("dm-hierarchy-view")
 export class DmHierarchyView extends LitElement {
   static styles = [
     sharedStyles,
     css`
-      :host { display: block; height: 100%; }
+      :host {
+        display: block;
+        height: 100%;
+      }
       .container {
-        display: flex; gap: 16px; height: 100%;
+        display: flex;
+        gap: 16px;
+        height: 100%;
         min-height: calc(100vh - 100px);
       }
       .tree-panel {
-        width: 30%; min-width: 250px; overflow-y: auto;
-        background: var(--dm-card-bg); border-radius: var(--dm-radius);
-        box-shadow: var(--dm-shadow); padding: 16px;
+        width: 30%;
+        min-width: 250px;
+        overflow-y: auto;
+        background: var(--dm-card-bg);
+        border-radius: var(--dm-radius);
+        box-shadow: var(--dm-shadow);
+        padding: 16px;
       }
       .detail-panel {
-        flex: 1; overflow-y: auto;
-        background: var(--dm-card-bg); border-radius: var(--dm-radius);
-        box-shadow: var(--dm-shadow); padding: 16px;
+        flex: 1;
+        overflow-y: auto;
+        background: var(--dm-card-bg);
+        border-radius: var(--dm-radius);
+        box-shadow: var(--dm-shadow);
+        padding: 16px;
       }
       @media (max-width: 768px) {
-        .container { flex-direction: column; }
-        .tree-panel { width: 100%; min-height: auto; }
+        .container {
+          flex-direction: column;
+        }
+        .tree-panel {
+          width: 100%;
+          min-height: auto;
+        }
       }
     `,
   ];
@@ -59,14 +76,14 @@ export class DmHierarchyView extends LitElement {
         this._selectedNode = this._tree.homes[0];
       }
     } catch (err) {
-      console.error('Failed to load hierarchy:', err);
+      console.error("Failed to load hierarchy:", err);
     }
     this._loading = false;
   }
 
   render() {
     if (this._loading) {
-      return html`<div class="loading">${i18n.t('loading')}</div>`;
+      return html`<div class="loading">${i18n.t("loading")}</div>`;
     }
 
     return html`
@@ -88,9 +105,9 @@ export class DmHierarchyView extends LitElement {
                 @expand-to-node=${this._onExpandToNode}
               ></dm-node-detail>`
             : html`<div class="empty-state">
-                <p>${i18n.t('hierarchy_title')}</p>
+                <p>${i18n.t("hierarchy_title")}</p>
                 <p style="font-size: 14px; color: var(--dm-text-secondary);">
-                  ${i18n.t('no_homes')}
+                  ${i18n.t("no_homes")}
                 </p>
               </div>`}
         </div>
@@ -104,7 +121,9 @@ export class DmHierarchyView extends LitElement {
 
   private _onExpandToNode(e: CustomEvent) {
     const node = e.detail.node as HierarchyNode;
-    const treeEl = this.shadowRoot?.querySelector('dm-hierarchy-tree') as DmHierarchyTreeComponent | null;
+    const treeEl = this.shadowRoot?.querySelector(
+      "dm-hierarchy-tree"
+    ) as DmHierarchyTreeComponent | null;
     if (treeEl) {
       treeEl.expandToNode(node);
     }

@@ -12,8 +12,8 @@ export function toSlug(value: string): string {
   return value
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9\-_.]/g, '');
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-_.]/g, "");
 }
 
 /**
@@ -23,8 +23,6 @@ export function toSlug(value: string): string {
  * @returns A title-cased string.
  */
 export function toTitle(slug: string): string {
-  if (!slug) return '';
-  return slug
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  if (!slug) return "";
+  return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

@@ -181,10 +181,21 @@ class CSVImportService:
                 state_raw = parsed.get("state", "")
                 enabled = self._parse_enabled(state_raw)
 
-                # 8. Create the device
+                # 8. Build IP: if the CSV value is a plain number,
+                #    treat it as the last octet of 192.168.0.X
+                raw_ip = (parsed.get("ip", "") or "").strip()
+                if raw_ip:
+                    if raw_ip.isdigit():
+                        ip_value: str | None = f"192.168.0.{raw_ip}"
+                    else:
+                        ip_value = raw_ip
+                else:
+                    ip_value = None
+
+                # 9. Create the device
                 device_data = {
                     "mac": parsed.get("mac", ""),
-                    "ip": None,
+                    "ip": ip_value,
                     "enabled": enabled,
                     "position_name": parsed.get("position_fr", ""),
                     "position_slug": _sanitize_slug(

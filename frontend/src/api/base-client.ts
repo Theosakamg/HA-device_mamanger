@@ -31,12 +31,12 @@ function camelizeKeys(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map(camelizeKeys);
   }
-  if (obj !== null && typeof obj === 'object') {
+  if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
       Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
         toCamelCase(k),
         camelizeKeys(v),
-      ]),
+      ])
     );
   }
   return obj;
@@ -49,12 +49,12 @@ function snakeizeKeys(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map(snakeizeKeys);
   }
-  if (obj !== null && typeof obj === 'object') {
+  if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
       Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
         toSnakeCase(k),
         snakeizeKeys(v),
-      ]),
+      ])
     );
   }
   return obj;
@@ -63,7 +63,7 @@ function snakeizeKeys(obj: unknown): unknown {
 export class BaseClient {
   protected baseUrl: string;
 
-  constructor(basePath: string = '/api/device_manager') {
+  constructor(basePath: string = "/api/device_manager") {
     this.baseUrl = basePath;
   }
 
@@ -79,10 +79,14 @@ export class BaseClient {
         if (window.parent && window.parent !== window) {
           docs.push(window.parent.document);
         }
-      } catch { /* cross-origin, ignore */ }
+      } catch {
+        /* cross-origin, ignore */
+      }
 
       for (const doc of docs) {
-        const ha = doc.querySelector('home-assistant') as HomeAssistantElement | null;
+        const ha = doc.querySelector(
+          "home-assistant"
+        ) as HomeAssistantElement | null;
         if (ha?.hass?.auth?.data?.access_token) {
           return ha.hass.auth.data.access_token;
         }
@@ -91,9 +95,9 @@ export class BaseClient {
         }
       }
     } catch (e) {
-      console.error('Failed to get auth token:', e);
+      console.error("Failed to get auth token:", e);
     }
-    return '';
+    return "";
   }
 
   /**
@@ -104,10 +108,10 @@ export class BaseClient {
     const headers: Record<string, string> = {};
     const token = this.getAuthToken();
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
     if (contentType) {
-      headers['Content-Type'] = contentType;
+      headers["Content-Type"] = contentType;
     }
     return headers;
   }
@@ -117,9 +121,9 @@ export class BaseClient {
    */
   protected async get<T>(path: string): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'GET',
-      headers: this.buildHeaders('application/json'),
-      credentials: 'same-origin',
+      method: "GET",
+      headers: this.buildHeaders("application/json"),
+      credentials: "same-origin",
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
@@ -134,9 +138,9 @@ export class BaseClient {
    */
   protected async post<T>(path: string, body: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers: this.buildHeaders('application/json'),
-      credentials: 'same-origin',
+      method: "POST",
+      headers: this.buildHeaders("application/json"),
+      credentials: "same-origin",
       body: JSON.stringify(snakeizeKeys(body)),
     });
     if (!response.ok) {
@@ -152,9 +156,9 @@ export class BaseClient {
    */
   protected async put<T>(path: string, body: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'PUT',
-      headers: this.buildHeaders('application/json'),
-      credentials: 'same-origin',
+      method: "PUT",
+      headers: this.buildHeaders("application/json"),
+      credentials: "same-origin",
       body: JSON.stringify(snakeizeKeys(body)),
     });
     if (!response.ok) {
@@ -170,9 +174,9 @@ export class BaseClient {
    */
   protected async del<T>(path: string): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'DELETE',
-      headers: this.buildHeaders('application/json'),
-      credentials: 'same-origin',
+      method: "DELETE",
+      headers: this.buildHeaders("application/json"),
+      credentials: "same-origin",
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
@@ -185,13 +189,17 @@ export class BaseClient {
   /**
    * Send a file upload via multipart/form-data.
    */
-  protected async upload<T>(path: string, file: File, fieldName: string = 'file'): Promise<T> {
+  protected async upload<T>(
+    path: string,
+    file: File,
+    fieldName: string = "file"
+  ): Promise<T> {
     const form = new FormData();
     form.append(fieldName, file, file.name);
     const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
+      method: "POST",
       headers: this.buildHeaders(),
-      credentials: 'same-origin',
+      credentials: "same-origin",
       body: form,
     });
     if (!response.ok) {

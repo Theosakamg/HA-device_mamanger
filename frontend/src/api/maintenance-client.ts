@@ -1,19 +1,19 @@
 /**
  * API client for maintenance operations.
  */
-import { BaseClient } from './base-client';
+import { BaseClient } from "./base-client";
 
 export interface CleanDBResult {
   success: boolean;
   deleted: Record<string, number>;
 }
 
-export type ExportFormat = 'csv' | 'json' | 'yaml';
+export type ExportFormat = "csv" | "json" | "yaml";
 
 export class MaintenanceClient extends BaseClient {
   /** Wipe all data from the database. */
   async cleanDB(confirmation: string): Promise<CleanDBResult> {
-    return this.post<CleanDBResult>('/maintenance/clean-db', { confirmation });
+    return this.post<CleanDBResult>("/maintenance/clean-db", { confirmation });
   }
 
   /** Export all devices in the given format as a file download. */
@@ -21,9 +21,9 @@ export class MaintenanceClient extends BaseClient {
     const url = `${this.baseUrl}/export?format=${format}`;
     const headers = this.buildHeaders();
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers,
-      credentials: 'same-origin',
+      credentials: "same-origin",
     });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -31,13 +31,13 @@ export class MaintenanceClient extends BaseClient {
     }
 
     // Extract filename from Content-Disposition or generate one
-    const disposition = response.headers.get('Content-Disposition') || '';
+    const disposition = response.headers.get("Content-Disposition") || "";
     const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
     const filename = filenameMatch?.[1] || `devices.${format}`;
 
     // Download the blob
     const blob = await response.blob();
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     document.body.appendChild(link);

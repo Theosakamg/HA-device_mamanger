@@ -137,3 +137,16 @@ class DeviceRepository(BaseRepository):
         )
         row = await cursor.fetchone()
         return int(row["cnt"]) if row else 0
+
+    async def count_all_by_room(self) -> dict[int, int]:
+        """Count devices grouped by room_id in a single query.
+
+        Returns:
+            A dict mapping room_id to device count.
+        """
+        conn = await self.db.get_connection()
+        cursor = await conn.execute(
+            "SELECT room_id, COUNT(*) as cnt FROM dm_devices GROUP BY room_id"
+        )
+        rows = await cursor.fetchall()
+        return {int(row["room_id"]): int(row["cnt"]) for row in rows}

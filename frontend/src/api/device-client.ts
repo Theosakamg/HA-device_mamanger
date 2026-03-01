@@ -1,13 +1,13 @@
 /**
  * API client for DmDevice CRUD operations.
  */
-import type { DmDevice } from '../types/index';
-import { BaseClient } from './base-client';
+import type { DmDevice } from "../types/index";
+import { BaseClient } from "./base-client";
 
 export class DeviceClient extends BaseClient {
   /** Get all devices, optionally filtered by room. */
   async getAll(roomId?: number): Promise<DmDevice[]> {
-    const query = roomId !== undefined ? `?room_id=${roomId}` : '';
+    const query = roomId !== undefined ? `?room_id=${roomId}` : "";
     return this.get<DmDevice[]>(`/devices${query}`);
   }
 
@@ -18,7 +18,7 @@ export class DeviceClient extends BaseClient {
 
   /** Create a new device. */
   async create(device: Partial<DmDevice>): Promise<DmDevice> {
-    return this.post<DmDevice>('/devices', device);
+    return this.post<DmDevice>("/devices", device);
   }
 
   /** Update an existing device. */

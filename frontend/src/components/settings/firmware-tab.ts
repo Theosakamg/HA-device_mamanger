@@ -1,17 +1,17 @@
 /**
  * Firmware tab - CRUD management for device firmwares.
  */
-import { LitElement, html } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { sharedStyles } from '../../styles/shared-styles';
-import { i18n, localized } from '../../i18n';
-import { DeviceFirmwareClient } from '../../api/device-firmware-client';
-import type { DmDeviceFirmware } from '../../types/index';
-import type { CrudConfig } from '../shared/crud-table';
-import '../shared/crud-table';
+import { LitElement, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { sharedStyles } from "../../styles/shared-styles";
+import { i18n, localized } from "../../i18n";
+import { DeviceFirmwareClient } from "../../api/device-firmware-client";
+import type { DmDeviceFirmware } from "../../types/index";
+import type { CrudConfig } from "../shared/crud-table";
+import "../shared/crud-table";
 
 @localized
-@customElement('dm-firmware-tab')
+@customElement("dm-firmware-tab")
 export class DmFirmwareTab extends LitElement {
   static styles = [sharedStyles];
 
@@ -22,11 +22,21 @@ export class DmFirmwareTab extends LitElement {
 
   private get _config(): CrudConfig {
     return {
-      entityName: i18n.t('tab_firmwares'),
-      filterDevicesKey: 'name',
+      entityName: i18n.t("tab_firmwares"),
+      filterDevicesKey: "name",
       columns: [
-        { key: 'name', label: i18n.t('firmware_name'), type: 'text', editable: true },
-        { key: 'enabled', label: i18n.t('enabled'), type: 'boolean', editable: true },
+        {
+          key: "name",
+          label: i18n.t("firmware_name"),
+          type: "text",
+          editable: true,
+        },
+        {
+          key: "enabled",
+          label: i18n.t("enabled"),
+          type: "boolean",
+          editable: true,
+        },
       ],
     };
   }
@@ -41,7 +51,7 @@ export class DmFirmwareTab extends LitElement {
     try {
       this._items = await this._client.getAll();
     } catch (err) {
-      console.error('Failed to load firmwares:', err);
+      console.error("Failed to load firmwares:", err);
     }
     this._loading = false;
   }
@@ -68,7 +78,7 @@ export class DmFirmwareTab extends LitElement {
       }
       await this._load();
     } catch (err) {
-      console.error('Failed to save firmware:', err);
+      console.error("Failed to save firmware:", err);
     }
   }
 
@@ -77,7 +87,7 @@ export class DmFirmwareTab extends LitElement {
       await this._client.remove(e.detail.id);
       await this._load();
     } catch (err) {
-      console.error('Failed to delete firmware:', err);
+      console.error("Failed to delete firmware:", err);
     }
   }
 }

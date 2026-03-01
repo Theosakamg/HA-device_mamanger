@@ -5,76 +5,188 @@
  * then shows a result panel (stats + detail table) following the same
  * visual pattern as the import-view component.
  */
-import { LitElement, html, css, nothing } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { sharedStyles } from '../../styles/shared-styles';
-import { i18n, localized } from '../../i18n';
-import { DeviceFirmwareClient } from '../../api/device-firmware-client';
-import type { DmDevice, DmDeviceFirmware, DeployResult, DeployFirmwareDetail } from '../../types/index';
+import { LitElement, html, css, nothing } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { sharedStyles } from "../../styles/shared-styles";
+import { i18n, localized } from "../../i18n";
+import { DeviceFirmwareClient } from "../../api/device-firmware-client";
+import type {
+  DmDevice,
+  DmDeviceFirmware,
+  DeployResult,
+  DeployFirmwareDetail,
+} from "../../types/index";
 
 @localized
-@customElement('dm-deploy-modal')
+@customElement("dm-deploy-modal")
 export class DmDeployModal extends LitElement {
   static styles = [
     sharedStyles,
     css`
-      .modal { max-width: 650px; width: 90vw; }
-      .modal-body { padding: 16px 24px; max-height: 65vh; overflow-y: auto; }
+      .modal {
+        max-width: 650px;
+        width: 90vw;
+      }
+      .modal-body {
+        padding: 16px 24px;
+        max-height: 65vh;
+        overflow-y: auto;
+      }
 
       /* Firmware selection list */
-      .firmware-list { max-height: 300px; overflow-y: auto; margin: 12px 0; }
+      .firmware-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin: 12px 0;
+      }
       .firmware-item {
-        display: flex; align-items: center; gap: 10px;
-        padding: 8px 12px; border-bottom: 1px solid var(--dm-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--dm-border);
         transition: background 0.15s;
       }
-      .firmware-item:hover { background: rgba(0,0,0,0.03); }
-      .firmware-item:last-child { border-bottom: none; }
-      .firmware-item input[type="checkbox"] {
-        width: 18px; height: 18px; cursor: pointer; accent-color: var(--dm-primary);
+      .firmware-item:hover {
+        background: rgba(0, 0, 0, 0.03);
       }
-      .firmware-item label { flex: 1; cursor: pointer; font-size: 14px; }
-      .select-actions { display: flex; gap: 8px; margin-bottom: 8px; }
-      .select-actions button { font-size: 12px; }
+      .firmware-item:last-child {
+        border-bottom: none;
+      }
+      .firmware-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--dm-primary);
+      }
+      .firmware-item label {
+        flex: 1;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .select-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .select-actions button {
+        font-size: 12px;
+      }
 
       /* Result stats – same as import-view */
-      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
-      .stat-box { text-align: center; padding: 16px; border-radius: 8px; background: #f5f5f5; }
-      .stat-value { font-size: 24px; font-weight: bold; }
-      .stat-label { font-size: 12px; color: var(--dm-text-secondary); margin-top: 4px; }
-      .stat-box.selected { background: #e3f2fd; color: #1565c0; }
-      .stat-box.devices { background: #e8f5e9; color: #2e7d32; }
-      .stat-box.no-match { background: #fff3e0; color: #ef6c00; }
-      .stat-box.errors { background: #fce4ec; color: #c62828; cursor: pointer; }
-      .stat-box.errors:hover { background: #f8bbd0; }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .stat-box {
+        text-align: center;
+        padding: 16px;
+        border-radius: 8px;
+        background: #f5f5f5;
+      }
+      .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--dm-text-secondary);
+        margin-top: 4px;
+      }
+      .stat-box.selected {
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+      .stat-box.devices {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .stat-box.no-match {
+        background: #fff3e0;
+        color: #ef6c00;
+      }
+      .stat-box.errors {
+        background: #fce4ec;
+        color: #c62828;
+        cursor: pointer;
+      }
+      .stat-box.errors:hover {
+        background: #f8bbd0;
+      }
 
       /* Detail table */
-      .detail-section { margin-top: 16px; }
-      .detail-section h4 { margin: 0 0 8px; }
-      .log-table { max-height: 300px; overflow-y: auto; }
-      .log-table table { font-size: 13px; }
-      .fw-badge { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; background: #e3f2fd; color: #1565c0; }
+      .detail-section {
+        margin-top: 16px;
+      }
+      .detail-section h4 {
+        margin: 0 0 8px;
+      }
+      .log-table {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .log-table table {
+        font-size: 13px;
+      }
+      .fw-badge {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        background: #e3f2fd;
+        color: #1565c0;
+      }
 
       /* Error panel */
       .error-panel {
-        margin-top: 16px; border: 1px solid #e57373; border-radius: 8px;
-        background: #ffebee; overflow: hidden;
+        margin-top: 16px;
+        border: 1px solid #e57373;
+        border-radius: 8px;
+        background: #ffebee;
+        overflow: hidden;
       }
       .error-panel-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 12px 16px; background: #ef9a9a; color: #b71c1c;
-        font-weight: 600; cursor: pointer; user-select: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #ef9a9a;
+        color: #b71c1c;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
       }
-      .error-panel-header:hover { background: #e57373; }
-      .error-panel-body { max-height: 200px; overflow-y: auto; padding: 0; }
-      .error-list { list-style: none; margin: 0; padding: 0; }
+      .error-panel-header:hover {
+        background: #e57373;
+      }
+      .error-panel-body {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 0;
+      }
+      .error-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
       .error-list li {
-        padding: 8px 16px; border-bottom: 1px solid #ffcdd2;
-        font-size: 13px; color: #b71c1c; font-family: monospace;
+        padding: 8px 16px;
+        border-bottom: 1px solid #ffcdd2;
+        font-size: 13px;
+        color: #b71c1c;
+        font-family: monospace;
       }
-      .error-list li:last-child { border-bottom: none; }
+      .error-list li:last-child {
+        border-bottom: none;
+      }
 
-      .empty-fw { text-align: center; padding: 24px; color: var(--dm-text-secondary); }
+      .empty-fw {
+        text-align: center;
+        padding: 24px;
+        color: var(--dm-text-secondary);
+      }
     `,
   ];
 
@@ -99,7 +211,7 @@ export class DmDeployModal extends LitElement {
     try {
       this._firmwares = await this._fwClient.getAll();
     } catch (err) {
-      console.error('Failed to load firmwares:', err);
+      console.error("Failed to load firmwares:", err);
     }
     this._loading = false;
   }
@@ -138,7 +250,10 @@ export class DmDeployModal extends LitElement {
         firmwareId: fwId,
         firmwareName: fw.name,
         deviceCount: matched.length,
-        devices: matched.map((d) => ({ mac: d.mac, positionName: d.positionName })),
+        devices: matched.map((d) => ({
+          mac: d.mac,
+          positionName: d.positionName,
+        })),
       });
     }
 
@@ -159,7 +274,7 @@ export class DmDeployModal extends LitElement {
   }
 
   private _close() {
-    this.dispatchEvent(new CustomEvent('deploy-close'));
+    this.dispatchEvent(new CustomEvent("deploy-close"));
   }
 
   /* ---------- render ---------- */
@@ -168,15 +283,18 @@ export class DmDeployModal extends LitElement {
     return html`
       <div class="modal-overlay" @click=${this._close}>
         <div class="modal" @click=${(e: Event) => e.stopPropagation()}>
-
           <div class="modal-header">
-            <h2>${this._result ? i18n.t('deploy_result_title') : i18n.t('deploy_title')}</h2>
+            <h2>
+              ${this._result
+                ? i18n.t("deploy_result_title")
+                : i18n.t("deploy_title")}
+            </h2>
             <button class="btn-icon" @click=${this._close}>✕</button>
           </div>
 
           <div class="modal-body">
             ${this._loading
-              ? html`<div class="loading">${i18n.t('loading')}</div>`
+              ? html`<div class="loading">${i18n.t("loading")}</div>`
               : this._result
                 ? this._renderResult()
                 : this._renderSelection()}
@@ -190,40 +308,52 @@ export class DmDeployModal extends LitElement {
 
   private _renderSelection() {
     if (this._firmwares.length === 0) {
-      return html`<div class="empty-fw">${i18n.t('deploy_no_firmwares')}</div>`;
+      return html`<div class="empty-fw">${i18n.t("deploy_no_firmwares")}</div>`;
     }
 
     return html`
-      <p>${i18n.t('deploy_select_firmwares')}</p>
+      <p>${i18n.t("deploy_select_firmwares")}</p>
 
       <div class="select-actions">
-        <button class="btn btn-secondary" @click=${this._selectAll}>${i18n.t('deploy_select_all')}</button>
-        <button class="btn btn-secondary" @click=${this._deselectAll}>${i18n.t('deploy_deselect_all')}</button>
+        <button class="btn btn-secondary" @click=${this._selectAll}>
+          ${i18n.t("deploy_select_all")}
+        </button>
+        <button class="btn btn-secondary" @click=${this._deselectAll}>
+          ${i18n.t("deploy_deselect_all")}
+        </button>
       </div>
 
       <div class="firmware-list">
-        ${this._firmwares.map((fw) => html`
-          <div class="firmware-item">
-            <input
-              type="checkbox"
-              id="fw-${fw.id}"
-              .checked=${this._selectedIds.has(fw.id!)}
-              @change=${() => this._toggleFirmware(fw.id!)}
-            />
-            <label for="fw-${fw.id}">${fw.name}</label>
-            <span class="status-dot ${fw.enabled ? 'status-enabled' : 'status-disabled'}"></span>
-          </div>
-        `)}
+        ${this._firmwares.map(
+          (fw) => html`
+            <div class="firmware-item">
+              <input
+                type="checkbox"
+                id="fw-${fw.id}"
+                .checked=${this._selectedIds.has(fw.id!)}
+                @change=${() => this._toggleFirmware(fw.id!)}
+              />
+              <label for="fw-${fw.id}">${fw.name}</label>
+              <span
+                class="status-dot ${fw.enabled
+                  ? "status-enabled"
+                  : "status-disabled"}"
+              ></span>
+            </div>
+          `
+        )}
       </div>
 
       <div class="modal-actions">
-        <button class="btn btn-secondary" @click=${this._close}>${i18n.t('cancel')}</button>
+        <button class="btn btn-secondary" @click=${this._close}>
+          ${i18n.t("cancel")}
+        </button>
         <button
           class="btn btn-primary"
           ?disabled=${this._selectedIds.size === 0}
           @click=${this._confirmDeploy}
         >
-          🚀 ${i18n.t('deploy_confirm')}
+          🚀 ${i18n.t("deploy_confirm")}
         </button>
       </div>
     `;
@@ -239,33 +369,48 @@ export class DmDeployModal extends LitElement {
       <div class="stats">
         <div class="stat-box selected">
           <div class="stat-value">${r.firmwaresSelected}</div>
-          <div class="stat-label">${i18n.t('deploy_firmware_selected')}</div>
+          <div class="stat-label">${i18n.t("deploy_firmware_selected")}</div>
         </div>
         <div class="stat-box devices">
           <div class="stat-value">${r.totalDevices}</div>
-          <div class="stat-label">${i18n.t('deploy_total_devices')}</div>
+          <div class="stat-label">${i18n.t("deploy_total_devices")}</div>
         </div>
         ${r.errors.length > 0
           ? html`
-              <div class="stat-box errors" @click=${() => { this._showErrors = !this._showErrors; }}>
+              <div
+                class="stat-box errors"
+                @click=${() => {
+                  this._showErrors = !this._showErrors;
+                }}
+              >
                 <div class="stat-value">${r.errors.length}</div>
-                <div class="stat-label">${i18n.t('import_result_errors')} ▼</div>
+                <div class="stat-label">
+                  ${i18n.t("import_result_errors")} ▼
+                </div>
               </div>
             `
           : nothing}
       </div>
 
       ${r.totalDevices === 0 && r.errors.length === 0
-        ? html`<div class="empty-state">${i18n.t('deploy_no_devices')}</div>`
+        ? html`<div class="empty-state">${i18n.t("deploy_no_devices")}</div>`
         : nothing}
 
       <!-- Error panel -->
       ${r.errors.length > 0
         ? html`
             <div class="error-panel">
-              <div class="error-panel-header" @click=${() => { this._showErrors = !this._showErrors; }}>
-                <span>⚠️ ${i18n.t('import_result_errors')} (${r.errors.length})</span>
-                <span>${this._showErrors ? '▲' : '▼'}</span>
+              <div
+                class="error-panel-header"
+                @click=${() => {
+                  this._showErrors = !this._showErrors;
+                }}
+              >
+                <span
+                  >⚠️ ${i18n.t("import_result_errors")}
+                  (${r.errors.length})</span
+                >
+                <span>${this._showErrors ? "▲" : "▼"}</span>
               </div>
               ${this._showErrors
                 ? html`
@@ -288,30 +433,53 @@ export class DmDeployModal extends LitElement {
                 <table>
                   <thead>
                     <tr>
-                      <th>${i18n.t('deploy_firmware')}</th>
-                      <th>${i18n.t('deploy_device_count')}</th>
-                      <th>${i18n.t('deploy_device_mac')}</th>
-                      <th>${i18n.t('deploy_device_position')}</th>
+                      <th>${i18n.t("deploy_firmware")}</th>
+                      <th>${i18n.t("deploy_device_count")}</th>
+                      <th>${i18n.t("deploy_device_mac")}</th>
+                      <th>${i18n.t("deploy_device_position")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${r.details.flatMap((detail) =>
                       detail.devices.length > 0
-                        ? detail.devices.map((dev, idx) => html`
-                            <tr>
-                              <td>${idx === 0 ? html`<span class="fw-badge">${detail.firmwareName}</span>` : ''}</td>
-                              <td>${idx === 0 ? detail.deviceCount : ''}</td>
-                              <td style="font-family:monospace;font-size:12px;">${dev.mac}</td>
-                              <td>${dev.positionName}</td>
-                            </tr>
-                          `)
-                        : [html`
-                            <tr>
-                              <td><span class="fw-badge">${detail.firmwareName}</span></td>
-                              <td>0</td>
-                              <td colspan="2" style="color:var(--dm-text-secondary);font-style:italic;">—</td>
-                            </tr>
-                          `]
+                        ? detail.devices.map(
+                            (dev, idx) => html`
+                              <tr>
+                                <td>
+                                  ${idx === 0
+                                    ? html`<span class="fw-badge"
+                                        >${detail.firmwareName}</span
+                                      >`
+                                    : ""}
+                                </td>
+                                <td>${idx === 0 ? detail.deviceCount : ""}</td>
+                                <td
+                                  style="font-family:monospace;font-size:12px;"
+                                >
+                                  ${dev.mac}
+                                </td>
+                                <td>${dev.positionName}</td>
+                              </tr>
+                            `
+                          )
+                        : [
+                            html`
+                              <tr>
+                                <td>
+                                  <span class="fw-badge"
+                                    >${detail.firmwareName}</span
+                                  >
+                                </td>
+                                <td>0</td>
+                                <td
+                                  colspan="2"
+                                  style="color:var(--dm-text-secondary);font-style:italic;"
+                                >
+                                  —
+                                </td>
+                              </tr>
+                            `,
+                          ]
                     )}
                   </tbody>
                 </table>
@@ -322,8 +490,12 @@ export class DmDeployModal extends LitElement {
 
       <!-- Actions -->
       <div class="modal-actions">
-        <button class="btn btn-secondary" @click=${this._reset}>🔄 ${i18n.t('deploy_new')}</button>
-        <button class="btn btn-primary" @click=${this._close}>${i18n.t('close')}</button>
+        <button class="btn btn-secondary" @click=${this._reset}>
+          🔄 ${i18n.t("deploy_new")}
+        </button>
+        <button class="btn btn-primary" @click=${this._close}>
+          ${i18n.t("close")}
+        </button>
       </div>
     `;
   }

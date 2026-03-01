@@ -1,13 +1,13 @@
 /**
  * API client for DmDeviceModel CRUD operations.
  */
-import type { DmDeviceModel } from '../types/index';
-import { BaseClient } from './base-client';
+import type { DmDeviceModel } from "../types/index";
+import { BaseClient } from "./base-client";
 
 export class DeviceModelClient extends BaseClient {
   /** Get all device models. */
   async getAll(): Promise<DmDeviceModel[]> {
-    return this.get<DmDeviceModel[]>('/device-models');
+    return this.get<DmDeviceModel[]>("/device-models");
   }
 
   /** Get a single device model by ID. */
@@ -17,11 +17,14 @@ export class DeviceModelClient extends BaseClient {
 
   /** Create a new device model. */
   async create(model: Partial<DmDeviceModel>): Promise<DmDeviceModel> {
-    return this.post<DmDeviceModel>('/device-models', model);
+    return this.post<DmDeviceModel>("/device-models", model);
   }
 
   /** Update an existing device model. */
-  async update(id: number, model: Partial<DmDeviceModel>): Promise<DmDeviceModel> {
+  async update(
+    id: number,
+    model: Partial<DmDeviceModel>
+  ): Promise<DmDeviceModel> {
     return this.put<DmDeviceModel>(`/device-models/${id}`, model);
   }
 

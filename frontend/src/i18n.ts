@@ -121,11 +121,14 @@ const translations: { [lang: string]: Translations } = {
 
     // Maintenance
     maint_danger_zone: "Danger Zone",
-    maint_danger_desc: "These operations are irreversible. Proceed with caution.",
+    maint_danger_desc:
+      "These operations are irreversible. Proceed with caution.",
     maint_clean_db: "Clean Database",
-    maint_clean_db_desc: "Delete all data (devices, rooms, levels, homes, models, firmwares, functions).",
+    maint_clean_db_desc:
+      "Delete all data (devices, rooms, levels, homes, models, firmwares, functions).",
     maint_confirm_title: "Confirm Database Wipe",
-    maint_confirm_desc: "This action will permanently delete ALL data. Type the phrase below to confirm:",
+    maint_confirm_desc:
+      "This action will permanently delete ALL data. Type the phrase below to confirm:",
     maint_confirm_placeholder: "Type the confirmation phrase...",
     maint_confirm_execute: "Wipe All Data",
     maint_clean_success: "Database cleaned successfully",
@@ -160,6 +163,7 @@ const translations: { [lang: string]: Translations } = {
     clear_filter: "Clear filter",
     actions: "Actions",
     id: "ID",
+    no_items: "No items yet.",
     created_at: "Created At",
     updated_at: "Updated At",
   },
@@ -235,7 +239,8 @@ const translations: { [lang: string]: Translations } = {
     deploy_result_title: "Résultats du Déploiement",
     deploy_total_devices: "Total équipements",
     deploy_firmware_selected: "Firmwares sélectionnés",
-    deploy_no_devices: "Aucun équipement ne correspond aux firmwares sélectionnés",
+    deploy_no_devices:
+      "Aucun équipement ne correspond aux firmwares sélectionnés",
     deploy_select_all: "Tout sélectionner",
     deploy_deselect_all: "Tout désélectionner",
     deploy_firmware: "Firmware",
@@ -275,11 +280,14 @@ const translations: { [lang: string]: Translations } = {
 
     // Maintenance
     maint_danger_zone: "Zone de Danger",
-    maint_danger_desc: "Ces opérations sont irréversibles. Procédez avec prudence.",
+    maint_danger_desc:
+      "Ces opérations sont irréversibles. Procédez avec prudence.",
     maint_clean_db: "Nettoyer la Base",
-    maint_clean_db_desc: "Supprimer toutes les données (devices, pièces, niveaux, maisons, modèles, firmwares, fonctions).",
+    maint_clean_db_desc:
+      "Supprimer toutes les données (devices, pièces, niveaux, maisons, modèles, firmwares, fonctions).",
     maint_confirm_title: "Confirmer la suppression",
-    maint_confirm_desc: "Cette action supprimera DÉFINITIVEMENT toutes les données. Saisissez la phrase ci-dessous pour confirmer :",
+    maint_confirm_desc:
+      "Cette action supprimera DÉFINITIVEMENT toutes les données. Saisissez la phrase ci-dessous pour confirmer :",
     maint_confirm_placeholder: "Saisissez la phrase de confirmation...",
     maint_confirm_execute: "Tout Supprimer",
     maint_clean_success: "Base de données nettoyée",
@@ -302,7 +310,8 @@ const translations: { [lang: string]: Translations } = {
     error_saving: "Erreur lors de l'enregistrement",
     error_deleting: "Erreur lors de la suppression",
     confirm_delete: "Êtes-vous sûr de vouloir supprimer cet élément ?",
-    confirm_delete_cascade: "Cela supprimera aussi tous les éléments enfants. Continuer ?",
+    confirm_delete_cascade:
+      "Cela supprimera aussi tous les éléments enfants. Continuer ?",
     success_created: "Créé avec succès",
     success_updated: "Mis à jour avec succès",
     success_deleted: "Supprimé avec succès",
@@ -314,6 +323,7 @@ const translations: { [lang: string]: Translations } = {
     clear_filter: "Effacer le filtre",
     actions: "Actions",
     id: "ID",
+    no_items: "Aucun élément.",
     created_at: "Créé le",
     updated_at: "Mis à jour le",
   },
@@ -347,7 +357,7 @@ class I18n {
   setLanguage(lang: string): void {
     if (translations[lang] && lang !== this.currentLang) {
       this.currentLang = lang;
-      window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
+      window.dispatchEvent(new CustomEvent("lang-changed", { detail: lang }));
     }
   }
 
@@ -371,15 +381,17 @@ export function localized(constructor: any): void {
   const origConnected = constructor.prototype.connectedCallback;
   const origDisconnected = constructor.prototype.disconnectedCallback;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor.prototype.connectedCallback = function (this: any) {
     origConnected?.call(this);
     this.__langHandler = () => this.requestUpdate();
-    window.addEventListener('lang-changed', this.__langHandler);
+    window.addEventListener("lang-changed", this.__langHandler);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor.prototype.disconnectedCallback = function (this: any) {
     if (this.__langHandler) {
-      window.removeEventListener('lang-changed', this.__langHandler);
+      window.removeEventListener("lang-changed", this.__langHandler);
     }
     origDisconnected?.call(this);
   };

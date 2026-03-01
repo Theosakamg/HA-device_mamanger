@@ -261,10 +261,14 @@ class DmDevice:
         for key, value in data.items():
             normalized[_to_snake_case(key)] = value
 
+        # Normalize empty-string ip to None (DB expects NULL for missing IP)
+        raw_ip = normalized.get("ip")
+        ip_value = None if not raw_ip or (isinstance(raw_ip, str) and raw_ip.strip() == "") else raw_ip
+
         return cls(
             id=normalized.get("id"),
             mac=normalized.get("mac", ""),
-            ip=normalized.get("ip", ""),
+            ip=ip_value,
             enabled=normalized.get("enabled", True),
             position_name=normalized.get("position_name", ""),
             position_slug=normalized.get("position_slug", ""),

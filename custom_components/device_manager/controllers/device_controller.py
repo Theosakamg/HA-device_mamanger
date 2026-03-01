@@ -10,6 +10,19 @@ from .base import to_camel_case_dict, to_snake_case_dict, get_repos
 _LOGGER = logging.getLogger(__name__)
 
 
+def _normalize_device_data(snake_data: dict) -> dict:
+    """Normalize nullable fields: convert empty strings to None.
+
+    This prevents UNIQUE constraint violations on ip and ensures
+    the DB schema expectations (NULL for missing values) are met.
+    """
+    nullable_fields = ("ip", "target_id", "interlock", "ha_device_class", "extra", "mode")
+    for field in nullable_fields:
+        if field in snake_data and isinstance(snake_data[field], str) and snake_data[field].strip() == "":
+            snake_data[field] = None
+    return snake_data
+
+
 class DevicesAPIView(HomeAssistantView):
     """API endpoint for device list and creation."""
 
@@ -49,7 +62,14 @@ class DevicesAPIView(HomeAssistantView):
         try:
             repos = get_repos(request)
             data = await request.json()
-            snake_data = to_snake_case_dict(data)
+            snake_data = _normalize_device_data(to_snake_case_dict(data))
+
+            # Validate required fields
+            if not snake_data.get("mac"):
+                return self.json({"error": "mac is required"}, status_code=400)
+            if not snake_data.get("room_id"):
+                return self.json({"error": "room_id is required"}, status_code=400)
+
             device_id = await repos["device"].create(snake_data)
             device = await repos["device"].find_by_id(device_id)
             return self.json(to_camel_case_dict(device), status_code=201)
@@ -101,7 +121,7 @@ class DeviceAPIView(HomeAssistantView):
             if not device:
                 return self.json({"error": "Device not found"}, status_code=404)
             data = await request.json()
-            snake_data = to_snake_case_dict(data)
+            snake_data = _normalize_device_data(to_snake_case_dict(data))
             await repos["device"].update(int(entity_id), snake_data)
             updated = await repos["device"].find_by_id(int(entity_id))
             return self.json(to_camel_case_dict(updated))

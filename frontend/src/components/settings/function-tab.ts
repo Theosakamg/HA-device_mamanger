@@ -1,17 +1,17 @@
 /**
  * Function tab - CRUD management for device functions.
  */
-import { LitElement, html } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { sharedStyles } from '../../styles/shared-styles';
-import { i18n, localized } from '../../i18n';
-import { DeviceFunctionClient } from '../../api/device-function-client';
-import type { DmDeviceFunction } from '../../types/index';
-import type { CrudConfig } from '../shared/crud-table';
-import '../shared/crud-table';
+import { LitElement, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { sharedStyles } from "../../styles/shared-styles";
+import { i18n, localized } from "../../i18n";
+import { DeviceFunctionClient } from "../../api/device-function-client";
+import type { DmDeviceFunction } from "../../types/index";
+import type { CrudConfig } from "../shared/crud-table";
+import "../shared/crud-table";
 
 @localized
-@customElement('dm-function-tab')
+@customElement("dm-function-tab")
 export class DmFunctionTab extends LitElement {
   static styles = [sharedStyles];
 
@@ -22,11 +22,21 @@ export class DmFunctionTab extends LitElement {
 
   private get _config(): CrudConfig {
     return {
-      entityName: i18n.t('tab_functions'),
-      filterDevicesKey: 'name',
+      entityName: i18n.t("tab_functions"),
+      filterDevicesKey: "name",
       columns: [
-        { key: 'name', label: i18n.t('function_name'), type: 'text', editable: true },
-        { key: 'enabled', label: i18n.t('enabled'), type: 'boolean', editable: true },
+        {
+          key: "name",
+          label: i18n.t("function_name"),
+          type: "text",
+          editable: true,
+        },
+        {
+          key: "enabled",
+          label: i18n.t("enabled"),
+          type: "boolean",
+          editable: true,
+        },
       ],
     };
   }
@@ -41,7 +51,7 @@ export class DmFunctionTab extends LitElement {
     try {
       this._items = await this._client.getAll();
     } catch (err) {
-      console.error('Failed to load functions:', err);
+      console.error("Failed to load functions:", err);
     }
     this._loading = false;
   }
@@ -68,7 +78,7 @@ export class DmFunctionTab extends LitElement {
       }
       await this._load();
     } catch (err) {
-      console.error('Failed to save function:', err);
+      console.error("Failed to save function:", err);
     }
   }
 
@@ -77,7 +87,7 @@ export class DmFunctionTab extends LitElement {
       await this._client.remove(e.detail.id);
       await this._load();
     } catch (err) {
-      console.error('Failed to delete function:', err);
+      console.error("Failed to delete function:", err);
     }
   }
 }

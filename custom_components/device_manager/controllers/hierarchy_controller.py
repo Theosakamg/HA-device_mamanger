@@ -48,6 +48,10 @@ class HierarchyAPIView(HomeAssistantView):
         try:
             repos = get_repos(request)
             homes = await repos["home"].find_all()
+
+            # Single query for all device counts by room (avoids N+1)
+            room_device_counts = await repos["device"].count_all_by_room()
+
             total_devices = 0
             home_nodes = []
 
@@ -62,8 +66,8 @@ class HierarchyAPIView(HomeAssistantView):
                     room_nodes = []
 
                     for room in rooms:
-                        device_count = await repos["device"].count_by_room(
-                            room["id"]
+                        device_count = room_device_counts.get(
+                            room["id"], 0
                         )
                         level_device_count += device_count
                         room_nodes.append({

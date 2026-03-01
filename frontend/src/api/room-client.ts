@@ -1,13 +1,13 @@
 /**
  * API client for DmRoom CRUD operations.
  */
-import type { DmRoom } from '../types/index';
-import { BaseClient } from './base-client';
+import type { DmRoom } from "../types/index";
+import { BaseClient } from "./base-client";
 
 export class RoomClient extends BaseClient {
   /** Get all rooms, optionally filtered by level. */
   async getAll(levelId?: number): Promise<DmRoom[]> {
-    const query = levelId !== undefined ? `?level_id=${levelId}` : '';
+    const query = levelId !== undefined ? `?level_id=${levelId}` : "";
     return this.get<DmRoom[]>(`/rooms${query}`);
   }
 
@@ -18,7 +18,7 @@ export class RoomClient extends BaseClient {
 
   /** Create a new room. */
   async create(room: Partial<DmRoom>): Promise<DmRoom> {
-    return this.post<DmRoom>('/rooms', room);
+    return this.post<DmRoom>("/rooms", room);
   }
 
   /** Update an existing room. */

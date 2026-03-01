@@ -1,13 +1,13 @@
 /**
  * API client for DmLevel CRUD operations.
  */
-import type { DmLevel } from '../types/index';
-import { BaseClient } from './base-client';
+import type { DmLevel } from "../types/index";
+import { BaseClient } from "./base-client";
 
 export class LevelClient extends BaseClient {
   /** Get all levels, optionally filtered by home. */
   async getAll(homeId?: number): Promise<DmLevel[]> {
-    const query = homeId !== undefined ? `?home_id=${homeId}` : '';
+    const query = homeId !== undefined ? `?home_id=${homeId}` : "";
     return this.get<DmLevel[]>(`/levels${query}`);
   }
 
@@ -18,7 +18,7 @@ export class LevelClient extends BaseClient {
 
   /** Create a new level. */
   async create(level: Partial<DmLevel>): Promise<DmLevel> {
-    return this.post<DmLevel>('/levels', level);
+    return this.post<DmLevel>("/levels", level);
   }
 
   /** Update an existing level. */
