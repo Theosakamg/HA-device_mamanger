@@ -14,8 +14,11 @@ const translations: { [lang: string]: Translations } = {
     app_title: "Device Manager",
     nav_hierarchy: "Hierarchy",
     nav_devices: "All Devices",
+    nav_map: "Map",
     nav_settings: "Settings",
     nav_maintenance: "Maintenance",
+    map_loading: "Loading 3D map…",
+    filter_all: "All",
 
     // Hierarchy
     hierarchy_title: "Location Hierarchy",
@@ -197,8 +200,11 @@ const translations: { [lang: string]: Translations } = {
     app_title: "Gestionnaire d'Équipements",
     nav_hierarchy: "Hiérarchie",
     nav_devices: "Tous les Équipements",
+    nav_map: "Map",
     nav_settings: "Paramètres",
     nav_maintenance: "Maintenance",
+    map_loading: "Chargement de la carte 3D…",
+    filter_all: "Tous",
 
     // Hierarchy
     hierarchy_title: "Hiérarchie des Emplacements",

@@ -18,7 +18,7 @@ class MainView(HomeAssistantView):
 
     url = "/device_manager"
     name = "api:device_manager:main"
-    requires_auth = True
+    requires_auth = False
 
     async def get(self, request: web.Request) -> web.Response:
         """Serve the main HTML page with the web component."""
