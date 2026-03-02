@@ -8,40 +8,61 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .api import DeviceAPIView, DevicesAPIView, MainView, StaticView, CSVImportAPIView
-from .const import DOMAIN
-from .database import DatabaseManager
+from .const import DB_NAME, DOMAIN
+from .controllers import ALL_VIEWS
+from .repositories import (
+    HomeRepository,
+    LevelRepository,
+    RoomRepository,
+    DeviceRepository,
+    DeviceModelRepository,
+    DeviceFirmwareRepository,
+    DeviceFunctionRepository,
+    SettingsRepository,
+)
+from .services.database_manager import DatabaseManager
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Device Manager component."""
+    """Set up the Device Manager component.
+
+    Initializes the database, creates repository instances, and registers
+    all API views and the sidebar panel.
+    """
     _LOGGER.info("Setting up Device Manager")
 
-    # Initialize storage
     hass.data.setdefault(DOMAIN, {})
 
-    # Initialize database in config directory (writable)
-    db_path = Path(hass.config.config_dir) / f"{DOMAIN}.db"
+    # Initialize database
+    db_path = Path(hass.config.config_dir) / DB_NAME
     db_manager = DatabaseManager(db_path)
     await db_manager.initialize()
-
-    # Store database manager
     hass.data[DOMAIN]["db"] = db_manager
 
-    # Register API views
-    hass.http.register_view(MainView())
-    hass.http.register_view(StaticView())
-    hass.http.register_view(DevicesAPIView())
-    hass.http.register_view(DeviceAPIView())
-    hass.http.register_view(CSVImportAPIView())
+    # Create repositories
+    repos = {
+        "home": HomeRepository(db_manager),
+        "level": LevelRepository(db_manager),
+        "room": RoomRepository(db_manager),
+        "device": DeviceRepository(db_manager),
+        "device_model": DeviceModelRepository(db_manager),
+        "device_firmware": DeviceFirmwareRepository(db_manager),
+        "device_function": DeviceFunctionRepository(db_manager),
+        "settings": SettingsRepository(db_manager),
+    }
+    hass.data[DOMAIN]["repos"] = repos
 
-    # Register panel in sidebar
+    # Register all API views
+    for view_class in ALL_VIEWS:
+        hass.http.register_view(view_class())
+
+    # Register sidebar panel
     frontend.async_register_built_in_panel(
         hass,
         component_name="iframe",
-        sidebar_title="panel.title",
+        sidebar_title="Device Manager",
         sidebar_icon="mdi:devices",
         frontend_url_path="device_manager",
         config={"url": "/device_manager"},
@@ -61,5 +82,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    _LOGGER.info("Unloadin Device Manager config entry")
+    _LOGGER.info("Unloading Device Manager config entry")
+    # Close database connection
+    db_manager = hass.data.get(DOMAIN, {}).get("db")
+    if db_manager:
+        await db_manager.close()
     return True
