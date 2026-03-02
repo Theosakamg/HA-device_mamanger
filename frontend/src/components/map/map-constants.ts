@@ -52,7 +52,7 @@ export const COLORS = {
   firmware: 0x22d3ee, // cyan
   model:    0xfb923c, // orange
   function: 0xa78bfa, // violet
-  edge:     0x94a3b8, // slate-400
+  edge:     0x334155, // slate-700
 } as const;
 
 export const FIRMWARE_COLORS: Record<string, number> = {

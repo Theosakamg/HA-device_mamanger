@@ -152,7 +152,7 @@ export const mapStyles = css`
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 12px;
     font-size: 13px;
   }
@@ -173,10 +173,30 @@ export const mapStyles = css`
     min-width: 120px;
   }
   .filter-bar select:focus { outline: 2px solid #6366f1; outline-offset: 1px; }
-  .filter-group { display: flex; align-items: center; gap: 4px; }
+  .filter-bar select[multiple] {
+    min-height: 28px;
+    max-height: 120px;
+    cursor: pointer;
+    padding: 2px 6px;
+  }
+  .filter-group { display: flex; align-items: flex-start; gap: 4px; }
+  .filter-group label { padding-top: 5px; }
+  .filter-clear-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 3px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    margin-top: 2px;
+    transition: color 0.15s;
+  }
+  .filter-clear-btn:hover { color: #ef4444; }
 
   /* --- layout toggle --- */
-  .layout-toggle { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .layout-toggle { display: flex; gap: 4px; margin-left: auto; align-items: center; align-self: center; }
   .layout-btn {
     padding: 5px 10px;
     border-radius: 6px;

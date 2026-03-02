@@ -44,10 +44,11 @@ export class DmMapView extends LitElement {
   @state() private _stats: MapStats = { homes: 0, levels: 0, rooms: 0, devices: 0, firmwares: 0, models: 0, functions: 0 };
   @state() private _layoutMode: "spiral" | "linear" = "spiral";
   @state() private _debugVisible = false;
-  @state() private _filterHome     = "__all__";
-  @state() private _filterFirmware = "__all__";
-  @state() private _filterModel    = "__all__";
-  @state() private _filterFunction = "__all__";
+  /** Empty array = no filter (show all). */
+  @state() private _filterHome:     string[] = [];
+  @state() private _filterFirmware: string[] = [];
+  @state() private _filterModel:    string[] = [];
+  @state() private _filterFunction: string[] = [];
   @state() private _homeOptions:     { id: string; name: string }[] = [];
   @state() private _firmwareOptions: { id: string; name: string }[] = [];
   @state() private _modelOptions:    { id: string; name: string }[] = [];
@@ -265,10 +266,11 @@ export class DmMapView extends LitElement {
       this._rawTree = tree; this._rawDevices = devices;
       this._rawFirmwares = firmwares; this._rawModels = models; this._rawFunctions = functions;
 
-      this._homeOptions     = tree.homes.map((h)  => ({ id: String(h.id),  name: h.name  }));
-      this._firmwareOptions = firmwares.map((fw)  => ({ id: String(fw.id), name: fw.name }));
-      this._modelOptions    = models.map((m)       => ({ id: String(m.id),  name: m.name  }));
-      this._functionOptions = functions.map((fn)  => ({ id: String(fn.id), name: fn.name }));
+      const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
+      this._homeOptions     = tree.homes.map((h)  => ({ id: String(h.id),  name: h.name  })).sort(byName);
+      this._firmwareOptions = firmwares.map((fw)  => ({ id: String(fw.id), name: fw.name })).sort(byName);
+      this._modelOptions    = models.map((m)       => ({ id: String(m.id),  name: m.name  })).sort(byName);
+      this._functionOptions = functions.map((fn)  => ({ id: String(fn.id), name: fn.name })).sort(byName);
 
       this._buildGraph(tree, devices, firmwares, models, functions);
       this._loading = false;
@@ -369,8 +371,8 @@ export class DmMapView extends LitElement {
         mat.emissiveIntensity = 0.6; mat.opacity = 1; mat.depthWrite = true;
         if (node.labelSprite) node.labelSprite.material.opacity = 0.9;
       } else {
-        mat.emissiveIntensity = 0; mat.opacity = 0.04; mat.depthWrite = false;
-        if (node.labelSprite) node.labelSprite.material.opacity = 0.02;
+        mat.emissiveIntensity = 0; mat.opacity = 0.015; mat.depthWrite = false;
+        if (node.labelSprite) node.labelSprite.material.opacity = 0.008;
       }
     }
     for (const edge of this._edges) {
@@ -379,8 +381,8 @@ export class DmMapView extends LitElement {
       const isRef  = edge.edgeType === "firmware" || edge.edgeType === "model" || edge.edgeType === "function";
       const active = (edge.source === focusedId || related.has(edge.source)) &&
                      (edge.target === focusedId || related.has(edge.target));
-      mat.opacity = active ? 0.7 : 0.02;
-      mat.color.set(active ? (isRef ? (REF_EDGE_COLORS[edge.edgeType!] ?? 0xf1f5f9) : 0xf1f5f9) : COLORS.edge);
+      mat.opacity = active ? 0.9 : 0.008;
+      mat.color.set(active ? (isRef ? (REF_EDGE_COLORS[edge.edgeType!] ?? 0x475569) : 0x1e293b) : COLORS.edge);
     }
   }
 
@@ -490,11 +492,21 @@ export class DmMapView extends LitElement {
     this._applyFilters();
   }
 
-  private _onFilterChange(filter: "home" | "firmware" | "model" | "function", value: string) {
-    if (filter === "home")     this._filterHome     = value;
-    if (filter === "firmware") this._filterFirmware = value;
-    if (filter === "model")    this._filterModel    = value;
-    if (filter === "function") this._filterFunction = value;
+  /** Handler unifié pour les 4 filtres multi-select. */
+  private _onFilterChange(filter: "home" | "firmware" | "model" | "function", e: Event) {
+    const selected = Array.from((e.target as HTMLSelectElement).selectedOptions).map((o) => o.value);
+    if (filter === "home")     this._filterHome     = selected;
+    if (filter === "firmware") this._filterFirmware = selected;
+    if (filter === "model")    this._filterModel    = selected;
+    if (filter === "function") this._filterFunction = selected;
+    this._applyFilters();
+  }
+
+  private _clearFilter(filter: "home" | "firmware" | "model" | "function") {
+    if (filter === "home")     this._filterHome     = [];
+    if (filter === "firmware") this._filterFirmware = [];
+    if (filter === "model")    this._filterModel    = [];
+    if (filter === "function") this._filterFunction = [];
     this._applyFilters();
   }
 
@@ -503,17 +515,41 @@ export class DmMapView extends LitElement {
     if (this._focusedNode) this._releaseFocus();
     this._clearScene();
 
-    const tree = this._filterHome !== "__all__"
-      ? { ...this._rawTree, homes: this._rawTree.homes.filter((h) => h.id === Number(this._filterHome)) }
+    // --- hierarchy filter ---
+    const tree = this._filterHome.length > 0
+      ? { ...this._rawTree, homes: this._rawTree.homes.filter((h) => this._filterHome.includes(String(h.id))) }
       : this._rawTree;
 
+    // --- device filter (arrays vides = pas de filtre) ---
     let devices = [...this._rawDevices];
-    if (this._filterFirmware !== "__all__") devices = devices.filter((d) => d.firmwareId === Number(this._filterFirmware));
-    if (this._filterModel    !== "__all__") devices = devices.filter((d) => d.modelId    === Number(this._filterModel));
-    if (this._filterFunction !== "__all__") devices = devices.filter((d) => d.functionId === Number(this._filterFunction));
+    if (this._filterFirmware.length > 0)
+      devices = devices.filter((d) => d.firmwareId != null && this._filterFirmware.includes(String(d.firmwareId)));
+    if (this._filterModel.length > 0)
+      devices = devices.filter((d) => d.modelId != null    && this._filterModel.includes(String(d.modelId)));
+    if (this._filterFunction.length > 0)
+      devices = devices.filter((d) => d.functionId != null && this._filterFunction.includes(String(d.functionId)));
+
+    // --- reference node lists ---
+    // Aucun filtre actif → tout afficher (nodes orphelins inclus).
+    // Filtre actif → restreindre aux IDs utilisés par les devices visibles.
+    const anyFilterActive = this._filterHome.length > 0 ||
+      this._filterFirmware.length > 0 || this._filterModel.length > 0 || this._filterFunction.length > 0;
+
+    let firmwares = this._rawFirmwares;
+    let models    = this._rawModels;
+    let functions = this._rawFunctions;
+
+    if (anyFilterActive) {
+      const usedFwIds = new Set(devices.map((d) => d.firmwareId).filter((v): v is number => v != null));
+      const usedMdIds = new Set(devices.map((d) => d.modelId).filter((v): v is number => v != null));
+      const usedFnIds = new Set(devices.map((d) => d.functionId).filter((v): v is number => v != null));
+      firmwares = this._rawFirmwares.filter((fw) => fw.id != null && usedFwIds.has(fw.id));
+      models    = this._rawModels.filter((m)  => m.id  != null && usedMdIds.has(m.id));
+      functions = this._rawFunctions.filter((fn) => fn.id != null && usedFnIds.has(fn.id));
+    }
 
     this._nodes = []; this._edges = [];
-    this._buildGraph(tree, devices, this._rawFirmwares, this._rawModels, this._rawFunctions);
+    this._buildGraph(tree, devices, firmwares, models, functions);
   }
 
   /* ================================================================ */
@@ -732,7 +768,7 @@ export class DmMapView extends LitElement {
       ["#22d3ee", "Firmware"],       ["#fb923c", "Model"],
       ["#a78bfa", "Function"],
     ];
-    const filterDefs: { key: "home" | "firmware" | "model" | "function"; label: string; opts: { id: string; name: string }[]; val: string }[] = [
+    const filterDefs: { key: "home" | "firmware" | "model" | "function"; label: string; opts: { id: string; name: string }[]; val: string[] }[] = [
       { key: "home",     label: i18n.t("home"), opts: this._homeOptions,     val: this._filterHome },
       { key: "firmware", label: "Firmware",     opts: this._firmwareOptions, val: this._filterFirmware },
       { key: "model",    label: "Model",        opts: this._modelOptions,    val: this._filterModel },
@@ -755,11 +791,13 @@ export class DmMapView extends LitElement {
       <div class="filter-bar">
         ${filterDefs.map(({ key, label, opts, val }) => html`
           <div class="filter-group">
-            <label>${label}:</label>
-            <select @change=${(e: Event) => this._onFilterChange(key, (e.target as HTMLSelectElement).value)}>
-              <option value="__all__">${i18n.t("filter_all")}</option>
-              ${opts.map((o) => html`<option value=${o.id} ?selected=${val === o.id}>${o.name}</option>`)}
+            <label title="Ctrl+clic pour multi-sélection">${label}:</label>
+            <select multiple
+                    size=${Math.min(Math.max(opts.length, 1), 5)}
+                    @change=${(e: Event) => this._onFilterChange(key, e)}>
+              ${opts.map((o) => html`<option value=${o.id} .selected=${val.includes(o.id)}>${o.name}</option>`)}
             </select>
+            ${val.length > 0 ? html`<button class="filter-clear-btn" title="Tout désélectionner" @click=${() => this._clearFilter(key)}>✕</button>` : ""}
           </div>
         `)}
         <div class="layout-toggle">

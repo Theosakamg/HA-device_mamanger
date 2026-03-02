@@ -239,8 +239,8 @@ export function renderGraphToScene(
     const line = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(curvedEdge(src.position, tgt.position)),
       new THREE.LineBasicMaterial({
-        color: isRef ? (REF_EDGE_COLORS[edge.edgeType!] ?? COLORS.edge) : 0x64748b,
-        transparent: true, opacity: isRef ? 0.22 : 0.35,
+        color: isRef ? (REF_EDGE_COLORS[edge.edgeType!] ?? COLORS.edge) : 0x475569,
+        transparent: true, opacity: isRef ? 0.35 : 0.6,
       }),
     );
     edge.line = line;
