@@ -1,27 +1,27 @@
-"""Repository for DmLevel entities."""
+"""Repository for DmFloor entities."""
 
 from typing import Any
 
 from .base import BaseRepository
 
 
-class LevelRepository(BaseRepository):
-    """Repository for managing DmLevel records in dm_levels table.
+class FloorRepository(BaseRepository):
+    """Repository for managing DmFloor records in dm_floors table.
 
-    Levels are always sorted by ``slug`` so that the natural floor
+    Floors are always sorted by ``slug`` so that the natural floor
     order (l0, l1, l2 …) is preserved regardless of insertion order.
     """
 
-    table_name = "dm_levels"
-    allowed_columns = {"name", "slug", "description", "image", "home_id"}
-    parent_column = "home_id"
+    table_name = "dm_floors"
+    allowed_columns = {"name", "slug", "description", "image", "building_id"}
+    parent_column = "building_id"
     default_order = "slug ASC"
 
     async def find_all(self) -> list[dict[str, Any]]:
-        """Retrieve all levels ordered by slug.
+        """Retrieve all floors ordered by slug.
 
         Returns:
-            A list of level dicts sorted by slug.
+            A list of floor dicts sorted by slug.
         """
         conn = await self.db.get_connection()
         cursor = await conn.execute(
@@ -31,21 +31,21 @@ class LevelRepository(BaseRepository):
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
 
-    async def find_by_home(self, home_id: int) -> list[dict[str, Any]]:
-        """Find all levels belonging to a specific home.
+    async def find_by_building(self, building_id: int) -> list[dict[str, Any]]:
+        """Find all floors belonging to a specific building.
 
         Args:
-            home_id: The home ID to filter by.
+            building_id: The building ID to filter by.
 
         Returns:
-            A list of level dicts sorted by slug.
+            A list of floor dicts sorted by slug.
         """
         conn = await self.db.get_connection()
         cursor = await conn.execute(
             f"SELECT * FROM {self.table_name}"
             f" WHERE {self.parent_column} = ?"
             f" ORDER BY {self.default_order}",
-            (home_id,),
+            (building_id,),
         )
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]

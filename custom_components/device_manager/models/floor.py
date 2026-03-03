@@ -1,6 +1,6 @@
-"""DmLevel dataclass model.
+"""DmFloor dataclass model.
 
-Represents a level (floor) belonging to a home in the device manager hierarchy.
+Represents a floor belonging to a building in the device manager hierarchy.
 """
 
 from dataclasses import dataclass
@@ -10,21 +10,21 @@ from .base import SerializableMixin
 
 
 @dataclass
-class DmLevel(SerializableMixin):
-    """Dataclass representing a level (floor) within a home.
+class DmFloor(SerializableMixin):
+    """Dataclass representing a floor within a building.
 
     Attributes:
-        home_id: Foreign key referencing the parent ``DmHome``. Required.
-        name: Display name of the level.
+        building_id: Foreign key referencing the parent ``DmBuilding``. Required.
+        name: Display name of the floor.
         slug: URL-friendly identifier.
         description: Short description (max 255 characters).
-        image: Path or URL to an image representing the level.
+        image: Path or URL to an image representing the floor.
         id: Primary key (auto-increment). None for new records.
         created_at: Timestamp when the record was created.
         updated_at: Timestamp when the record was last updated.
     """
 
-    home_id: int = 0
+    building_id: int = 0
     name: str = ""
     slug: str = ""
     description: str = ""

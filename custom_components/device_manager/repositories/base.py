@@ -10,8 +10,8 @@ _LOGGER = logging.getLogger(__name__)
 
 # Whitelist of valid table names — defence-in-depth against SQL injection.
 _VALID_TABLE_NAMES = frozenset({
-    "dm_homes",
-    "dm_levels",
+    "dm_buildings",
+    "dm_floors",
     "dm_rooms",
     "dm_devices",
     "dm_device_models",
@@ -31,6 +31,10 @@ class BaseRepository:
         - table_name: str - The SQL table name.
         - allowed_columns: set[str] - Whitelist of column
           names for insert/update.
+
+    Optional hooks (override in subclasses):
+        - _decode_row(row): post-process a row after reading (e.g. decrypt fields).
+        - _encode_row(data): pre-process data before writing (e.g. encrypt fields).
     """
 
     table_name: str = ""
@@ -52,6 +56,24 @@ class BaseRepository:
             )
         self.db = db_manager
 
+    # ------------------------------------------------------------------
+    # Row transformation hooks (override in subclasses)
+    # ------------------------------------------------------------------
+
+    def _decode_row(self, row: dict[str, Any]) -> dict[str, Any]:
+        """Post-process a row after reading from the DB.
+
+        Override to decrypt fields or enrich the dict.  Default is identity.
+        """
+        return row
+
+    def _encode_row(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Pre-process data before writing to the DB.
+
+        Override to encrypt fields or transform values.  Default is identity.
+        """
+        return data
+
     async def find_all(self) -> list[dict[str, Any]]:
         """Retrieve all rows from the table, ordered by id ASC.
 
@@ -63,7 +85,7 @@ class BaseRepository:
             f"SELECT * FROM {self.table_name} ORDER BY id ASC"
         )
         rows = await cursor.fetchall()
-        return [dict(row) for row in rows]
+        return [self._decode_row(dict(row)) for row in rows]
 
     async def find_by_id(self, entity_id: int) -> Optional[dict[str, Any]]:
         """Retrieve a single row by its primary key.
@@ -79,7 +101,7 @@ class BaseRepository:
             f"SELECT * FROM {self.table_name} WHERE id = ?", (entity_id,)
         )
         row = await cursor.fetchone()
-        return dict(row) if row else None
+        return self._decode_row(dict(row)) if row else None
 
     async def create(self, data: dict[str, Any]) -> int:
         """Insert a new row and return its auto-generated ID.
@@ -105,6 +127,8 @@ class BaseRepository:
             if cursor.lastrowid is None:
                 raise ValueError("Failed to get ID after insert")
             return int(cursor.lastrowid)
+
+        filtered = self._encode_row(filtered)
 
         cols = list(filtered.keys())
         # Validate column names are safe identifiers
@@ -143,6 +167,8 @@ class BaseRepository:
         filtered = {k: v for k, v in data.items() if k in self.allowed_columns}
         if not filtered:
             return False
+
+        filtered = self._encode_row(filtered)
 
         # Validate column names are safe identifiers
         for k in filtered:
@@ -202,4 +228,4 @@ class BaseRepository:
         )
         cursor = await conn.execute(sql, (parent_id,))
         rows = await cursor.fetchall()
-        return [dict(row) for row in rows]
+        return [self._decode_row(dict(row)) for row in rows]

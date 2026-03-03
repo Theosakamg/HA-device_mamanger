@@ -8,8 +8,8 @@ from .device import DmDevice
 from .device_firmware import DmDeviceFirmware
 from .device_function import DmDeviceFunction
 from .device_model import DmDeviceModel
-from .home import DmHome
-from .level import DmLevel
+from .building import DmBuilding
+from .floor import DmFloor
 from .room import DmRoom
 
 __all__ = [
@@ -18,7 +18,7 @@ __all__ = [
     "DmDeviceFirmware",
     "DmDeviceFunction",
     "DmDeviceModel",
-    "DmHome",
-    "DmLevel",
+    "DmBuilding",
+    "DmFloor",
     "DmRoom",
 ]

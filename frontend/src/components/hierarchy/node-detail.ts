@@ -6,9 +6,10 @@ import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import type { HierarchyNode, DmDevice } from "../../types/device";
+import type { DmRoom } from "../../types/room";
 import { DeviceClient } from "../../api/device-client";
-import { HomeClient } from "../../api/home-client";
-import { LevelClient } from "../../api/level-client";
+import { BuildingClient } from "../../api/building-client";
+import { FloorClient } from "../../api/floor-client";
 import { RoomClient } from "../../api/room-client";
 
 @localized
@@ -82,24 +83,31 @@ export class DmNodeDetail extends LitElement {
 
   @state() private _devices: DmDevice[] = [];
   @state() private _loadingDevices = false;
+  @state() private _roomDetails: DmRoom | null = null;
   @state() private _editing = false;
   @state() private _editName = "";
   @state() private _editSlug = "";
   @state() private _editDescription = "";
   @state() private _editImage = "";
+  @state() private _editLogin = "";
+  @state() private _editPassword = "";
+  @state() private _showPassword = false;
 
   private _deviceClient = new DeviceClient();
-  private _homeClient = new HomeClient();
-  private _levelClient = new LevelClient();
+  private _buildingClient = new BuildingClient();
+  private _floorClient = new FloorClient();
   private _roomClient = new RoomClient();
 
   updated(changedProperties: Map<string, unknown>) {
     if (changedProperties.has("node") && this.node) {
       this._editing = false;
+      this._showPassword = false;
       if (this.node.type === "room") {
         this._loadDevices();
+        this._loadRoomDetails();
       } else {
         this._devices = [];
+        this._roomDetails = null;
       }
     }
   }
@@ -113,6 +121,16 @@ export class DmNodeDetail extends LitElement {
       console.error("Failed to load devices:", err);
     }
     this._loadingDevices = false;
+  }
+
+  private async _loadRoomDetails() {
+    if (!this.node || this.node.type !== "room") return;
+    try {
+      this._roomDetails = await this._roomClient.getById(this.node.id);
+    } catch (err) {
+      console.error("Failed to load room details:", err);
+      this._roomDetails = null;
+    }
   }
 
   render() {
@@ -147,6 +165,38 @@ export class DmNodeDetail extends LitElement {
         <span class="info-value">${this._formatDate(this.node.createdAt)}</span>
         <span class="info-label">${i18n.t("updated_at")}</span>
         <span class="info-value">${this._formatDate(this.node.updatedAt)}</span>
+        ${this.node.type === "room"
+          ? html`
+              <span class="info-label">${i18n.t("room_login")}</span>
+              <span class="info-value">${this._roomDetails?.login || "—"}</span>
+              <span class="info-label">${i18n.t("room_password")}</span>
+              <span
+                class="info-value"
+                style="display:flex; align-items:center; gap:6px;"
+              >
+                ${this._roomDetails?.password
+                  ? this._showPassword
+                    ? this._roomDetails.password
+                    : "••••••••"
+                  : "—"}
+                ${this._roomDetails?.password
+                  ? html`
+                      <button
+                        class="btn-icon"
+                        title=${this._showPassword
+                          ? i18n.t("hide_password")
+                          : i18n.t("show_password")}
+                        @click=${() => {
+                          this._showPassword = !this._showPassword;
+                        }}
+                      >
+                        ${this._showPassword ? "🙈" : "👁"}
+                      </button>
+                    `
+                  : nothing}
+              </span>
+            `
+          : nothing}
       </div>
 
       ${this.node.children.length > 0
@@ -270,6 +320,48 @@ export class DmNodeDetail extends LitElement {
             />
           </div>
         </div>
+        ${this.node?.type === "room"
+          ? html`
+              <div class="form-row" style="margin-top:8px;">
+                <div class="form-group">
+                  <label>${i18n.t("room_login")}</label>
+                  <input
+                    type="text"
+                    .value=${this._editLogin}
+                    @input=${(e: Event) => {
+                      this._editLogin = (e.target as HTMLInputElement).value;
+                    }}
+                  />
+                </div>
+                <div class="form-group">
+                  <label>${i18n.t("room_password")}</label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <input
+                      type=${this._showPassword ? "text" : "password"}
+                      .value=${this._editPassword}
+                      @input=${(e: Event) => {
+                        this._editPassword = (
+                          e.target as HTMLInputElement
+                        ).value;
+                      }}
+                    />
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      title=${this._showPassword
+                        ? i18n.t("hide_password")
+                        : i18n.t("show_password")}
+                      @click=${() => {
+                        this._showPassword = !this._showPassword;
+                      }}
+                    >
+                      ${this._showPassword ? "🙈" : "👁"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `
+          : nothing}
         <div style="display:flex; gap:8px; margin-top:8px;">
           <button class="btn btn-primary" @click=${this._saveEdit}>
             ${i18n.t("save")}
@@ -293,24 +385,33 @@ export class DmNodeDetail extends LitElement {
     this._editSlug = this.node.slug;
     this._editDescription = this.node.description || "";
     this._editImage = this.node.image || "";
+    if (this.node.type === "room") {
+      this._editLogin = this._roomDetails?.login || "";
+      this._editPassword = this._roomDetails?.password || "";
+      this._showPassword = false;
+    }
     this._editing = true;
   }
 
   private async _saveEdit() {
     if (!this.node) return;
     try {
-      const data = {
+      const data: Record<string, unknown> = {
         name: this._editName,
         slug: this._editSlug,
         description: this._editDescription,
         image: this._editImage,
       };
-      if (this.node.type === "home")
-        await this._homeClient.update(this.node.id, data);
-      else if (this.node.type === "level")
-        await this._levelClient.update(this.node.id, data);
-      else if (this.node.type === "room")
+      if (this.node.type === "building")
+        await this._buildingClient.update(this.node.id, data);
+      else if (this.node.type === "floor")
+        await this._floorClient.update(this.node.id, data);
+      else if (this.node.type === "room") {
+        data.login = this._editLogin;
+        data.password = this._editPassword;
         await this._roomClient.update(this.node.id, data);
+        await this._loadRoomDetails();
+      }
       this._editing = false;
       this.dispatchEvent(
         new CustomEvent("data-changed", { bubbles: true, composed: true })
@@ -352,13 +453,13 @@ export class DmNodeDetail extends LitElement {
 
   private _childLabel(): string {
     if (!this.node) return "";
-    if (this.node.type === "home") return i18n.t("levels");
-    if (this.node.type === "level") return i18n.t("rooms");
+    if (this.node.type === "building") return i18n.t("levels");
+    if (this.node.type === "floor") return i18n.t("rooms");
     return "";
   }
 
   private _childIcon(type: string): string {
-    if (type === "level") return "🏢";
+    if (type === "floor") return "🏢";
     if (type === "room") return "🚪";
     return "📦";
   }

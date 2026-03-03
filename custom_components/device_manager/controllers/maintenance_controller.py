@@ -14,8 +14,8 @@ _LOGGER = logging.getLogger(__name__)
 _CLEANABLE_TABLES = (
     "dm_devices",
     "dm_rooms",
-    "dm_levels",
-    "dm_homes",
+    "dm_floors",
+    "dm_buildings",
     "dm_device_models",
     "dm_device_firmwares",
     "dm_device_functions",

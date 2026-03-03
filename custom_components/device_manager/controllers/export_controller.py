@@ -59,13 +59,13 @@ def _device_to_row(device: dict[str, Any]) -> dict[str, str]:
     The returned keys must match :data:`CSV_COLUMNS` exactly so that an
     exported CSV can be re-imported by :class:`CSVImportService`.
     """
-    # Extract the numeric level value from the slug
+    # Extract the numeric floor value from the slug
     # (e.g. "l0" → "0")
-    level_slug = device.get("level_slug", "") or ""
-    if level_slug.startswith("l"):
-        level_num = level_slug.lstrip("l")
+    floor_slug = device.get("floor_slug", "") or ""
+    if floor_slug.startswith("l"):
+        level_num = floor_slug.lstrip("l")
     else:
-        level_num = level_slug
+        level_num = floor_slug
 
     # Map enabled boolean back to the State vocabulary used in the CSV
     enabled = device.get("enabled")

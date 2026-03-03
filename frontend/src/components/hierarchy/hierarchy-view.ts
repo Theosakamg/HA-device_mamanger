@@ -72,8 +72,8 @@ export class DmHierarchyView extends LitElement {
     try {
       this._tree = await this._client.getTree();
       // Auto-select first item if nothing is selected
-      if (!this._selectedNode && this._tree?.homes?.length) {
-        this._selectedNode = this._tree.homes[0];
+      if (!this._selectedNode && this._tree?.buildings?.length) {
+        this._selectedNode = this._tree.buildings[0];
       }
     } catch (err) {
       console.error("Failed to load hierarchy:", err);

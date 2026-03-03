@@ -1,8 +1,8 @@
 """Controller layer (API views) for Device Manager."""
 
 from .static_controller import MainView, StaticView
-from .home_controller import HomesAPIView, HomeAPIView
-from .level_controller import LevelsAPIView, LevelAPIView
+from .building_controller import BuildingsAPIView, BuildingAPIView
+from .floor_controller import FloorsAPIView, FloorAPIView
 from .room_controller import RoomsAPIView, RoomAPIView
 from .device_controller import DevicesAPIView, DeviceAPIView
 from .device_model_controller import DeviceModelsAPIView, DeviceModelAPIView
@@ -17,10 +17,10 @@ from .settings_controller import SettingsAPIView
 ALL_VIEWS = [
     MainView,
     StaticView,
-    HomesAPIView,
-    HomeAPIView,
-    LevelsAPIView,
-    LevelAPIView,
+    BuildingsAPIView,
+    BuildingAPIView,
+    FloorsAPIView,
+    FloorAPIView,
     RoomsAPIView,
     RoomAPIView,
     DevicesAPIView,

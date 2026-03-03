@@ -4,8 +4,8 @@ DOMAIN = "device_manager"
 DB_NAME = "device_manager.db"
 
 # Table names
-TABLE_HOMES = "dm_homes"
-TABLE_LEVELS = "dm_levels"
+TABLE_BUILDINGS = "dm_buildings"
+TABLE_FLOORS = "dm_floors"
 TABLE_ROOMS = "dm_rooms"
 TABLE_DEVICES = "dm_devices"
 TABLE_DEVICE_MODELS = "dm_device_models"
@@ -41,13 +41,13 @@ TABLE_SETTINGS = "dm_settings"
 SETTING_DNS_SUFFIX = "dns_suffix"
 SETTING_IP_PREFIX = "ip_prefix"
 SETTING_MQTT_PREFIX = "mqtt_topic_prefix"
-SETTING_DEFAULT_HOME = "default_home_name"
+SETTING_DEFAULT_BUILDING = "default_building_name"
 
 DEFAULT_SETTINGS: dict[str, str] = {
     SETTING_DNS_SUFFIX: "domo.local",
     SETTING_IP_PREFIX: "192.168.0",
     SETTING_MQTT_PREFIX: "home",
-    SETTING_DEFAULT_HOME: "Home",
+    SETTING_DEFAULT_BUILDING: "Building",
 }
 
 # Legacy aliases (for backward compat in code that imported these directly)

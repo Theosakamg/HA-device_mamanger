@@ -77,9 +77,9 @@ class DatabaseManager:
         """Create all database tables if they do not exist.
 
         Creates 7 tables in order respecting foreign key dependencies:
-        1. dm_homes
-        2. dm_levels (FK -> dm_homes)
-        3. dm_rooms (FK -> dm_levels)
+        1. dm_buildings
+        2. dm_floors (FK -> dm_buildings)
+        3. dm_rooms (FK -> dm_floors)
         4. dm_device_models
         5. dm_device_firmwares
         6. dm_device_functions
@@ -90,9 +90,9 @@ class DatabaseManager:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
             db = await self.get_connection()
 
-            # 1. Homes
+            # 1. Buildings
             await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_homes (
+                CREATE TABLE IF NOT EXISTS dm_buildings (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL DEFAULT '',
                     slug TEXT NOT NULL DEFAULT '',
@@ -103,9 +103,9 @@ class DatabaseManager:
                 )
             """)
 
-            # 2. Levels
+            # 2. Floors
             await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_levels (
+                CREATE TABLE IF NOT EXISTS dm_floors (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL DEFAULT '',
                     slug TEXT NOT NULL DEFAULT '',
@@ -113,8 +113,8 @@ class DatabaseManager:
                     image TEXT DEFAULT '',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    home_id INTEGER NOT NULL,
-                    FOREIGN KEY (home_id) REFERENCES dm_homes(id)
+                    building_id INTEGER NOT NULL,
+                    FOREIGN KEY (building_id) REFERENCES dm_buildings(id)
                         ON DELETE CASCADE
                 )
             """)
@@ -127,10 +127,12 @@ class DatabaseManager:
                     slug TEXT NOT NULL DEFAULT '',
                     description TEXT DEFAULT '',
                     image TEXT DEFAULT '',
+                    login TEXT DEFAULT '',
+                    password TEXT DEFAULT '',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    level_id INTEGER NOT NULL,
-                    FOREIGN KEY (level_id) REFERENCES dm_levels(id)
+                    floor_id INTEGER NOT NULL,
+                    FOREIGN KEY (floor_id) REFERENCES dm_floors(id)
                         ON DELETE CASCADE
                 )
             """)
@@ -188,6 +190,12 @@ class DatabaseManager:
                 await self._migrate_devices_ip_nullable(db)
             except Exception as mig_err:
                 _LOGGER.warning("Device ip migration skipped: %s", mig_err)
+
+            # Migration: add login/password columns to dm_rooms if missing
+            try:
+                await self._migrate_rooms_add_credentials(db)
+            except Exception as mig_err:
+                _LOGGER.warning("Room credentials migration skipped: %s", mig_err)
 
             _LOGGER.info(
                 "Database initialized successfully with all 7 tables"
@@ -249,3 +257,26 @@ class DatabaseManager:
                     "Migration complete: ip is now nullable"
                 )
                 return
+
+    async def _migrate_rooms_add_credentials(
+        self, db: aiosqlite.Connection
+    ) -> None:
+        """Migrate dm_rooms table: add login and password columns if missing.
+
+        SQLite supports ``ALTER TABLE … ADD COLUMN`` which is safe to run
+        even when the table already exists – it only fails when the column
+        already exists.  We swallow that error gracefully.
+        """
+        cursor = await db.execute("PRAGMA table_info(dm_rooms)")
+        columns = {row["name"] for row in await cursor.fetchall()}
+
+        for col, definition in (
+            ("login", "TEXT DEFAULT ''"),
+            ("password", "TEXT DEFAULT ''"),
+        ):
+            if col not in columns:
+                await db.execute(
+                    f"ALTER TABLE dm_rooms ADD COLUMN {col} {definition}"
+                )
+                await db.commit()
+                _LOGGER.info("Migration: added dm_rooms.%s column", col)

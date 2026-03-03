@@ -1,6 +1,6 @@
-"""DmHome dataclass model.
+"""DmBuilding dataclass model.
 
-Represents a home (top-level location) in the device manager hierarchy.
+Represents a building (top-level location) in the device manager hierarchy.
 """
 
 from dataclasses import dataclass
@@ -10,15 +10,15 @@ from .base import SerializableMixin
 
 
 @dataclass
-class DmHome(SerializableMixin):
-    """Dataclass representing a home location.
+class DmBuilding(SerializableMixin):
+    """Dataclass representing a building location.
 
     Attributes:
         id: Primary key (auto-increment). None for new records.
-        name: Display name of the home.
+        name: Display name of the building.
         slug: URL-friendly identifier.
         description: Short description (max 255 characters).
-        image: Path or URL to an image representing the home.
+        image: Path or URL to an image representing the building.
         created_at: Timestamp when the record was created.
         updated_at: Timestamp when the record was last updated.
     """

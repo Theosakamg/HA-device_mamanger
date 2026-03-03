@@ -10,8 +10,8 @@ class RoomsAPIView(CrudListView):
     name = "api:device_manager:rooms"
     repo_key = "room"
     entity_name = "Room"
-    filter_param = "level_id"
-    filter_method = "find_by_level"
+    filter_param = "floor_id"
+    filter_method = "find_by_floor"
 
 
 class RoomAPIView(CrudDetailView):

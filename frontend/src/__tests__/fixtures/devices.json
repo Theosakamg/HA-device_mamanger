@@ -4,7 +4,7 @@
     "enabled": true,
     "ip": "77",
     "positionSlug": "lunch",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "office",
     "functionName": "button",
     "expected": {
@@ -20,7 +20,7 @@
     "enabled": false,
     "ip": "",
     "positionSlug": "lunch",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "office",
     "functionName": "door",
     "expected": {
@@ -36,7 +36,7 @@
     "enabled": true,
     "ip": "",
     "positionSlug": "lake",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "office",
     "functionName": "door",
     "expected": {
@@ -52,7 +52,7 @@
     "enabled": true,
     "ip": "192.168.0.189",
     "positionSlug": "desk",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "office",
     "functionName": "energy",
     "expected": {
@@ -68,7 +68,7 @@
     "enabled": true,
     "ip": "",
     "positionSlug": "bed",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "office",
     "functionName": "heater",
     "expected": {
@@ -84,7 +84,7 @@
     "enabled": false,
     "ip": "",
     "positionSlug": "ceiling",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "cellar",
     "functionName": "light",
     "expected": {
@@ -100,7 +100,7 @@
     "enabled": false,
     "ip": "",
     "positionSlug": "door",
-    "levelSlug": "l0",
+    "floorSlug": "l0",
     "roomSlug": "bed",
     "functionName": "motion",
     "expected": {

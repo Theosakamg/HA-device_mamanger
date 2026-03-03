@@ -4,7 +4,11 @@
 import type { HierarchyEntity } from "./base";
 
 export interface DmRoom extends HierarchyEntity {
-  levelId: number;
-  /** Transient: parent level name (populated by API) */
-  levelName?: string;
+  floorId: number;
+  /** Optional login credential for room equipment. */
+  login?: string;
+  /** Optional password stored encrypted at rest on the server. */
+  password?: string;
+  /** Transient: parent floor name (populated by API) */
+  floorName?: string;
 }

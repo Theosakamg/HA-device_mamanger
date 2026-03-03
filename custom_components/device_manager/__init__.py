@@ -11,8 +11,8 @@ from homeassistant.helpers.typing import ConfigType
 from .const import DB_NAME, DOMAIN
 from .controllers import ALL_VIEWS
 from .repositories import (
-    HomeRepository,
-    LevelRepository,
+    BuildingRepository,
+    FloorRepository,
     RoomRepository,
     DeviceRepository,
     DeviceModelRepository,
@@ -21,6 +21,7 @@ from .repositories import (
     SettingsRepository,
 )
 from .services.database_manager import DatabaseManager
+from .utils.crypto import generate_key
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,11 +42,21 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await db_manager.initialize()
     hass.data[DOMAIN]["db"] = db_manager
 
+    # Load or generate symmetric encryption key (stored next to the DB)
+    key_path = Path(hass.config.config_dir) / ".device_manager.key"
+    if key_path.exists():
+        crypto_key = key_path.read_text().strip()
+        _LOGGER.debug("Loaded encryption key from %s", key_path)
+    else:
+        crypto_key = generate_key()
+        key_path.write_text(crypto_key)
+        _LOGGER.info("Generated new encryption key at %s", key_path)
+
     # Create repositories
     repos = {
-        "home": HomeRepository(db_manager),
-        "level": LevelRepository(db_manager),
-        "room": RoomRepository(db_manager),
+        "building": BuildingRepository(db_manager),
+        "floor": FloorRepository(db_manager),
+        "room": RoomRepository(db_manager, crypto_key=crypto_key),
         "device": DeviceRepository(db_manager),
         "device_model": DeviceModelRepository(db_manager),
         "device_firmware": DeviceFirmwareRepository(db_manager),

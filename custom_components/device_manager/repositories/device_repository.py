@@ -28,17 +28,17 @@ class DeviceRepository(BaseRepository):
             d.*,
             r.name AS room_name,
             r.slug AS room_slug,
-            l.name AS level_name,
-            l.slug AS level_slug,
-            h.name AS home_name,
+            l.name AS floor_name,
+            l.slug AS floor_slug,
+            h.name AS building_name,
             dm.name AS model_name,
             df.name AS firmware_name,
             dfn.name AS function_name,
             t.mac AS target_mac
         FROM dm_devices d
         LEFT JOIN dm_rooms r ON d.room_id = r.id
-        LEFT JOIN dm_levels l ON r.level_id = l.id
-        LEFT JOIN dm_homes h ON l.home_id = h.id
+        LEFT JOIN dm_floors l ON r.floor_id = l.id
+        LEFT JOIN dm_buildings h ON l.building_id = h.id
         LEFT JOIN dm_device_models dm ON d.model_id = dm.id
         LEFT JOIN dm_device_firmwares df ON d.firmware_id = df.id
         LEFT JOIN dm_device_functions dfn ON d.function_id = dfn.id

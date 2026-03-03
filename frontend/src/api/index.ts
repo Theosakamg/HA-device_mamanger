@@ -1,7 +1,7 @@
 export { BaseClient } from "./base-client";
 export { CrudClient } from "./crud-client";
-export { HomeClient } from "./home-client";
-export { LevelClient } from "./level-client";
+export { BuildingClient } from "./building-client";
+export { FloorClient } from "./floor-client";
 export { RoomClient } from "./room-client";
 export { DeviceClient } from "./device-client";
 export { DeviceModelClient } from "./device-model-client";

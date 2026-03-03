@@ -11,8 +11,8 @@ import { BaseClient } from "./base-client";
  *
  * @example
  * ```ts
- * const homeClient = new CrudClient<DmHome>("/homes");
- * const levels = await levelClient.getAll("?home_id=1");
+ * const buildingClient = new CrudClient<DmBuilding>("/buildings");
+ * const floors = await floorClient.getAll("?building_id=1");
  * ```
  */
 export class CrudClient<T> extends BaseClient {

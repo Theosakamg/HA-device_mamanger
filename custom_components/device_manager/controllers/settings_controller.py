@@ -15,7 +15,7 @@ _SETTING_VALIDATORS: dict[str, re.Pattern] = {
     "ip_prefix": re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}$"),
     "dns_suffix": re.compile(r"^[a-zA-Z0-9._-]+$"),
     "mqtt_topic_prefix": re.compile(r"^[a-zA-Z0-9/_-]+$"),
-    "default_home_name": re.compile(r"^.{1,100}$"),
+    "default_building_name": re.compile(r"^.{1,100}$"),
 }
 
 # Maximum length for any setting value

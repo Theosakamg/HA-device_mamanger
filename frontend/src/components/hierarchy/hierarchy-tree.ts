@@ -1,13 +1,13 @@
 /**
- * Hierarchy tree component - collapsible tree of Home > Level > Room.
+ * Hierarchy tree component - collapsible tree of Building > Floor > Room.
  */
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import type { HierarchyTree, HierarchyNode } from "../../types/device";
-import { HomeClient } from "../../api/home-client";
-import { LevelClient } from "../../api/level-client";
+import { BuildingClient } from "../../api/building-client";
+import { FloorClient } from "../../api/floor-client";
 import { RoomClient } from "../../api/room-client";
 import { toSlug } from "../../utils/slug";
 import "../shared/confirm-dialog";
@@ -97,8 +97,8 @@ export class DmHierarchyTreeComponent extends LitElement {
 
   private static readonly _STORAGE_KEY = "dm_tree_expanded";
 
-  private _homeClient = new HomeClient();
-  private _levelClient = new LevelClient();
+  private _buildingClient = new BuildingClient();
+  private _floorClient = new FloorClient();
   private _roomClient = new RoomClient();
 
   connectedCallback() {
@@ -140,14 +140,18 @@ export class DmHierarchyTreeComponent extends LitElement {
         <button
           class="btn btn-primary"
           style="padding: 4px 10px; font-size: 12px;"
-          @click=${() => this._startAdd("home", 0)}
+          @click=${() => this._startAdd("building", 0)}
         >
           + ${i18n.t("home")}
         </button>
       </div>
 
-      ${this._addingTo === "home:0" ? this._renderInlineAdd("home") : nothing}
-      ${this.tree?.homes.map((home) => this._renderHomeNode(home)) ?? nothing}
+      ${this._addingTo === "building:0"
+        ? this._renderInlineAdd("building")
+        : nothing}
+      ${this.tree?.buildings.map((building) =>
+        this._renderBuildingNode(building)
+      ) ?? nothing}
 
       <dm-confirm-dialog
         .open=${this._confirmOpen}
@@ -159,17 +163,18 @@ export class DmHierarchyTreeComponent extends LitElement {
     `;
   }
 
-  private _renderHomeNode(home: HierarchyNode) {
-    const key = `home:${home.id}`;
+  private _renderBuildingNode(building: HierarchyNode) {
+    const key = `building:${building.id}`;
     const expanded = this._expandedNodes.has(key);
     const selected =
-      this.selectedNode?.type === "home" && this.selectedNode?.id === home.id;
+      this.selectedNode?.type === "building" &&
+      this.selectedNode?.id === building.id;
 
     return html`
       <div>
         <div
           class="tree-node ${selected ? "selected" : ""}"
-          @click=${() => this._selectNode(home)}
+          @click=${() => this._selectNode(building)}
         >
           <span
             class="toggle"
@@ -178,17 +183,17 @@ export class DmHierarchyTreeComponent extends LitElement {
               this._toggleExpand(key);
             }}
           >
-            ${home.children.length > 0 ? (expanded ? "▼" : "▶") : "·"}
+            ${building.children.length > 0 ? (expanded ? "▼" : "▶") : "·"}
           </span>
-          <span class="node-name">🏠 ${home.name}</span>
-          <span class="badge">${home.deviceCount}</span>
+          <span class="node-name">🏠 ${building.name}</span>
+          <span class="badge">${building.deviceCount}</span>
           <span class="node-actions">
             <button
               class="btn-icon"
               title="${i18n.t("add_level")}"
               @click=${(e: Event) => {
                 e.stopPropagation();
-                this._startAdd("level", home.id);
+                this._startAdd("floor", building.id);
               }}
             >
               +
@@ -198,36 +203,38 @@ export class DmHierarchyTreeComponent extends LitElement {
               title="${i18n.t("delete_home")}"
               @click=${(e: Event) => {
                 e.stopPropagation();
-                this._requestDelete("home", home.id);
+                this._requestDelete("building", building.id);
               }}
             >
               🗑
             </button>
           </span>
         </div>
-        ${this._addingTo === `level:${home.id}`
-          ? this._renderInlineAdd("level")
+        ${this._addingTo === `floor:${building.id}`
+          ? this._renderInlineAdd("floor")
           : nothing}
         ${expanded
           ? html`<div class="tree-children">
-              ${home.children.map((lvl) => this._renderLevelNode(lvl, home.id))}
+              ${building.children.map((fl) =>
+                this._renderFloorNode(fl, building.id)
+              )}
             </div>`
           : nothing}
       </div>
     `;
   }
 
-  private _renderLevelNode(level: HierarchyNode, _homeId: number) {
-    const key = `level:${level.id}`;
+  private _renderFloorNode(floor: HierarchyNode, _buildingId: number) {
+    const key = `floor:${floor.id}`;
     const expanded = this._expandedNodes.has(key);
     const selected =
-      this.selectedNode?.type === "level" && this.selectedNode?.id === level.id;
+      this.selectedNode?.type === "floor" && this.selectedNode?.id === floor.id;
 
     return html`
       <div>
         <div
           class="tree-node ${selected ? "selected" : ""}"
-          @click=${() => this._selectNode(level)}
+          @click=${() => this._selectNode(floor)}
         >
           <span
             class="toggle"
@@ -236,17 +243,17 @@ export class DmHierarchyTreeComponent extends LitElement {
               this._toggleExpand(key);
             }}
           >
-            ${level.children.length > 0 ? (expanded ? "▼" : "▶") : "·"}
+            ${floor.children.length > 0 ? (expanded ? "▼" : "▶") : "·"}
           </span>
-          <span class="node-name">🏢 ${level.name}</span>
-          <span class="badge">${level.deviceCount}</span>
+          <span class="node-name">🏢 ${floor.name}</span>
+          <span class="badge">${floor.deviceCount}</span>
           <span class="node-actions">
             <button
               class="btn-icon"
               title="${i18n.t("add_room")}"
               @click=${(e: Event) => {
                 e.stopPropagation();
-                this._startAdd("room", level.id);
+                this._startAdd("room", floor.id);
               }}
             >
               +
@@ -256,19 +263,19 @@ export class DmHierarchyTreeComponent extends LitElement {
               title="${i18n.t("delete_level")}"
               @click=${(e: Event) => {
                 e.stopPropagation();
-                this._requestDelete("level", level.id);
+                this._requestDelete("floor", floor.id);
               }}
             >
               🗑
             </button>
           </span>
         </div>
-        ${this._addingTo === `room:${level.id}`
+        ${this._addingTo === `room:${floor.id}`
           ? this._renderInlineAdd("room")
           : nothing}
         ${expanded
           ? html`<div class="tree-children">
-              ${level.children.map((room) => this._renderRoomNode(room))}
+              ${floor.children.map((room) => this._renderRoomNode(room))}
             </div>`
           : nothing}
       </div>
@@ -352,17 +359,17 @@ export class DmHierarchyTreeComponent extends LitElement {
     if (!this.tree) return;
     const nextSet = new Set(this._expandedNodes);
 
-    for (const home of this.tree.homes) {
-      if (node.type === "home" && node.id === home.id) break;
-      for (const level of home.children) {
-        if (node.type === "level" && node.id === level.id) {
-          nextSet.add(`home:${home.id}`);
+    for (const building of this.tree.buildings) {
+      if (node.type === "building" && node.id === building.id) break;
+      for (const floor of building.children) {
+        if (node.type === "floor" && node.id === floor.id) {
+          nextSet.add(`building:${building.id}`);
           break;
         }
-        for (const room of level.children) {
+        for (const room of floor.children) {
           if (node.type === "room" && node.id === room.id) {
-            nextSet.add(`home:${home.id}`);
-            nextSet.add(`level:${level.id}`);
+            nextSet.add(`building:${building.id}`);
+            nextSet.add(`floor:${floor.id}`);
             break;
           }
         }
@@ -398,19 +405,19 @@ export class DmHierarchyTreeComponent extends LitElement {
     const slug = toSlug(this._newName);
     const parentId = parseInt(this._addingTo?.split(":")[1] ?? "0", 10);
     try {
-      if (type === "home") {
-        await this._homeClient.create({ name: this._newName, slug });
-      } else if (type === "level") {
-        await this._levelClient.create({
+      if (type === "building") {
+        await this._buildingClient.create({ name: this._newName, slug });
+      } else if (type === "floor") {
+        await this._floorClient.create({
           name: this._newName,
           slug,
-          homeId: parentId,
+          buildingId: parentId,
         });
       } else if (type === "room") {
         await this._roomClient.create({
           name: this._newName,
           slug,
-          levelId: parentId,
+          floorId: parentId,
         });
       }
       this._cancelAdd();
@@ -436,8 +443,8 @@ export class DmHierarchyTreeComponent extends LitElement {
     this._pendingDeleteId = null;
     if (!type || id == null) return;
     try {
-      if (type === "home") await this._homeClient.remove(id);
-      else if (type === "level") await this._levelClient.remove(id);
+      if (type === "building") await this._buildingClient.remove(id);
+      else if (type === "floor") await this._floorClient.remove(id);
       else if (type === "room") await this._roomClient.remove(id);
       this.dispatchEvent(
         new CustomEvent("tree-changed", { bubbles: true, composed: true })

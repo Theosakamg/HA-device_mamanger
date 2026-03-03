@@ -23,13 +23,13 @@ class HierarchyAPIView(HomeAssistantView):
         Returns:
             JSON with structure:
             {
-                "homes": [
+                "buildings": [
                     {
-                        "type": "home", "id": 1, "name": "...", "slug": "...",
+                        "type": "building", "id": 1, "name": "...", "slug": "...",
                         "deviceCount": N,
                         "children": [
                             {
-                                "type": "level", "id": 1, "name": "...",
+                                "type": "floor", "id": 1, "name": "...",
                                 "slug": "...", "deviceCount": N,
                                 "children": [
                                     {
@@ -47,29 +47,29 @@ class HierarchyAPIView(HomeAssistantView):
         """
         try:
             repos = get_repos(request)
-            homes = await repos["home"].find_all()
+            buildings = await repos["building"].find_all()
 
             # Single query for all device counts by room (avoids N+1)
             room_device_counts = await repos["device"].count_all_by_room()
 
             total_devices = 0
-            home_nodes = []
+            building_nodes = []
 
-            for home in homes:
-                home_device_count = 0
-                levels = await repos["level"].find_by_home(home["id"])
-                level_nodes = []
+            for building in buildings:
+                building_device_count = 0
+                floors = await repos["floor"].find_by_building(building["id"])
+                floor_nodes = []
 
-                for level in levels:
-                    level_device_count = 0
-                    rooms = await repos["room"].find_by_level(level["id"])
+                for floor in floors:
+                    floor_device_count = 0
+                    rooms = await repos["room"].find_by_floor(floor["id"])
                     room_nodes = []
 
                     for room in rooms:
                         device_count = room_device_counts.get(
                             room["id"], 0
                         )
-                        level_device_count += device_count
+                        floor_device_count += device_count
                         room_nodes.append({
                             "type": "room",
                             "id": room["id"],
@@ -83,36 +83,36 @@ class HierarchyAPIView(HomeAssistantView):
                             "children": [],
                         })
 
-                    home_device_count += level_device_count
-                    level_nodes.append({
-                        "type": "level",
-                        "id": level["id"],
-                        "name": level["name"],
-                        "slug": level["slug"],
-                        "description": level.get("description", ""),
-                        "image": level.get("image", ""),
-                        "createdAt": level.get("created_at", ""),
-                        "updatedAt": level.get("updated_at", ""),
-                        "deviceCount": level_device_count,
+                    building_device_count += floor_device_count
+                    floor_nodes.append({
+                        "type": "floor",
+                        "id": floor["id"],
+                        "name": floor["name"],
+                        "slug": floor["slug"],
+                        "description": floor.get("description", ""),
+                        "image": floor.get("image", ""),
+                        "createdAt": floor.get("created_at", ""),
+                        "updatedAt": floor.get("updated_at", ""),
+                        "deviceCount": floor_device_count,
                         "children": room_nodes,
                     })
 
-                total_devices += home_device_count
-                home_nodes.append({
-                    "type": "home",
-                    "id": home["id"],
-                    "name": home["name"],
-                    "slug": home["slug"],
-                    "description": home.get("description", ""),
-                    "image": home.get("image", ""),
-                    "createdAt": home.get("created_at", ""),
-                    "updatedAt": home.get("updated_at", ""),
-                    "deviceCount": home_device_count,
-                    "children": level_nodes,
+                total_devices += building_device_count
+                building_nodes.append({
+                    "type": "building",
+                    "id": building["id"],
+                    "name": building["name"],
+                    "slug": building["slug"],
+                    "description": building.get("description", ""),
+                    "image": building.get("image", ""),
+                    "createdAt": building.get("created_at", ""),
+                    "updatedAt": building.get("updated_at", ""),
+                    "deviceCount": building_device_count,
+                    "children": floor_nodes,
                 })
 
             return self.json({
-                "homes": home_nodes,
+                "buildings": building_nodes,
                 "totalDevices": total_devices,
             })
         except Exception as err:

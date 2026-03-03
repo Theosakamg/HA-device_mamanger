@@ -50,7 +50,7 @@ export function buildHttpFromIp(ip?: string | null): string | null {
  * Compute all derived fields for a device.
  *
  * @param device - The device (must include transient joined fields like
- *   roomSlug, levelSlug, functionName for meaningful results).
+ *   roomSlug, floorSlug, functionName for meaningful results).
  * @returns The computed fields object.
  */
 export function computeDerivedFields(
@@ -58,23 +58,23 @@ export function computeDerivedFields(
 ): ComputedDeviceFields {
   const { dns_suffix, mqtt_topic_prefix } = getSettings();
 
-  const levelSlug = sanitizeSlug(device.levelSlug) || "l0";
+  const floorSlug = sanitizeSlug(device.floorSlug) || "l0";
   const roomSlug = sanitizeSlug(device.roomSlug);
   const functionName = sanitizeSlug(device.functionName);
   const posSlug = sanitizeSlug(device.positionSlug);
 
-  // Hostname: l{level}_{roomSlug}_{function}_{positionSlug}
+  // Hostname: l{floor}_{roomSlug}_{function}_{positionSlug}
   const hostParts: string[] = [];
-  if (levelSlug) hostParts.push(levelSlug);
+  if (floorSlug) hostParts.push(floorSlug);
   if (roomSlug) hostParts.push(roomSlug);
   if (functionName) hostParts.push(functionName);
   if (posSlug) hostParts.push(posSlug);
   const hostname = hostParts.length > 0 ? hostParts.join("_") : null;
 
-  // MQTT topic: {mqtt_prefix}/{levelSlug}/{roomSlug}/{function}/{positionSlug}
+  // MQTT topic: {mqtt_prefix}/{floorSlug}/{roomSlug}/{function}/{positionSlug}
   const mqttTopic =
     roomSlug && functionName && posSlug
-      ? `${mqtt_topic_prefix}/${levelSlug}/${roomSlug}/${functionName}/${posSlug}`
+      ? `${mqtt_topic_prefix}/${floorSlug}/${roomSlug}/${functionName}/${posSlug}`
       : null;
 
   // FQDN: {hostname}.{dns_suffix}

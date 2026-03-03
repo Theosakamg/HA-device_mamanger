@@ -1,7 +1,7 @@
 """Repository layer for Device Manager."""
 
-from .home_repository import HomeRepository
-from .level_repository import LevelRepository
+from .building_repository import BuildingRepository
+from .floor_repository import FloorRepository
 from .room_repository import RoomRepository
 from .device_repository import DeviceRepository
 from .device_model_repository import DeviceModelRepository
@@ -10,8 +10,8 @@ from .device_function_repository import DeviceFunctionRepository
 from .settings_repository import SettingsRepository
 
 __all__ = [
-    "HomeRepository",
-    "LevelRepository",
+    "BuildingRepository",
+    "FloorRepository",
     "RoomRepository",
     "DeviceRepository",
     "DeviceModelRepository",

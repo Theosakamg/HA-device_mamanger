@@ -196,9 +196,7 @@ export class DmAppShell extends LitElement {
         ${this._route === "devices"
           ? html`<dm-device-table></dm-device-table>`
           : ""}
-        ${this._route === "map"
-          ? html`<dm-map-view></dm-map-view>`
-          : ""}
+        ${this._route === "map" ? html`<dm-map-view></dm-map-view>` : ""}
         ${this._route === "settings"
           ? html`<dm-settings-view></dm-settings-view>`
           : ""}

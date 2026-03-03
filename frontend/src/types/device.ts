@@ -27,10 +27,10 @@ export interface DmDevice {
   /** Transient: joined data from related entities */
   roomName?: string;
   roomSlug?: string;
-  levelName?: string;
-  levelSlug?: string;
-  levelNumber?: number;
-  homeName?: string;
+  floorName?: string;
+  floorSlug?: string;
+  floorNumber?: number;
+  buildingName?: string;
   modelName?: string;
   firmwareName?: string;
   functionName?: string;
@@ -93,7 +93,7 @@ export type DeviceFirmware = (typeof DEVICE_FIRMWARES)[number] | string;
  * Hierarchy tree node for the tree view.
  */
 export interface HierarchyNode {
-  type: "home" | "level" | "room";
+  type: "building" | "floor" | "room";
   id: number;
   name: string;
   slug: string;
@@ -109,7 +109,7 @@ export interface HierarchyNode {
  * Full hierarchy tree response from the API.
  */
 export interface HierarchyTree {
-  homes: HierarchyNode[];
+  buildings: HierarchyNode[];
   totalDevices: number;
 }
 

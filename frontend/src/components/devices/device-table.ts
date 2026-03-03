@@ -87,7 +87,7 @@ export class DmDeviceTable extends LitElement {
     return [
       { key: "enabled", label: "" },
       { key: "mac", label: "MAC" },
-      { key: "levelName", label: i18n.t("device_level") },
+      { key: "floorName", label: i18n.t("device_level") },
       { key: "roomName", label: i18n.t("device_room") },
       { key: "functionName", label: i18n.t("device_function") },
       { key: "positionName", label: i18n.t("device_position_name") },
@@ -277,7 +277,7 @@ export class DmDeviceTable extends LitElement {
                         ></span>
                       </td>
                       <td class="mac">${device.mac}</td>
-                      <td>${device.levelName ?? "—"}</td>
+                      <td>${device.floorName ?? "—"}</td>
                       <td>${device.roomName ?? "—"}</td>
                       <td>${device.functionName ?? "—"}</td>
                       <td>${device.positionName}</td>

@@ -77,7 +77,7 @@ HEADER_MAP = {
 class CSVImportService:
     """Service to import devices from a CSV file into the relational schema.
 
-    Automatically creates reference entities (Home, Level, Room, Model,
+    Automatically creates reference entities (Building, Floor, Room, Model,
     Firmware, Function) if they do not already exist, then creates Device
     records with proper foreign keys.
     """
@@ -92,7 +92,7 @@ class CSVImportService:
         Args:
             repositories: Dict of repository instances keyed by name.
             settings: Optional dict of application settings.  Recognised
-                keys: ``ip_prefix``, ``default_home_name``.
+                keys: ``ip_prefix``, ``default_building_name``.
         """
         self.repos = repositories
         self._settings = settings or {}
@@ -114,8 +114,8 @@ class CSVImportService:
         max_rows = 10_000
 
         # Caches to avoid re-creating entities
-        home_cache: dict[str, int] = {}
-        level_cache: dict[str, int] = {}
+        building_cache: dict[str, int] = {}
+        floor_cache: dict[str, int] = {}
         room_cache: dict[str, int] = {}
         model_cache: dict[str, int] = {}
         firmware_cache: dict[str, int] = {}
@@ -130,32 +130,32 @@ class CSVImportService:
                 # Extract fields from CSV
                 parsed = self._parse_row(row)
 
-                # 1. Ensure Home exists (use configured default name)
-                home_key = self._settings.get(
-                    "default_home_name", "Home"
+                # 1. Ensure Building exists (use configured default name)
+                building_key = self._settings.get(
+                    "default_building_name", "Building"
                 )
-                if home_key not in home_cache:
-                    home_id = await self._find_or_create_hierarchy(
-                        "home", "name", home_key,
-                        {"name": home_key, "slug": _sanitize_slug(home_key),
+                if building_key not in building_cache:
+                    building_id = await self._find_or_create_hierarchy(
+                        "building", "name", building_key,
+                        {"name": building_key, "slug": _sanitize_slug(building_key),
                          "description": "", "image": ""},
                     )
-                    home_cache[home_key] = home_id
+                    building_cache[building_key] = building_id
 
-                # 2. Ensure Level exists
+                # 2. Ensure Floor exists
                 level_raw = str(parsed.get("level", "0")).strip() or "0"
-                level_name = f"Level {level_raw}"
-                level_slug = f"l{level_raw}"
-                level_key = f"{home_cache[home_key]}:{level_slug}"
-                if level_key not in level_cache:
-                    level_id = await self._find_or_create_hierarchy(
-                        "level", "slug", level_slug,
-                        {"name": level_name, "slug": level_slug,
+                floor_name = f"Floor {level_raw}"
+                floor_slug = f"l{level_raw}"
+                floor_key = f"{building_cache[building_key]}:{floor_slug}"
+                if floor_key not in floor_cache:
+                    floor_id = await self._find_or_create_hierarchy(
+                        "floor", "slug", floor_slug,
+                        {"name": floor_name, "slug": floor_slug,
                          "description": "", "image": "",
-                         "home_id": home_cache[home_key]},
-                        parent_id=home_cache[home_key],
+                         "building_id": building_cache[building_key]},
+                        parent_id=building_cache[building_key],
                     )
-                    level_cache[level_key] = level_id
+                    floor_cache[floor_key] = floor_id
 
                 # 3. Ensure Room exists
                 room_name = parsed.get("room_fr", "") or ""
@@ -164,14 +164,14 @@ class CSVImportService:
                 )
                 if not room_name:
                     room_name = _titleize(room_slug) or "Unknown"
-                room_key = f"{level_cache[level_key]}:{room_slug}"
+                room_key = f"{floor_cache[floor_key]}:{room_slug}"
                 if room_key not in room_cache:
                     room_id = await self._find_or_create_hierarchy(
                         "room", "slug", room_slug,
                         {"name": room_name, "slug": room_slug,
                          "description": "", "image": "",
-                         "level_id": level_cache[level_key]},
-                        parent_id=level_cache[level_key],
+                         "floor_id": floor_cache[floor_key]},
+                        parent_id=floor_cache[floor_key],
                     )
                     room_cache[room_key] = room_id
 
@@ -309,10 +309,10 @@ class CSVImportService:
         create_data: Dict[str, Any],
         parent_id: Optional[int] = None,
     ) -> int:
-        """Find or create a hierarchical entity (home, level, room).
+        """Find or create a hierarchical entity (building, floor, room).
 
         Args:
-            repo_key: The repository key (e.g. "home", "level", "room").
+            repo_key: The repository key (e.g. "building", "floor", "room").
             match_field: The field to match on (e.g. "name", "slug").
             match_value: The value to match.
             create_data: Data dict for creation if not found.

@@ -60,8 +60,8 @@ class DmDevice(SerializableMixin):
     # ------------------------------------------------------------------
     _room_slug: str = field(default="", repr=False)
     _room_name: str = field(default="", repr=False)
-    _level_number: int = field(default=0, repr=False)
-    _level_slug: str = field(default="", repr=False)
+    _floor_number: int = field(default=0, repr=False)
+    _floor_slug: str = field(default="", repr=False)
     _function_name: str = field(default="", repr=False)
     _model_name: str = field(default="", repr=False)
     _firmware_name: str = field(default="", repr=False)
@@ -96,8 +96,8 @@ class DmDevice(SerializableMixin):
         transient: Dict[str, Any] = {
             "room_slug": self._room_slug,
             "room_name": self._room_name,
-            "level_number": self._level_number,
-            "level_slug": self._level_slug,
+            "floor_number": self._floor_number,
+            "floor_slug": self._floor_slug,
             "function_name": self._function_name,
             "model_name": self._model_name,
             "firmware_name": self._firmware_name,
@@ -146,7 +146,7 @@ class DmDevice(SerializableMixin):
     def mqtt_topic(self, mqtt_prefix: str = "home") -> Optional[str]:
         """Return the MQTT topic for this device.
 
-        Format: ``{mqtt_prefix}/l{level}/{room_slug}/{function}/{position_slug}``
+        Format: ``{mqtt_prefix}/l{floor}/{room_slug}/{function}/{position_slug}``
 
         Args:
             mqtt_prefix: First segment of the MQTT topic.
@@ -154,29 +154,29 @@ class DmDevice(SerializableMixin):
         Returns:
             The MQTT topic string or ``None``.
         """
-        if not self._level_slug or not self._room_slug or not self._function_name:
+        if not self._floor_slug or not self._room_slug or not self._function_name:
             return None
 
         function_slug = self._function_name.lower().replace(" ", "_")
         return (
-            f"{mqtt_prefix}/{self._level_slug}/{self._room_slug}"
+            f"{mqtt_prefix}/{self._floor_slug}/{self._room_slug}"
             f"/{function_slug}/{self.position_slug}"
         )
 
     def hostname(self) -> Optional[str]:
         """Return the hostname for this device.
 
-        Format: ``{level_slug}_{room_slug}_{function}_{position_slug}``
+        Format: ``{floor_slug}_{room_slug}_{function}_{position_slug}``
 
         Returns:
             The hostname string or ``None`` when transient data is missing.
         """
-        if not self._level_slug or not self._room_slug or not self._function_name:
+        if not self._floor_slug or not self._room_slug or not self._function_name:
             return None
 
         function_slug = self._function_name.lower().replace(" ", "_")
         return (
-            f"{self._level_slug}_{self._room_slug}"
+            f"{self._floor_slug}_{self._room_slug}"
             f"_{function_slug}_{self.position_slug}"
         )
 
@@ -242,8 +242,8 @@ class DmDevice(SerializableMixin):
             # Transient fields.
             _room_slug=normalized.get("room_slug", ""),
             _room_name=normalized.get("room_name", ""),
-            _level_number=normalized.get("level_number", 0),
-            _level_slug=normalized.get("level_slug", ""),
+            _floor_number=normalized.get("floor_number", 0),
+            _floor_slug=normalized.get("floor_slug", ""),
             _function_name=normalized.get("function_name", ""),
             _model_name=normalized.get("model_name", ""),
             _firmware_name=normalized.get("firmware_name", ""),
