@@ -56,3 +56,13 @@ def deploy():
     logger.info(f"Goodbye ! {count} Total Device"
                 f" process, but sucess: {success} - error: {error}."
                 )
+
+
+def scan():
+    Initializer()
+    logger = logging.getLogger(__name__)
+    logger.info('Initialize Scan...')
+
+    gm = GlobalManager()
+    gm.update_devices_ip()
+

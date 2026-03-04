@@ -13,7 +13,7 @@ from .import_controller import CSVImportAPIView
 from .export_controller import ExportAPIView
 from .maintenance_controller import MaintenanceCleanDBAPIView
 from .settings_controller import SettingsAPIView
-from .deploy_controller import DeployAPIView
+from .deploy_controller import DeployAPIView, DevicesScanAPIView
 
 ALL_VIEWS = [
     MainView,
@@ -38,4 +38,5 @@ ALL_VIEWS = [
     MaintenanceCleanDBAPIView,
     SettingsAPIView,
     DeployAPIView,
+    DevicesScanAPIView,
 ]
