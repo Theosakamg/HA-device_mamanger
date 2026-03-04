@@ -1,0 +1,114 @@
+[
+  {
+    "mac": "7C:2C:67:D7:DF:E8",
+    "enabled": true,
+    "ip": "77",
+    "positionSlug": "lunch",
+    "floorSlug": "l0",
+    "roomSlug": "office",
+    "functionName": "button",
+    "expected": {
+      "hostname": "l0_office_button_lunch",
+      "mqttTopic": "home/l0/office/button/lunch",
+      "link": "http://192.168.0.77",
+      "fqdn": "l0_office_button_lunch.domo.local",
+      "countTopic": 22
+    }
+  },
+  {
+    "mac": "zigbee",
+    "enabled": false,
+    "ip": "",
+    "positionSlug": "lunch",
+    "floorSlug": "l0",
+    "roomSlug": "office",
+    "functionName": "door",
+    "expected": {
+      "hostname": "l0_office_door_lunch",
+      "mqttTopic": "home/l0/office/door/lunch",
+      "link": null,
+      "fqdn": "l0_office_door_lunch.domo.local",
+      "countTopic": 20
+    }
+  },
+  {
+    "mac": "0x00124b0025156aca",
+    "enabled": true,
+    "ip": "",
+    "positionSlug": "lake",
+    "floorSlug": "l0",
+    "roomSlug": "office",
+    "functionName": "door",
+    "expected": {
+      "hostname": "l0_office_door_lake",
+      "mqttTopic": "home/l0/office/door/lake",
+      "link": null,
+      "fqdn": "l0_office_door_lake.domo.local",
+      "countTopic": 19
+    }
+  },
+  {
+    "mac": "24:EC:4A:B0:CE:BC",
+    "enabled": true,
+    "ip": "192.168.0.189",
+    "positionSlug": "desk",
+    "floorSlug": "l0",
+    "roomSlug": "office",
+    "functionName": "energy",
+    "expected": {
+      "hostname": "l0_office_energy_desk",
+      "mqttTopic": "home/l0/office/energy/desk",
+      "link": "http://192.168.0.189",
+      "fqdn": "l0_office_energy_desk.domo.local",
+      "countTopic": 21
+    }
+  },
+  {
+    "mac": "B0:A7:32:F8:46:90",
+    "enabled": true,
+    "ip": "",
+    "positionSlug": "bed",
+    "floorSlug": "l0",
+    "roomSlug": "office",
+    "functionName": "heater",
+    "expected": {
+      "hostname": "l0_office_heater_bed",
+      "mqttTopic": "home/l0/office/heater/bed",
+      "link": null,
+      "fqdn": "l0_office_heater_bed.domo.local",
+      "countTopic": 20
+    }
+  },
+  {
+    "mac": "AA:BB:CC:DD:EE:FF",
+    "enabled": false,
+    "ip": "",
+    "positionSlug": "ceiling",
+    "floorSlug": "l0",
+    "roomSlug": "cellar",
+    "functionName": "light",
+    "expected": {
+      "hostname": "l0_cellar_light_ceiling",
+      "mqttTopic": "home/l0/cellar/light/ceiling",
+      "link": null,
+      "fqdn": "l0_cellar_light_ceiling.domo.local",
+      "countTopic": 23
+    }
+  },
+  {
+    "mac": "00:11:22:33:44:55",
+    "enabled": false,
+    "ip": "",
+    "positionSlug": "door",
+    "floorSlug": "l0",
+    "roomSlug": "bed",
+    "functionName": "motion",
+    "expected": {
+      "hostname": "l0_bed_motion_door",
+      "mqttTopic": "home/l0/bed/motion/door",
+      "link": null,
+      "fqdn": "l0_bed_motion_door.domo.local",
+      "countTopic": 18
+    }
+  }
+]
