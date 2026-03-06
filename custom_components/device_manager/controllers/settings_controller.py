@@ -4,8 +4,8 @@ import logging
 import re
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
+from .base import BaseView
 from ..const import DEFAULT_SETTINGS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ _SETTING_VALIDATORS: dict[str, re.Pattern] = {
 _MAX_SETTING_LENGTH = 255
 
 
-class SettingsAPIView(HomeAssistantView):
+class SettingsAPIView(BaseView):
     """GET / PUT endpoint for application settings."""
 
     url = "/api/device_manager/settings"
@@ -40,7 +40,7 @@ class SettingsAPIView(HomeAssistantView):
             settings = await repo.get_all()
             return self.json(settings)
         except Exception as err:
-            _LOGGER.exception("Failed to load settings")
+            _LOGGER.exception("Failed to load settings", exc_info=err)
             return self.json(
                 {"error": "Internal server error"},
                 status_code=500,
@@ -93,7 +93,7 @@ class SettingsAPIView(HomeAssistantView):
             _LOGGER.info("Settings updated: %s", list(filtered.keys()))
             return self.json(result)
         except Exception as err:
-            _LOGGER.exception("Failed to update settings")
+            _LOGGER.exception("Failed to update settings", exc_info=err)
             return self.json(
                 {"error": "Internal server error"},
                 status_code=500,

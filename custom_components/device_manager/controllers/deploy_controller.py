@@ -2,14 +2,13 @@
 
 import logging
 
-from homeassistant.components.http import HomeAssistantView
-
+from .base import BaseView
 from ..provisioning.deploy import deploy, scan
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class DeployAPIView(HomeAssistantView):
+class DeployAPIView(BaseView):
     """API endpoint for triggering device deployment."""
 
     url = "/api/device_manager/deploy"
@@ -23,7 +22,7 @@ class DeployAPIView(HomeAssistantView):
         return self.json({"result": "Deployment triggered"}, status_code=200)
 
 
-class DevicesScanAPIView(HomeAssistantView):
+class DevicesScanAPIView(BaseView):
     """API endpoint for triggering device scan."""
 
     url = "/api/device_manager/scan"

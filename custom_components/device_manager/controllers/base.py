@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from aiohttp import web
+from homeassistant.components.http import HomeAssistantView
 
 from ..const import DOMAIN
 from ..utils.case_convert import to_camel_case_dict, to_snake_case_dict
@@ -27,3 +28,10 @@ def get_repos(request: web.Request) -> dict[str, Any]:
     hass = request.app["hass"]
     repos: dict[str, Any] = hass.data[DOMAIN]["repos"]
     return repos
+
+
+class BaseView(HomeAssistantView):
+    """Base view with common utilities for Device Manager API controllers."""
+
+    requires_auth = True
+

@@ -3,10 +3,9 @@
 import logging
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
 from ..const import DOMAIN
-from .base import get_repos
+from .base import BaseView, get_repos
 from ..services.csv_import_service import CSVImportService
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 _MAX_CSV_SIZE = 10 * 1024 * 1024
 
 
-class CSVImportAPIView(HomeAssistantView):
+class CSVImportAPIView(BaseView):
     """API endpoint for CSV device import."""
 
     url = "/api/device_manager/import"
@@ -60,7 +59,7 @@ class CSVImportAPIView(HomeAssistantView):
 
             return self.json(result)
         except Exception as err:
-            _LOGGER.exception("CSV import failed")
+            _LOGGER.exception("CSV import failed", exc_info=err)
             return self.json(
                 {"error": "Import failed. Check server logs."},
                 status_code=500,

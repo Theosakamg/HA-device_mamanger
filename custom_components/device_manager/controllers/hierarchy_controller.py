@@ -3,14 +3,13 @@
 import logging
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
-from .base import get_repos
+from .base import BaseView, get_repos
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class HierarchyAPIView(HomeAssistantView):
+class HierarchyAPIView(BaseView):
     """API endpoint for the full hierarchy tree."""
 
     url = "/api/device_manager/hierarchy"
@@ -116,7 +115,7 @@ class HierarchyAPIView(HomeAssistantView):
                 "totalDevices": total_devices,
             })
         except Exception as err:
-            _LOGGER.exception("Failed to build hierarchy")
+            _LOGGER.exception("Failed to build hierarchy", exc_info=err)
             return self.json(
                 {"error": "Internal server error"},
                 status_code=500,

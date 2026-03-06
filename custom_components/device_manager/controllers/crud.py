@@ -9,9 +9,8 @@ import logging
 from typing import Any, Callable, Optional
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
-from .base import get_repos
+from .base import BaseView, get_repos
 from ..utils.case_convert import to_camel_case_dict, to_snake_case_dict
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +46,7 @@ def _validate_string_lengths(
 
 
 async def _get_or_404(
-    view: HomeAssistantView,
+    view: BaseView,
     repos: dict,
     repo_key: str,
     entity_id: int,
@@ -84,7 +83,7 @@ def _handle_errors(entity_name: str):
                 return await func(self, request, *args, **kwargs)
             except Exception as err:
                 action = func.__name__  # get / post / put / delete
-                _LOGGER.exception("Failed to %s %s", action, entity_name)
+                _LOGGER.exception("Failed to %s %s", action, entity_name, exc_info=err)
                 return self.json(
                     {"error": "Internal server error"},
                     status_code=500,
@@ -103,7 +102,7 @@ def _handle_errors(entity_name: str):
 # ------------------------------------------------------------------
 
 
-class CrudListView(HomeAssistantView):
+class CrudListView(BaseView):
     """Generic list + create endpoint.
 
     Subclasses **must** set:
@@ -162,7 +161,7 @@ class CrudListView(HomeAssistantView):
         return self.json(to_camel_case_dict(entity), status_code=201)
 
 
-class CrudDetailView(HomeAssistantView):
+class CrudDetailView(BaseView):
     """Generic get / update / delete endpoint for a single entity.
 
     Subclasses **must** set:

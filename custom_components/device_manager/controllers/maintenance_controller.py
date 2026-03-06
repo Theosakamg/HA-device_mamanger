@@ -3,8 +3,8 @@
 import logging
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
+from .base import BaseView
 from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ _CLEANABLE_TABLES = (
 )
 
 
-class MaintenanceCleanDBAPIView(HomeAssistantView):
+class MaintenanceCleanDBAPIView(BaseView):
     """API endpoint to wipe all data from the database."""
 
     url = "/api/device_manager/maintenance/clean-db"
@@ -80,14 +80,14 @@ class MaintenanceCleanDBAPIView(HomeAssistantView):
                 "deleted": counts,
             })
         except Exception as err:
-            _LOGGER.exception("Database clean failed")
+            _LOGGER.exception("Database clean failed", exc_info=err)
             return self.json(
                 {"error": "Database clean failed. Check server logs."},
                 status_code=500,
             )
 
 
-class MaintenanceClearIPCacheAPIView(HomeAssistantView):
+class MaintenanceClearIPCacheAPIView(BaseView):
     """API endpoint to reset all device IP addresses to NULL."""
 
     url = "/api/device_manager/maintenance/clear-ip-cache"
@@ -113,8 +113,8 @@ class MaintenanceClearIPCacheAPIView(HomeAssistantView):
 
             _LOGGER.info("IP cache cleared: %d devices updated", updated)
             return self.json({"success": True, "updated": updated})
-        except Exception:
-            _LOGGER.exception("Clear IP cache failed")
+        except Exception as err:
+            _LOGGER.exception("Clear IP cache failed", exc_info=err)
             return self.json(
                 {"error": "Clear IP cache failed. Check server logs."},
                 status_code=500,

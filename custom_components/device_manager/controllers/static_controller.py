@@ -4,7 +4,8 @@ import logging
 from pathlib import Path
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
+
+from .base import BaseView
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ def _js_cache_buster() -> str:
         return "0"
 
 
-class MainView(HomeAssistantView):
+class MainView(BaseView):
     """Serve the main frontend HTML page."""
 
     url = "/device_manager"
@@ -55,7 +56,7 @@ class MainView(HomeAssistantView):
         )
 
 
-class StaticView(HomeAssistantView):
+class StaticView(BaseView):
     """Serve static frontend files from the dist directory."""
 
     url = "/device_manager_static/{filename}"

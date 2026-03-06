@@ -7,9 +7,8 @@ import logging
 from typing import Any
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
-from .base import get_repos
+from .base import BaseView, get_repos
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,7 +145,7 @@ def _yaml_escape(val: str) -> str:
     )
 
 
-class ExportAPIView(HomeAssistantView):
+class ExportAPIView(BaseView):
     """API endpoint to export all devices in CSV, JSON, or YAML format.
 
     Format selection priority:
@@ -194,7 +193,7 @@ class ExportAPIView(HomeAssistantView):
                 },
             )
         except Exception as err:
-            _LOGGER.exception("Export failed")
+            _LOGGER.exception("Export failed", exc_info=err)
             return web.json_response(
                 {"error": "Export failed. Check server logs."},
                 status=500,
