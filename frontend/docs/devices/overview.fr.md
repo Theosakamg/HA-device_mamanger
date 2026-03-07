@@ -12,10 +12,36 @@ Chaque ligne représente un appareil avec ses attributs principaux :
 - **Fonction** — le rôle de l'appareil (ex. interrupteur, capteur, lumière)
 - **Position** — l'emplacement nommé dans la pièce
 - **Firmware / Modèle** — le profil matériel et logiciel
+- **Statut déploiement** — résultat du dernier déploiement (✓ Succès / ✗ Échec / Jamais)
+- **Dernier déploiement** — horodatage de la dernière tentative de déploiement
 
 ## Recherche et filtre
 
-Utilisez la barre de recherche pour filtrer par n'importe quel champ visible : MAC, IP, pièce, étage, modèle, firmware, fonction ou données extra. Lorsque vous arrivez ici depuis une autre vue (ex. en cliquant sur une fonction dans Réglages), le filtre est pré-rempli — utilisez **✕ Effacer le filtre** pour le réinitialiser.
+Deux systèmes de filtrage sont disponibles et peuvent être combinés :
+
+### Recherche textuelle
+La barre de recherche en haut à droite filtre les appareils sur tous les champs visibles (MAC, IP, pièce, étage, modèle, firmware, fonction, données extra, statut déploiement).
+
+### Filtres par colonne (style Excel)
+Chaque en-tête de colonne dispose d'un bouton **▾** qui ouvre un menu déroulant listant toutes les valeurs distinctes de cette colonne. Sélectionnez une ou plusieurs valeurs — seules les lignes correspondant à **tous** les filtres actifs sont affichées.
+
+- Un **champ de recherche** dans chaque menu permet de trouver rapidement une valeur dans les listes longues.
+- Les filtres actifs apparaissent sous forme de **badges** sous le panneau de documentation.
+- Chaque badge dispose d'un **✕** individuel pour supprimer ce filtre.
+- Le bouton **✕ Effacer les filtres** supprime tous les filtres colonne en une fois.
+- Le bouton **🔗 Partager** copie une URL avec tous les filtres actifs encodés — collez-la pour restaurer exactement la même vue.
+- Les filtres sont **persistés en sessionStorage** : naviguer ailleurs puis revenir restaure votre dernier état de filtre.
+
+> **Astuce :** En cliquant sur le bouton 🔍 à côté d'un firmware, modèle ou fonction dans la vue **Paramètres**, vous arrivez ici avec le filtre colonne correspondant déjà appliqué.
+
+## Colonnes de statut déploiement
+
+| Colonne | Description |
+|---|---|
+| **Statut déploiement** | Badge indiquant le résultat du dernier déploiement : ✓ *Succès* (vert), ✗ *Échec* (rouge), ou *Jamais* (gris) |
+| **Dernier déploiement** | Horodatage local de la dernière tentative de déploiement (mis à jour automatiquement) |
+
+Ces champs sont **en lecture seule** — ils sont mis à jour automatiquement après chaque déploiement et ne peuvent pas être modifiés manuellement.
 
 ## Actions
 
