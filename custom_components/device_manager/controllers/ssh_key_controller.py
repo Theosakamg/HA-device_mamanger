@@ -7,8 +7,8 @@ from pathlib import Path
 
 from aiohttp import web
 
-from .base import BaseView
-from ..const import DOMAIN, SETTING_SCAN_SSH_KEY_FILE
+from .base import BaseView, get_repos
+from ..const import SETTING_SCAN_SSH_KEY_FILE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ class SSHKeyUploadAPIView(BaseView):
             return self.json({"error": "Failed to write key file"}, status_code=500)
 
         # Persist the absolute path in settings DB
-        repo = hass.data[DOMAIN]["repos"]["settings"]
+        repo = get_repos(request)["settings"]
         await repo.set(SETTING_SCAN_SSH_KEY_FILE, str(dest))
 
         _LOGGER.info("SSH key uploaded and stored: %s", dest)

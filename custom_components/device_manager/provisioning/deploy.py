@@ -25,12 +25,12 @@ def base_config(device, logger, ff):
     #    logger.warning('No Firmware found ! Firmware is supported or load ? ')
 
 
-def deploy():
+def deploy(db_path):
     Initializer()
     logger = logging.getLogger(__name__)
     logger.info('Initialize App...')
 
-    gm = GlobalManager()
+    gm = GlobalManager(db_path)
     ff = FirmwareFactory(gm)
 
     count = 0
@@ -58,11 +58,11 @@ def deploy():
                 )
 
 
-def scan():
+def scan(db_path):
     Initializer()
     logger = logging.getLogger(__name__)
     logger.info('Initialize Scan...')
 
-    gm = GlobalManager()
+    gm = GlobalManager(db_path)
     gm.update_devices_ip()
 

@@ -1,7 +1,7 @@
 """Constants for Device Manager integration."""
 
 DOMAIN = "device_manager"
-DB_NAME = "device_manager.db"
+DB_NAME = "dm/device_manager.db"
 
 # Table names
 TABLE_BUILDINGS = "dm_buildings"

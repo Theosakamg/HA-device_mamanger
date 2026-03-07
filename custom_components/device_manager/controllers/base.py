@@ -13,21 +13,30 @@ _LOGGER = logging.getLogger(__name__)
 
 
 # Re-export for backward compatibility with existing controller imports.
-__all__ = ["to_camel_case_dict", "to_snake_case_dict", "get_repos"]
+__all__ = ["to_camel_case_dict", "to_snake_case_dict", "get_repos", "get_db_path"]
 
 
 def get_repos(request: web.Request) -> dict[str, Any]:
-    """Get the repository dict from the request's hass data.
+    """Return the shared repository dict.
 
-    Args:
-        request: The aiohttp request.
-
-    Returns:
-        Dict of repository instances.
+    Single coupling point between controllers and hass.data.  All
+    controllers must go through this helper instead of accessing
+    ``hass.data[DOMAIN]`` directly.
     """
     hass = request.app["hass"]
     repos: dict[str, Any] = hass.data[DOMAIN]["repos"]
     return repos
+
+
+def get_db_path(request: web.Request):
+    """Return the SQLite database Path from the app stack.
+
+    Use this to pass a plain ``Path`` to executor jobs (provisioning
+    layer) so they can open their own short-lived connection without
+    any dependency on the HA event loop or the shared DatabaseManager.
+    """
+    hass = request.app["hass"]
+    return hass.data[DOMAIN]["db"].db_path
 
 
 class BaseView(HomeAssistantView):

@@ -3,7 +3,6 @@ import os
 import subprocess
 import yaml
 import logging
-from pathlib import Path
 
 from .contract import (
     _FLD_MAC, _FLD_STATE, _FLD_LEVEL, _FLD_FUNCTION, _FLD_ROOM,
@@ -14,11 +13,12 @@ from .contract import (
 )
 from .utility import get_config
 
+from pathlib import Path
+
 from custom_components.device_manager.services.database_manager import DatabaseManager
 from custom_components.device_manager.repositories import DeviceRepository
 
 FILE_CACHE = get_config('FILE_CACHE', 'cache_ip.yaml')
-FILE_DB = get_config('FILE_DB', 'device_manager.db')
 SCAN_SCRIPT = get_config('SCAN_SCRIPT', None)
 
 logger = logging.getLogger(__name__)
@@ -134,17 +134,17 @@ class DevicesManager:
             _FLD_HOST:          slug_device_id(draft),
         }
 
-    def read(self):
-        logger.info(f"Load devices from database: {FILE_DB}...")
+    def read(self, db_path: Path):
+        logger.info("Load devices from database...")
         try:
-            db_manager = DatabaseManager(Path(FILE_DB))
-            repo = DeviceRepository(db_manager)
+            db = DatabaseManager(db_path)
+            repo = DeviceRepository(db)
 
             async def _fetch():
                 try:
                     return await repo.find_all()
                 finally:
-                    await db_manager.close()
+                    await db.close()
 
             rows = asyncio.run(_fetch())
             self.__devices = [self._to_contract(row) for row in rows]
@@ -160,12 +160,13 @@ class GlobalManager:
     __cache = None
     __dev_mng = None
 
-    def __init__(self) -> None:
+    def __init__(self, db_path: Path) -> None:
         logger.debug("Init Global manager...")
+        self.__db_path = db_path
         self.__cache = CacheManager()
         self.__dev_mng = DevicesManager()
         self.__cache.make_dict()
-        self.__dev_mng.read()
+        self.__dev_mng.read(db_path)
 
     def get_devices(self):
         return self.__dev_mng.get()
@@ -174,26 +175,26 @@ class GlobalManager:
         return self.__cache.get_macs()
 
     def update_devices_ip(self):
-        db_manager = DatabaseManager(Path(FILE_DB))
-        repo = DeviceRepository(db_manager)
         macs = self.get_macs()
 
         async def update_all():
-            devices = await repo.find_all()
-
-            for device in devices:
-                mac = device.get('mac', '').lower()
-                if mac in macs:
-                    ip = macs[mac]
-                    try:
-                        await repo.update(device['id'], {'ip': ip})
-                        logger.info(f"Updated IP for {mac}: {ip}")
-                    except Exception as e:
-                        logger.error(f"Failed to update IP {ip} for {mac}: {e}")
+            db = DatabaseManager(self.__db_path)
+            repo = DeviceRepository(db)
+            try:
+                devices = await repo.find_all()
+                for device in devices:
+                    mac = device.get('mac', '').lower()
+                    if mac in macs:
+                        ip = macs[mac]
+                        try:
+                            await repo.update(device['id'], {'ip': ip})
+                            logger.info(f"Updated IP for {mac}: {ip}")
+                        except Exception as e:
+                            logger.error(f"Failed to update IP {ip} for {mac}: {e}")
+            finally:
+                await db.close()
 
         try:
             asyncio.run(update_all())
         except Exception as e:
             logger.error(f"Failed to update device IPs: {e}")
-        finally:
-            asyncio.run(db_manager.close())

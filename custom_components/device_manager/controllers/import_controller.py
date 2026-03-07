@@ -4,7 +4,6 @@ import logging
 
 from aiohttp import web
 
-from ..const import DOMAIN
 from .base import BaseView, get_repos
 from ..services.csv_import_service import CSVImportService
 
@@ -50,9 +49,7 @@ class CSVImportAPIView(BaseView):
                 text = raw.decode("latin-1", errors="replace")
 
             # Load user settings for IP prefix, default home name, etc.
-            hass = request.app["hass"]
-            settings_repo = hass.data[DOMAIN]["repos"].get("settings")
-            settings = await settings_repo.get_all() if settings_repo else {}
+            settings = await repos["settings"].get_all()
 
             service = CSVImportService(repos, settings=settings)
             result = await service.import_csv(text)

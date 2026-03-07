@@ -5,8 +5,8 @@ import re
 
 from aiohttp import web
 
-from .base import BaseView
-from ..const import DEFAULT_SETTINGS, DOMAIN
+from .base import BaseView, get_repos
+from ..const import DEFAULT_SETTINGS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,8 +44,7 @@ class SettingsAPIView(BaseView):
         Missing keys are seeded from DEFAULT_SETTINGS automatically.
         """
         try:
-            hass = request.app["hass"]
-            repo = hass.data[DOMAIN]["repos"]["settings"]
+            repo = get_repos(request)["settings"]
             settings = await repo.get_all()
             return self.json(settings)
         except Exception as err:
@@ -96,8 +95,7 @@ class SettingsAPIView(BaseView):
                 )
 
         try:
-            hass = request.app["hass"]
-            repo = hass.data[DOMAIN]["repos"]["settings"]
+            repo = get_repos(request)["settings"]
             result = await repo.set_many(filtered)
             _LOGGER.info("Settings updated: %s", list(filtered.keys()))
             return self.json(result)
