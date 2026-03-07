@@ -2,11 +2,17 @@
  * Base API client with authentication and error handling.
  */
 
+/** Home Assistant auth object interface. */
+interface HAAuth {
+  data?: { access_token?: string };
+  refreshAccessToken(): Promise<void>;
+}
+
 /** Home Assistant element interface for auth token extraction. */
 interface HomeAssistantElement extends HTMLElement {
   hass?: {
-    auth?: { data?: { access_token?: string } };
-    connection?: { options?: { auth?: { data?: { access_token?: string } } } };
+    auth?: HAAuth;
+    connection?: { options?: { auth?: HAAuth } };
   };
 }
 
@@ -101,6 +107,49 @@ export class BaseClient {
   }
 
   /**
+   * Refresh the HA access token (call auth.refreshAccessToken() which updates
+   * auth.data in place) and return the new token.
+   */
+  private async _refreshToken(): Promise<string> {
+    const docs = [document];
+    try {
+      if (window.parent && window.parent !== window) {
+        docs.push(window.parent.document);
+      }
+    } catch { /* cross-origin, ignore */ }
+
+    for (const doc of docs) {
+      const ha = doc.querySelector("home-assistant") as HomeAssistantElement | null;
+      const auth = ha?.hass?.auth ?? ha?.hass?.connection?.options?.auth;
+      if (auth?.refreshAccessToken) {
+        await auth.refreshAccessToken();
+        return auth.data?.access_token ?? "";
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Central fetch wrapper with automatic 401 → token refresh → retry logic.
+   */
+  private async _fetch(
+    path: string,
+    init: RequestInit,
+    retry = true
+  ): Promise<Response> {
+    const response = await fetch(`${this.baseUrl}${path}`, init);
+    if (response.status === 401 && retry) {
+      const newToken = await this._refreshToken();
+      if (newToken) {
+        const headers = new Headers(init.headers);
+        headers.set("Authorization", `Bearer ${newToken}`);
+        return this._fetch(path, { ...init, headers }, false);
+      }
+    }
+    return response;
+  }
+
+  /**
    * Build request headers. Only includes Authorization if a token is available,
    * allowing HA to fall back to cookie/session auth in iframe context.
    */
@@ -120,7 +169,7 @@ export class BaseClient {
    * Send a GET request and return camelCase-converted JSON.
    */
   protected async get<T>(path: string): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
+    const response = await this._fetch(path, {
       method: "GET",
       headers: this.buildHeaders("application/json"),
       credentials: "same-origin",
@@ -137,7 +186,7 @@ export class BaseClient {
    * Send a POST request with snake_case-converted body.
    */
   protected async post<T>(path: string, body: unknown): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
+    const response = await this._fetch(path, {
       method: "POST",
       headers: this.buildHeaders("application/json"),
       credentials: "same-origin",
@@ -155,7 +204,7 @@ export class BaseClient {
    * Send a PUT request with snake_case-converted body.
    */
   protected async put<T>(path: string, body: unknown): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
+    const response = await this._fetch(path, {
       method: "PUT",
       headers: this.buildHeaders("application/json"),
       credentials: "same-origin",
@@ -173,7 +222,7 @@ export class BaseClient {
    * Send a DELETE request.
    */
   protected async del<T>(path: string): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
+    const response = await this._fetch(path, {
       method: "DELETE",
       headers: this.buildHeaders("application/json"),
       credentials: "same-origin",
@@ -196,7 +245,7 @@ export class BaseClient {
   ): Promise<T> {
     const form = new FormData();
     form.append(fieldName, file, file.name);
-    const response = await fetch(`${this.baseUrl}${path}`, {
+    const response = await this._fetch(path, {
       method: "POST",
       headers: this.buildHeaders(),
       credentials: "same-origin",
