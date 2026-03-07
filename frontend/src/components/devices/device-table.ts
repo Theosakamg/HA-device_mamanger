@@ -368,6 +368,7 @@ export class DmDeviceTable extends LitElement {
       { key: "positionName", label: i18n.t("device_position_name") },
       { key: "firmwareName", label: i18n.t("device_firmware") },
       { key: "modelName", label: i18n.t("device_model") },
+      { key: "targetMac", label: i18n.t("device_target") },
       { key: "lastDeployStatus", label: i18n.t("device_last_deploy_status") },
       { key: "lastDeployAt", label: i18n.t("device_last_deploy_at") },
     ];
@@ -498,6 +499,7 @@ export class DmDeviceTable extends LitElement {
           d.firmwareName?.toLowerCase().includes(q) ||
           d.functionName?.toLowerCase().includes(q) ||
           d.extra?.toLowerCase().includes(q) ||
+          d.targetMac?.toLowerCase().includes(q) ||
           d.lastDeployStatus?.toLowerCase().includes(q) ||
           d.lastDeployAt?.toLowerCase().includes(q)
       );
@@ -946,6 +948,7 @@ export class DmDeviceTable extends LitElement {
                       <td>${device.positionName}</td>
                       <td>${device.firmwareName ?? "—"}</td>
                       <td>${device.modelName ?? "—"}</td>
+                      <td class="mac">${device.targetMac ?? "—"}</td>
                       <td>
                         ${device.lastDeployStatus === "done"
                           ? html`<span class="deploy-badge deploy-badge-done">✓ ${i18n.t("deploy_status_done")}</span>`
