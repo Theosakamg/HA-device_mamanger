@@ -26,6 +26,21 @@ from .utils.crypto import generate_key
 _LOGGER = logging.getLogger(__name__)
 
 
+def _load_or_create_key(key_path: Path) -> str:
+    """Load the encryption key from disk, or generate and persist a new one.
+
+    Runs in a thread-pool executor to avoid blocking the event loop.
+    """
+    if key_path.exists():
+        key = key_path.read_text().strip()
+        key_path.chmod(0o600)
+        return key
+    key = generate_key()
+    key_path.write_text(key)
+    key_path.chmod(0o600)
+    return key
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Device Manager component.
 
@@ -44,15 +59,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     # Load or generate symmetric encryption key (stored next to the DB)
     key_path = Path(hass.config.config_dir) / ".device_manager.key"
-    if key_path.exists():
-        crypto_key = key_path.read_text().strip()
-        key_path.chmod(0o600)  # enforce owner-only in case it was created with wider perms
-        _LOGGER.debug("Loaded encryption key from %s", key_path)
-    else:
-        crypto_key = generate_key()
-        key_path.write_text(crypto_key)
-        key_path.chmod(0o600)
-        _LOGGER.info("Generated new encryption key at %s", key_path)
+    crypto_key = await hass.async_add_executor_job(_load_or_create_key, key_path)
+    _LOGGER.debug("Encryption key ready (path: %s)", key_path)
 
     # Create repositories
     repos = {
@@ -71,16 +79,20 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     for view_class in ALL_VIEWS:
         hass.http.register_view(view_class())
 
-    # Register sidebar panel
+    # Register sidebar panel as a native HA custom panel (web component)
     frontend.async_register_built_in_panel(
         hass,
-        component_name="iframe",
+        component_name="custom",
         sidebar_title="Device Manager",
         sidebar_icon="mdi:devices",
         frontend_url_path="device_manager",
-        config={"url": "/device_manager"},
+        config={
+            "_panel_custom": {
+                "name": "dm-app-shell",
+                "module_url": "/device_manager_static/device-manager.js",
+            }
+        },
         require_admin=False,
-        config_panel_domain=DOMAIN,
     )
 
     _LOGGER.info("Device Manager setup complete")

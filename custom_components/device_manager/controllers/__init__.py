@@ -1,6 +1,6 @@
 """Controller layer (API views) for Device Manager."""
 
-from .static_controller import MainView, StaticView
+from .static_controller import StaticView
 from .building_controller import BuildingsAPIView, BuildingAPIView
 from .floor_controller import FloorsAPIView, FloorAPIView
 from .room_controller import RoomsAPIView, RoomAPIView
@@ -16,7 +16,6 @@ from .settings_controller import SettingsAPIView
 from .deploy_controller import DeployAPIView, DevicesScanAPIView
 
 ALL_VIEWS = [
-    MainView,
     StaticView,
     BuildingsAPIView,
     BuildingAPIView,

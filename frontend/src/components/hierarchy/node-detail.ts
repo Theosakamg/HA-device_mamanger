@@ -338,6 +338,13 @@ export class DmNodeDetail extends LitElement {
         ? html`
             <div class="section-header">
               <h3>${i18n.t("devices")} (${this._devices.length})</h3>
+              <button
+                class="btn btn-primary"
+                style="padding: 4px 10px; font-size: 12px;"
+                @click=${() => {
+                  window.location.hash = `#devices?create=room:${this.node!.id}`;
+                }}
+              >+ ${i18n.t("add_device")}</button>
             </div>
             <dm-doc-block
               .doc=${getDoc("hierarchy.room.device_list")}

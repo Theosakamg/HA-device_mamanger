@@ -1,7 +1,6 @@
 """Repository for user-configurable settings (key/value store)."""
 
 import logging
-from typing import Any
 
 from ..const import DEFAULT_SETTINGS, TABLE_SETTINGS
 from ..services.database_manager import DatabaseManager

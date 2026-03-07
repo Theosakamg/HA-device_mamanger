@@ -42,6 +42,7 @@ export class DmDeviceForm extends LitElement {
   ];
 
   @property({ type: Object }) device: DmDevice | null = null;
+  @property({ type: Number }) presetRoomId: number | null = null;
 
   @state() private _rooms: DmRoom[] = [];
   @state() private _models: DmDeviceModel[] = [];
@@ -114,7 +115,7 @@ export class DmDeviceForm extends LitElement {
         haDeviceClass: "",
         extra: "",
         enabled: true,
-        roomId: "",
+        roomId: this.presetRoomId != null ? String(this.presetRoomId) : "",
         modelId: "",
         firmwareId: "",
         functionId: "",

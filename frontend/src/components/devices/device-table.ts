@@ -106,6 +106,7 @@ export class DmDeviceTable extends LitElement {
   @state() private _showForm = false;
   @state() private _showDeploy = false;
   @state() private _editingDevice: DmDevice | null = null;
+  @state() private _presetRoomId: number | null = null;
   @state() private _sort: SortState = { key: null, dir: null };
   @state() private _confirmOpen = false;
   @state() private _pendingDeleteDevice: DmDevice | null = null;
@@ -144,6 +145,17 @@ export class DmDeviceTable extends LitElement {
       this._filterFromHash = true;
     } else {
       this._filterFromHash = false;
+    }
+    const create = params.get("create");
+    if (create?.startsWith("room:")) {
+      const roomId = parseInt(create.split(":")[1], 10);
+      if (!isNaN(roomId)) {
+        this._presetRoomId = roomId;
+        this._editingDevice = null;
+        this._showForm = true;
+        // Clean the hash so a page refresh doesn't re-open the form
+        window.location.hash = "#devices";
+      }
     }
   }
 
@@ -333,9 +345,11 @@ export class DmDeviceTable extends LitElement {
         ? html`
             <dm-device-form
               .device=${this._editingDevice}
+              .presetRoomId=${this._presetRoomId}
               @form-save=${this._onFormSave}
               @form-cancel=${() => {
                 this._showForm = false;
+                this._presetRoomId = null;
               }}
             ></dm-device-form>
           `
@@ -362,6 +376,7 @@ export class DmDeviceTable extends LitElement {
 
   private _openCreate() {
     this._editingDevice = null;
+    this._presetRoomId = null;
     this._showForm = true;
   }
 

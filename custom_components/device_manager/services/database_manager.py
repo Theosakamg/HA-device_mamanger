@@ -1,5 +1,6 @@
 """Database manager for Device Manager integration."""
 
+import importlib.util
 import logging
 from pathlib import Path
 from typing import Optional
@@ -8,12 +9,87 @@ import aiosqlite
 
 _LOGGER = logging.getLogger(__name__)
 
+_BUILDINGS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_buildings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL DEFAULT '',
+        slug TEXT NOT NULL DEFAULT '',
+        description TEXT DEFAULT '',
+        image TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
+
+_FLOORS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_floors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL DEFAULT '',
+        slug TEXT NOT NULL DEFAULT '',
+        description TEXT DEFAULT '',
+        image TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        building_id INTEGER NOT NULL,
+        FOREIGN KEY (building_id) REFERENCES dm_buildings(id)
+            ON DELETE CASCADE
+    )
+"""
+
+_ROOMS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_rooms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL DEFAULT '',
+        slug TEXT NOT NULL DEFAULT '',
+        description TEXT DEFAULT '',
+        image TEXT DEFAULT '',
+        login TEXT DEFAULT '',
+        password TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        floor_id INTEGER NOT NULL,
+        FOREIGN KEY (floor_id) REFERENCES dm_floors(id)
+            ON DELETE CASCADE
+    )
+"""
+
+_DEVICE_MODELS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_device_models (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        name TEXT NOT NULL DEFAULT '',
+        template TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
+
+_DEVICE_FIRMWARES_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_device_firmwares (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        name TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
+
+_DEVICE_FUNCTIONS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_device_functions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        name TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
+
 _DEVICES_DDL = """
     CREATE TABLE IF NOT EXISTS dm_devices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         mac TEXT UNIQUE DEFAULT '',
         ip TEXT UNIQUE DEFAULT NULL,
-        enabled INTEGER NOT NULL DEFAULT 1,
+        enabled BOOLEAN NOT NULL DEFAULT 1,
         position_name TEXT DEFAULT '',
         position_slug TEXT DEFAULT '',
         mode TEXT DEFAULT '',
@@ -39,6 +115,20 @@ _DEVICES_DDL = """
             ON DELETE RESTRICT,
         FOREIGN KEY (target_id) REFERENCES dm_devices(id)
             ON DELETE SET NULL
+    )
+"""
+
+_SETTINGS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL DEFAULT ''
+    )
+"""
+
+_MIGRATIONS_DDL = """
+    CREATE TABLE IF NOT EXISTS dm_migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 """
 
@@ -83,111 +173,32 @@ class DatabaseManager:
             db = await self.get_connection()
 
             # 1. Buildings
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_buildings (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL DEFAULT '',
-                    slug TEXT NOT NULL DEFAULT '',
-                    description TEXT DEFAULT '',
-                    image TEXT DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+            await db.execute(_BUILDINGS_DDL)
 
             # 2. Floors
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_floors (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL DEFAULT '',
-                    slug TEXT NOT NULL DEFAULT '',
-                    description TEXT DEFAULT '',
-                    image TEXT DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    building_id INTEGER NOT NULL,
-                    FOREIGN KEY (building_id) REFERENCES dm_buildings(id)
-                        ON DELETE CASCADE
-                )
-            """)
+            await db.execute(_FLOORS_DDL)
 
             # 3. Rooms
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_rooms (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL DEFAULT '',
-                    slug TEXT NOT NULL DEFAULT '',
-                    description TEXT DEFAULT '',
-                    image TEXT DEFAULT '',
-                    login TEXT DEFAULT '',
-                    password TEXT DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    floor_id INTEGER NOT NULL,
-                    FOREIGN KEY (floor_id) REFERENCES dm_floors(id)
-                        ON DELETE CASCADE
-                )
-            """)
+            await db.execute(_ROOMS_DDL)
 
             # 4. Device Models
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_device_models (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    enabled INTEGER NOT NULL DEFAULT 1,
-                    name TEXT NOT NULL DEFAULT '',
-                    template TEXT DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+            await db.execute(_DEVICE_MODELS_DDL)
 
             # 5. Device Firmwares
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_device_firmwares (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    enabled INTEGER NOT NULL DEFAULT 1,
-                    name TEXT NOT NULL DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+            await db.execute(_DEVICE_FIRMWARES_DDL)
 
             # 6. Device Functions
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_device_functions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    enabled INTEGER NOT NULL DEFAULT 1,
-                    name TEXT NOT NULL DEFAULT '',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+            await db.execute(_DEVICE_FUNCTIONS_DDL)
 
             # 7. Devices
             await db.execute(_DEVICES_DDL)
 
             # 8. Settings (key/value pairs for user-configurable constants)
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS dm_settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT NOT NULL DEFAULT ''
-                )
-            """)
+            await db.execute(_SETTINGS_DDL)
 
             await db.commit()
 
-            # Migration: recreate dm_devices if ip has wrong constraint
-            # SQLite UNIQUE treats '' as a value, need NULL default
-            try:
-                await self._migrate_devices_ip_nullable(db)
-            except Exception as mig_err:
-                _LOGGER.warning("Device ip migration skipped: %s", mig_err)
-
-            # Migration: add login/password columns to dm_rooms if missing
-            try:
-                await self._migrate_rooms_add_credentials(db)
-            except Exception as mig_err:
-                _LOGGER.warning("Room credentials migration skipped: %s", mig_err)
+            await self._run_migrations(db)
 
             _LOGGER.info(
                 "Database initialized successfully with all tables"
@@ -203,72 +214,44 @@ class DatabaseManager:
             self._connection = None
             _LOGGER.info("Database connection closed")
 
-    async def _migrate_devices_ip_nullable(
-        self, db: aiosqlite.Connection
-    ) -> None:
-        """Migrate dm_devices table: make ip column nullable with NULL default.
+    async def _run_migrations(self, db: aiosqlite.Connection) -> None:
+        """Discover and apply pending migrations from the migrations/ folder.
 
-        SQLite cannot ALTER COLUMN constraints, so we recreate the table
-        if the ip column currently has a non-NULL default.
+        Each migration is a Python module exposing an async ``run(db)``
+        function.  Applied migrations are tracked in ``dm_migrations`` so
+        they are never executed twice.
         """
-        cursor = await db.execute("PRAGMA table_info(dm_devices)")
-        columns = await cursor.fetchall()
-        if not columns:
-            return  # Table does not exist yet
+        await db.execute(_MIGRATIONS_DDL)
+        await db.commit()
 
-        # Check if ip column default is '' (old schema)
-        for col in columns:
-            col_dict = dict(col)
-            if col_dict["name"] == "ip" and col_dict["dflt_value"] == "''":
-                _LOGGER.info(
-                    "Migrating dm_devices: ip -> nullable"
+        migrations_dir = Path(__file__).parent / "migrations"
+        if not migrations_dir.exists():
+            return
+
+        cursor = await db.execute("SELECT name FROM dm_migrations")
+        applied = {row[0] for row in await cursor.fetchall()}
+
+        files = sorted(
+            f for f in migrations_dir.glob("[0-9]*.py")
+        )
+
+        for mig_file in files:
+            if mig_file.name in applied:
+                continue
+            try:
+                spec = importlib.util.spec_from_file_location(
+                    mig_file.stem, mig_file
                 )
+                module = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+                spec.loader.exec_module(module)  # type: ignore[union-attr]
+                await module.run(db)
                 await db.execute(
-                    "ALTER TABLE dm_devices"
-                    " RENAME TO _dm_devices_old"
-                )
-                await db.execute(_DEVICES_DDL)
-                await db.execute("""
-                    INSERT INTO dm_devices
-                    SELECT
-                        id, mac, NULLIF(ip, ''),
-                        enabled, position_name,
-                        position_slug, mode,
-                        interlock, ha_device_class,
-                        extra, created_at,
-                        updated_at, room_id,
-                        model_id, firmware_id,
-                        function_id, target_id
-                    FROM _dm_devices_old
-                """)
-                await db.execute(
-                    "DROP TABLE _dm_devices_old"
+                    "INSERT INTO dm_migrations (name) VALUES (?)",
+                    (mig_file.name,),
                 )
                 await db.commit()
-                _LOGGER.info(
-                    "Migration complete: ip is now nullable"
+                _LOGGER.info("Applied migration: %s", mig_file.name)
+            except Exception as err:
+                _LOGGER.warning(
+                    "Migration %s skipped: %s", mig_file.name, err
                 )
-                return
-
-    async def _migrate_rooms_add_credentials(
-        self, db: aiosqlite.Connection
-    ) -> None:
-        """Migrate dm_rooms table: add login and password columns if missing.
-
-        SQLite supports ``ALTER TABLE … ADD COLUMN`` which is safe to run
-        even when the table already exists – it only fails when the column
-        already exists.  We swallow that error gracefully.
-        """
-        cursor = await db.execute("PRAGMA table_info(dm_rooms)")
-        columns = {row["name"] for row in await cursor.fetchall()}
-
-        for col, definition in (
-            ("login", "TEXT DEFAULT ''"),
-            ("password", "TEXT DEFAULT ''"),
-        ):
-            if col not in columns:
-                await db.execute(
-                    f"ALTER TABLE dm_rooms ADD COLUMN {col} {definition}"
-                )
-                await db.commit()
-                _LOGGER.info("Migration: added dm_rooms.%s column", col)
