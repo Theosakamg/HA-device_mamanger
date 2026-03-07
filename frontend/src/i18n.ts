@@ -12,6 +12,7 @@ const translations: { [lang: string]: Translations } = {
   en: {
     // Navigation
     app_title: "Device Manager",
+    nav_dashboard: "Dashboard",
     nav_hierarchy: "Hierarchy",
     nav_devices: "All Devices",
     nav_map: "Map",
@@ -30,6 +31,15 @@ const translations: { [lang: string]: Translations } = {
     system_wifi_fallback: "Fallback Network",
     map_loading: "Loading 3D map…",
     filter_all: "All",
+
+    // Dashboard
+    dashboard_title: "Dashboard",
+    dashboard_subtitle: "Global overview of your installation",
+    dashboard_by_firmware: "Devices by Firmware",
+    dashboard_by_hardware: "Devices by Hardware Model",
+    dashboard_last_refresh: "Last refreshed at",
+    dashboard_refresh: "Refresh",
+    unknown: "Unknown",
 
     // Hierarchy
     hierarchy_title: "Location Hierarchy",
@@ -287,6 +297,7 @@ const translations: { [lang: string]: Translations } = {
   fr: {
     // Navigation
     app_title: "Gestionnaire d'Équipements",
+    nav_dashboard: "Tableau de bord",
     nav_hierarchy: "Hiérarchie",
     nav_devices: "Tous les Équipements",
     nav_map: "Map",
@@ -305,6 +316,15 @@ const translations: { [lang: string]: Translations } = {
     system_wifi_fallback: "Réseau de Secours",
     map_loading: "Chargement de la carte 3D…",
     filter_all: "Tous",
+
+    // Dashboard
+    dashboard_title: "Tableau de bord",
+    dashboard_subtitle: "Vue d'ensemble globale de votre installation",
+    dashboard_by_firmware: "Équipements par Firmware",
+    dashboard_by_hardware: "Équipements par Modèle Matériel",
+    dashboard_last_refresh: "Actualisé à",
+    dashboard_refresh: "Actualiser",
+    unknown: "Inconnu",
 
     // Hierarchy
     hierarchy_title: "Hiérarchie des Emplacements",

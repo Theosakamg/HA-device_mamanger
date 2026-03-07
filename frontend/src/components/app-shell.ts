@@ -6,6 +6,7 @@ import { customElement, state } from "lit/decorators.js";
 import { sharedStyles } from "../styles/shared-styles";
 import { i18n, localized } from "../i18n";
 import { loadSettings } from "../api/settings-client";
+import "./dashboard/dashboard-view";
 import "./hierarchy/hierarchy-view";
 import "./settings/settings-view";
 import "./devices/device-table";
@@ -14,7 +15,7 @@ import "./shared/toast-notification";
 import type { DmToast } from "./shared/toast-notification";
 import "./map/map-view";
 
-type AppRoute = "hierarchy" | "devices" | "map" | "settings" | "system";
+type AppRoute = "dashboard" | "hierarchy" | "devices" | "map" | "settings" | "system";
 
 @localized
 @customElement("dm-app-shell")
@@ -98,7 +99,7 @@ export class DmAppShell extends LitElement {
     `,
   ];
 
-  @state() private _route: AppRoute = "hierarchy";
+  @state() private _route: AppRoute = "dashboard";
   @state() private _lang: string = i18n.getCurrentLanguage();
 
   connectedCallback() {
@@ -129,9 +130,10 @@ export class DmAppShell extends LitElement {
   };
 
   private _getRouteFromHash(): AppRoute {
-    const fullHash = window.location.hash.replace("#", "") || "hierarchy";
+    const fullHash = window.location.hash.replace("#", "") || "dashboard";
     const route = fullHash.split("?")[0];
     const validRoutes: AppRoute[] = [
+      "dashboard",
       "hierarchy",
       "devices",
       "map",
@@ -162,6 +164,12 @@ export class DmAppShell extends LitElement {
           <span>Device Manager</span>
         </div>
         <nav class="app-nav">
+          <button
+            class="nav-btn ${this._route === "dashboard" ? "active" : ""}"
+            @click=${() => this._navigate("dashboard")}
+          >
+            📊 ${i18n.t("nav_dashboard")}
+          </button>
           <button
             class="nav-btn ${this._route === "hierarchy" ? "active" : ""}"
             @click=${() => this._navigate("hierarchy")}
@@ -199,6 +207,9 @@ export class DmAppShell extends LitElement {
       </div>
 
       <main class="app-content">
+        ${this._route === "dashboard"
+          ? html`<dm-dashboard-view></dm-dashboard-view>`
+          : ""}
         ${this._route === "hierarchy"
           ? html`<dm-hierarchy-view></dm-hierarchy-view>`
           : ""}
