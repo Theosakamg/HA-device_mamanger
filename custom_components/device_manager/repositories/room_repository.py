@@ -5,7 +5,7 @@ from typing import Any, Optional
 from .base import BaseRepository
 from ..models.room import DmRoom
 from ..services.database_manager import DatabaseManager
-from ..utils.crypto import encrypt, decrypt, DecryptionError, EncryptionError
+from ..utils.crypto import encrypt, decrypt, DecryptionError
 
 
 class RoomRepository(BaseRepository[DmRoom]):

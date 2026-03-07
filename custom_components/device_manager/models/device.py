@@ -9,7 +9,7 @@ populated by repository JOIN queries and are **not** persisted.
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
-from ..utils.case_convert import to_camel_case, to_snake_case
+from ..utils.case_convert import to_snake_case
 from .base import SerializableMixin
 
 

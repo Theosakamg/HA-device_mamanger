@@ -354,6 +354,69 @@ export class DmDeviceTable extends LitElement {
         border-color: var(--dm-success);
         color: var(--dm-success);
       }
+
+      /* ── Batch selection ── */
+      .checkbox-cell {
+        width: 36px;
+        padding: 0 8px !important;
+        text-align: center;
+      }
+      input.row-checkbox {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: var(--dm-primary);
+        margin: 0;
+        display: block;
+      }
+      tr.row-selected td {
+        background: rgba(3, 169, 244, 0.08);
+      }
+      .batch-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: rgba(3, 169, 244, 0.06);
+        border: 1px solid rgba(3, 169, 244, 0.25);
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
+      .batch-count {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--dm-text);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .batch-count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        background: var(--dm-primary, #03a9f4);
+        color: #fff;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 0 7px;
+      }
+      .batch-result {
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 4px;
+      }
+      .batch-result-ok {
+        background: rgba(76, 175, 80, 0.12);
+        color: var(--dm-success, #4caf50);
+      }
+      .batch-result-err {
+        background: rgba(244, 67, 54, 0.1);
+        color: var(--dm-error, #f44336);
+      }
     `,
   ];
 
@@ -392,6 +455,9 @@ export class DmDeviceTable extends LitElement {
   @state() private _filterDropdownPos = { top: 0, left: 0 };
   @state() private _colFilterSearch: Record<string, string> = {};
   @state() private _linkCopied = false;
+  @state() private _selectedIds = new Set<number>();
+  @state() private _batchDeploying = false;
+  @state() private _batchResult: "success" | "error" | null = null;
 
   private static readonly _STORAGE_KEY = "dm-device-filters";
 
@@ -891,6 +957,7 @@ export class DmDeviceTable extends LitElement {
       ></dm-doc-block>
 
       ${this._renderFilterBadges()}
+      ${this._renderBatchToolbar()}
 
       ${this._loading
         ? html`<div class="loading">${i18n.t("loading")}</div>`
@@ -903,6 +970,15 @@ export class DmDeviceTable extends LitElement {
             <table>
               <thead>
                 <tr>
+                  <th class="checkbox-cell">
+                    <input
+                      class="row-checkbox"
+                      type="checkbox"
+                      .checked=${this._allVisibleSelected}
+                      .indeterminate=${this._someVisibleSelected && !this._allVisibleSelected}
+                      @change=${this._toggleAllRows}
+                    />
+                  </th>
                   ${this._columns.map(
                     (col) => html`
                       <th
@@ -941,7 +1017,18 @@ export class DmDeviceTable extends LitElement {
               <tbody>
                 ${this._sortedDevices.map(
                   (device) => html`
-                    <tr>
+                    <tr class="${device.id != null && this._selectedIds.has(device.id) ? "row-selected" : ""}">
+                      <td class="checkbox-cell">
+                        <input
+                          class="row-checkbox"
+                          type="checkbox"
+                          .checked=${device.id != null && this._selectedIds.has(device.id)}
+                          @change=${() => {
+                            if (device.id != null) this._toggleRowSelect(device.id);
+                          }}
+                          @click=${(e: Event) => e.stopPropagation()}
+                        />
+                      </td>
                       <td class="enabled-dot">
                         <span
                           class="status-dot ${device.enabled
@@ -1085,5 +1172,106 @@ export class DmDeviceTable extends LitElement {
   private _onCancelDelete() {
     this._confirmOpen = false;
     this._pendingDeleteDevice = null;
+  }
+
+  // ── Batch selection ────────────────────────────────────────────────────────
+
+  private get _allVisibleSelected(): boolean {
+    const visible = this._sortedDevices;
+    return (
+      visible.length > 0 &&
+      visible.every((d) => d.id != null && this._selectedIds.has(d.id))
+    );
+  }
+
+  private get _someVisibleSelected(): boolean {
+    return this._sortedDevices.some(
+      (d) => d.id != null && this._selectedIds.has(d.id)
+    );
+  }
+
+  private _toggleRowSelect(id: number) {
+    const next = new Set(this._selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    this._selectedIds = next;
+  }
+
+  private _toggleAllRows() {
+    const visible = this._sortedDevices;
+    if (this._allVisibleSelected) {
+      const next = new Set(this._selectedIds);
+      for (const d of visible) {
+        if (d.id != null) next.delete(d.id);
+      }
+      this._selectedIds = next;
+    } else {
+      const next = new Set(this._selectedIds);
+      for (const d of visible) {
+        if (d.id != null) next.add(d.id);
+      }
+      this._selectedIds = next;
+    }
+  }
+
+  private _renderBatchToolbar() {
+    if (this._selectedIds.size === 0) return nothing;
+    return html`
+      <div class="batch-toolbar">
+        <span class="batch-count">
+          <span class="batch-count-badge">${this._selectedIds.size}</span>
+          ${i18n.t("batch_selected")}
+        </span>
+        ${this._batchResult === "success"
+          ? html`<span class="batch-result batch-result-ok"
+              >✓ ${i18n.t("batch_deploy_triggered")}</span
+            >`
+          : this._batchResult === "error"
+          ? html`<span class="batch-result batch-result-err"
+              >✗ ${i18n.t("batch_deploy_error")}</span
+            >`
+          : nothing}
+        <button
+          class="btn btn-secondary"
+          @click=${() => {
+            this._selectedIds = new Set();
+          }}
+        >
+          ${i18n.t("batch_clear_selection")}
+        </button>
+        <button
+          class="btn btn-primary"
+          ?disabled=${this._batchDeploying}
+          @click=${this._deploySelected}
+        >
+          🚀 ${this._batchDeploying ? "…" : i18n.t("batch_deploy_selected")}
+        </button>
+      </div>
+    `;
+  }
+
+  private async _deploySelected() {
+    if (this._selectedIds.size === 0) return;
+    this._batchDeploying = true;
+    this._batchResult = null;
+    try {
+      await this._client.deployBatch([...this._selectedIds]);
+      this._batchResult = "success";
+      setTimeout(async () => {
+        await this._load();
+        this._batchResult = null;
+        this._selectedIds = new Set();
+      }, 3000);
+    } catch (err) {
+      console.error("Batch deploy failed:", err);
+      this._batchResult = "error";
+      setTimeout(() => {
+        this._batchResult = null;
+      }, 4000);
+    }
+    this._batchDeploying = false;
   }
 }

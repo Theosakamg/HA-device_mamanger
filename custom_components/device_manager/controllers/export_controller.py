@@ -4,7 +4,6 @@ import csv
 import io
 import json
 import logging
-from typing import Any
 
 from aiohttp import web
 

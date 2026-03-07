@@ -16,6 +16,7 @@ class EncryptionError(Exception):
 class DecryptionError(Exception):
     """Raised when a Fernet token cannot be decrypted (wrong key or corrupted data)."""
 
+
 _LOGGER = logging.getLogger(__name__)
 
 

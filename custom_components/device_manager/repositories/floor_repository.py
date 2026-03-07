@@ -1,7 +1,5 @@
 """Repository for DmFloor entities."""
 
-from typing import Any
-
 from .base import BaseRepository
 from ..models.floor import DmFloor
 

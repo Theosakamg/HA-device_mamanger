@@ -122,6 +122,11 @@ const translations: { [lang: string]: Translations } = {
     deploy_device_mac: "MAC",
     deploy_device_position: "Position",
     deploy_new: "New Deploy",
+    batch_selected: "device(s) selected",
+    batch_deploy_selected: "Deploy selected",
+    batch_clear_selection: "Clear selection",
+    batch_deploy_triggered: "Deployment triggered",
+    batch_deploy_error: "Deploy failed",
 
     // Settings
     settings_title: "Settings",
@@ -408,6 +413,11 @@ const translations: { [lang: string]: Translations } = {
     deploy_device_mac: "MAC",
     deploy_device_position: "Position",
     deploy_new: "Nouveau Déploiement",
+    batch_selected: "équipement(s) sélectionné(s)",
+    batch_deploy_selected: "Déployer la sélection",
+    batch_clear_selection: "Effacer la sélection",
+    batch_deploy_triggered: "Déploiement déclenché",
+    batch_deploy_error: "Échec du déploiement",
 
     // Settings
     settings_title: "Paramètres",
