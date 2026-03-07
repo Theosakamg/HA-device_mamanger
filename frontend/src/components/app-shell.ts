@@ -9,12 +9,12 @@ import { loadSettings } from "../api/settings-client";
 import "./hierarchy/hierarchy-view";
 import "./settings/settings-view";
 import "./devices/device-table";
-import "./maintenance/maintenance-view";
+import "./system/system-view";
 import "./shared/toast-notification";
 import type { DmToast } from "./shared/toast-notification";
 import "./map/map-view";
 
-type AppRoute = "hierarchy" | "devices" | "map" | "settings" | "maintenance";
+type AppRoute = "hierarchy" | "devices" | "map" | "settings" | "system";
 
 @localized
 @customElement("dm-app-shell")
@@ -136,7 +136,7 @@ export class DmAppShell extends LitElement {
       "devices",
       "map",
       "settings",
-      "maintenance",
+      "system",
     ];
     return validRoutes.includes(route as AppRoute)
       ? (route as AppRoute)
@@ -187,10 +187,10 @@ export class DmAppShell extends LitElement {
             ⚙️ ${i18n.t("nav_settings")}
           </button>
           <button
-            class="nav-btn ${this._route === "maintenance" ? "active" : ""}"
-            @click=${() => this._navigate("maintenance")}
+            class="nav-btn ${this._route === "system" ? "active" : ""}"
+            @click=${() => this._navigate("system")}
           >
-            🔧 ${i18n.t("nav_maintenance")}
+            🖥️ ${i18n.t("nav_system")}
           </button>
         </nav>
         <button class="lang-toggle" @click=${this._toggleLang}>
@@ -209,8 +209,8 @@ export class DmAppShell extends LitElement {
         ${this._route === "settings"
           ? html`<dm-settings-view></dm-settings-view>`
           : ""}
-        ${this._route === "maintenance"
-          ? html`<dm-maintenance-view></dm-maintenance-view>`
+        ${this._route === "system"
+          ? html`<dm-system-view></dm-system-view>`
           : ""}
       </main>
 
