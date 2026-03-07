@@ -341,14 +341,18 @@ export class DmDeviceForm extends LitElement {
               >
                 <option value="">${i18n.t("select_target")}</option>
                 ${this._allDevices
-                  .filter((d) => d.id !== this.device?.id)
+                  .filter(
+                    (d) =>
+                      d.id !== this.device?.id &&
+                      d.roomId === (Number(this._form.roomId) || null)
+                  )
                   .map(
                     (d) =>
                       html`<option
                         value=${d.id}
                         ?selected=${Number(this._form.targetId) === d.id}
                       >
-                        ${d.mac} - ${d.positionName}
+                        ${d.functionName ?? d.mac} / ${d.positionName}
                       </option>`
                   )}
               </select>

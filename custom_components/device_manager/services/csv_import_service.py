@@ -121,6 +121,9 @@ class CSVImportService:
         firmware_cache: dict[str, int] = {}
         function_cache: dict[str, int] = {}
 
+        # Pending target resolution: list of (device_id, raw_target, room_id)
+        pending_targets: list[tuple[int, str, int]] = []
+
         for i, row in enumerate(reader, start=1):
             if i > max_rows:
                 errors.append(f"Import limited to {max_rows} rows")
@@ -237,6 +240,14 @@ class CSVImportService:
                 }
 
                 device_id = await self.repos["device"].create(device_data)
+
+                # Queue target resolution for second pass
+                raw_target = (parsed.get("target", "") or "").strip()
+                if raw_target:
+                    pending_targets.append(
+                        (device_id, raw_target, room_cache[room_key])
+                    )
+
                 created += 1
                 logs.append({
                     "row": i,
@@ -256,11 +267,36 @@ class CSVImportService:
                     "message": error_msg,
                 })
 
+        # ── Second pass: resolve target links ──────────────────────────
+        # All devices are now created; resolve function/position references
+        # within the same room.
+        target_resolved = 0
+        target_failed = 0
+        for device_id, raw_target, room_id in pending_targets:
+            resolved_id = await self._resolve_target(raw_target, room_id)
+            if resolved_id is not None:
+                await self.repos["device"].update(
+                    device_id, {"target_id": resolved_id}
+                )
+                target_resolved += 1
+                _LOGGER.debug(
+                    "Target resolved: device %d → %d (raw: %s)",
+                    device_id, resolved_id, raw_target,
+                )
+            else:
+                target_failed += 1
+                errors.append(
+                    f"Device {device_id}: target '{raw_target}' not found"
+                    f" in room {room_id}"
+                )
+
         return {
             "total": total,
             "created": created,
             "updated": 0,
             "skipped": 0,
+            "target_resolved": target_resolved,
+            "target_failed": target_failed,
             "errors": errors,
             "logs": logs,
         }
@@ -330,6 +366,38 @@ class CSVImportService:
             if item.get(match_field) == match_value:
                 return int(item["id"])
         return int(await repo.create(create_data))
+
+    async def _resolve_target(
+        self, raw_target: str, room_id: int
+    ) -> Optional[int]:
+        """Resolve a target string to a device ID within the same room.
+
+        The target format is ``function_slug/position_slug``
+        (e.g. ``light/ceiling``).  Only devices in ``room_id`` are
+        considered — the security model restricts links to the same room.
+
+        Args:
+            raw_target: Raw target string from the CSV (e.g. ``light/ceiling``).
+            room_id: The room ID of the source device.
+
+        Returns:
+            The target device ID, or None if no match is found.
+        """
+        if not raw_target or "/" not in raw_target:
+            return None
+        parts = raw_target.strip().lower().split("/", 1)
+        target_function_slug = parts[0].strip()
+        target_position_slug = parts[1].strip()
+        if not target_function_slug or not target_position_slug:
+            return None
+
+        candidates = await self.repos["device"].find_by_room(room_id)
+        for device in candidates:
+            fn = (device.get("function_name") or "").strip().lower()
+            ps = (device.get("position_slug") or "").strip().lower()
+            if fn == target_function_slug and ps == target_position_slug:
+                return int(device["id"])
+        return None
 
     async def _find_or_create_ref(self, repo: Any, name: str) -> int:
         """Find or create a reference entity by name.
