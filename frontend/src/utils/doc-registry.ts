@@ -2,12 +2,12 @@
  * In-UI documentation registry.
  *
  * Maps dot-notation keys (e.g. "settings.models.overview") to structured doc
- * content per language. All markdown files under `src/docs/` are discovered
+ * content per language. All markdown files under `docs/` are discovered
  * and bundled automatically at build time via Vite's `import.meta.glob` —
  * no manual registration or runtime fetches needed.
  *
  * ## File naming convention
- * `src/docs/<context>/[entity/]<page>.<lang>.md`
+ * `docs/<context>/[entity/]<page>.<lang>.md`
  *
  * The path maps directly to the registry key:
  * - `docs/settings/models/overview.en.md` → key `"settings.models.overview"`, lang `"en"`
@@ -23,7 +23,7 @@
  * ```
  *
  * ## Adding a new doc page
- * 1. Create `src/docs/<context>/[entity/]<page>.<lang>.md` with frontmatter.
+ * 1. Create `docs/<context>/[entity/]<page>.<lang>.md` with frontmatter.
  * 2. That's it — the file is picked up automatically on the next build.
  *
  * ## Usage
@@ -58,7 +58,7 @@ export type { DocContent };
 // Auto-discovery via Vite glob import (bundled at build time)
 // ---------------------------------------------------------------------------
 
-const _rawDocs = import.meta.glob("../docs/**/*.md", {
+const _rawDocs = import.meta.glob("../../docs/**/*.md", {
   query: "?raw",
   import: "default",
   eager: true,
@@ -67,13 +67,13 @@ const _rawDocs = import.meta.glob("../docs/**/*.md", {
 /**
  * Derives the dot-notation registry key and language code from a glob path.
  *
- * "../docs/settings/models/overview.en.md" → { key: "settings.models.overview", lang: "en" }
- * "../docs/settings/overview.fr.md"        → { key: "settings.overview",         lang: "fr" }
+ * "../../docs/settings/models/overview.en.md" → { key: "settings.models.overview", lang: "en" }
+ * "../../docs/settings/overview.fr.md"        → { key: "settings.overview",         lang: "fr" }
  */
 function _pathToKeyAndLang(
   path: string,
 ): { key: string; lang: string } | null {
-  const inner = path.replace(/^\.\.\/docs\//, "").replace(/\.md$/, "");
+  const inner = path.replace(/^\.\.\/\.\.\/docs\//, "").replace(/\.md$/, "");
   const segments = inner.split("/");
   const lastSegment = segments[segments.length - 1];
   const dotIdx = lastSegment.lastIndexOf(".");
