@@ -49,6 +49,8 @@ class DmDevice(SerializableMixin):
     id: Optional[int] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    last_deploy_at: Optional[str] = None
+    last_deploy_status: Optional[str] = None
     room_id: Optional[int] = None
     model_id: Optional[int] = None
     firmware_id: Optional[int] = None

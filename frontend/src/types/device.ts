@@ -35,6 +35,9 @@ export interface DmDevice {
   firmwareName?: string;
   functionName?: string;
   targetMac?: string;
+  /** Deploy tracking */
+  lastDeployAt?: string | null;
+  lastDeployStatus?: "done" | "fail" | null;
 }
 
 /**

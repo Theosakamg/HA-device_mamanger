@@ -5,7 +5,7 @@ import yaml
 import logging
 
 from .contract import (
-    _FLD_MAC, _FLD_STATE, _FLD_LEVEL, _FLD_FUNCTION, _FLD_ROOM,
+    _FLD_ID, _FLD_MAC, _FLD_STATE, _FLD_LEVEL, _FLD_FUNCTION, _FLD_ROOM,
     _FLD_POSITION, _FLD_FRMW, _FLD_MODEL, _FLD_INTERLOCK, _FLD_MODE,
     _FLD_TARGET, _FLD_EXTRA, _FLD_MQTT, _FLD_HOST, _FLD_HA_DEVICE_CLASS,
     _FLD_IP, _STA_ENABLE, _STA_DISABLE,
@@ -116,6 +116,7 @@ class DevicesManager:
             _FLD_POSITION: row.get('position_slug', ''),
         }
         return {
+            _FLD_ID:            row.get('id'),
             _FLD_MAC:           row.get('mac', ''),
             _FLD_STATE:         _STA_ENABLE if row.get('enabled', 0) else _STA_DISABLE,
             _FLD_LEVEL:         draft[_FLD_LEVEL],

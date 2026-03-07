@@ -98,6 +98,8 @@ _DEVICES_DDL = """
         extra TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_deploy_at TIMESTAMP DEFAULT NULL,
+        last_deploy_status TEXT DEFAULT NULL,
         room_id INTEGER NOT NULL,
         model_id INTEGER NOT NULL,
         firmware_id INTEGER NOT NULL,

@@ -1,6 +1,7 @@
 """Repository for DmDevice entities."""
 
 import logging
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from .base import BaseRepository
@@ -150,3 +151,28 @@ class DeviceRepository(BaseRepository):
         )
         rows = await cursor.fetchall()
         return {int(row["room_id"]): int(row["cnt"]) for row in rows}
+
+    async def update_deploy_status(
+        self, device_id: int, status: str
+    ) -> None:
+        """Update last_deploy_at and last_deploy_status for a device.
+
+        This method bypasses the ``allowed_columns`` whitelist because these
+        fields are set exclusively by the deploy process, not via the CRUD API.
+
+        Args:
+            device_id: The device primary key.
+            status:    ``'done'`` or ``'fail'``.
+        """
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        conn = await self.db.get_connection()
+        await conn.execute(
+            "UPDATE dm_devices"
+            " SET last_deploy_at = ?, last_deploy_status = ?"
+            " WHERE id = ?",
+            (now, status, device_id),
+        )
+        await conn.commit()
+        _LOGGER.debug(
+            "Deploy status updated: device_id=%d status=%s", device_id, status
+        )

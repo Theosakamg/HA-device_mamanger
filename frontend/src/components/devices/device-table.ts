@@ -64,6 +64,39 @@ export class DmDeviceTable extends LitElement {
       .btn-icon-link {
         text-decoration: none;
       }
+      /* Deploy status badges */
+      .deploy-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .deploy-badge-done {
+        background: rgba(76, 175, 80, 0.15);
+        color: var(--dm-success, #4caf50);
+        border: 1px solid var(--dm-success, #4caf50);
+      }
+      .deploy-badge-fail {
+        background: rgba(244, 67, 54, 0.1);
+        color: var(--dm-error, #f44336);
+        border: 1px solid var(--dm-error, #f44336);
+      }
+      .deploy-badge-none {
+        background: transparent;
+        color: var(--dm-text-secondary, #757575);
+        border: none;
+        font-weight: normal;
+        font-size: 12px;
+      }
+      .deploy-date {
+        font-size: 11px;
+        color: var(--dm-text-secondary);
+        white-space: nowrap;
+      }
       th.sortable {
         cursor: pointer;
         user-select: none;
@@ -329,6 +362,8 @@ export class DmDeviceTable extends LitElement {
       { key: "positionName", label: i18n.t("device_position_name") },
       { key: "firmwareName", label: i18n.t("device_firmware") },
       { key: "modelName", label: i18n.t("device_model") },
+      { key: "lastDeployStatus", label: i18n.t("device_last_deploy_status") },
+      { key: "lastDeployAt", label: i18n.t("device_last_deploy_at") },
     ];
   }
 
@@ -456,7 +491,9 @@ export class DmDeviceTable extends LitElement {
           d.modelName?.toLowerCase().includes(q) ||
           d.firmwareName?.toLowerCase().includes(q) ||
           d.functionName?.toLowerCase().includes(q) ||
-          d.extra?.toLowerCase().includes(q)
+          d.extra?.toLowerCase().includes(q) ||
+          d.lastDeployStatus?.toLowerCase().includes(q) ||
+          d.lastDeployAt?.toLowerCase().includes(q)
       );
     }
     // Column filters
@@ -551,6 +588,11 @@ export class DmDeviceTable extends LitElement {
   /** Normalised filter value for a device field. */
   private _getFilterValue(device: DmDevice, key: string): string {
     if (key === "enabled") return String(device.enabled);
+    if (key === "lastDeployStatus") {
+      const s = device.lastDeployStatus;
+      if (!s) return i18n.t("deploy_status_none");
+      return s === "done" ? i18n.t("deploy_status_done") : i18n.t("deploy_status_fail");
+    }
     const val = (device as unknown as Record<string, unknown>)[key];
     if (val === null || val === undefined || val === "") return "—";
     return String(val);
@@ -900,6 +942,18 @@ export class DmDeviceTable extends LitElement {
                       <td>${device.positionName}</td>
                       <td>${device.firmwareName ?? "—"}</td>
                       <td>${device.modelName ?? "—"}</td>
+                      <td>
+                        ${device.lastDeployStatus === "done"
+                          ? html`<span class="deploy-badge deploy-badge-done">✓ ${i18n.t("deploy_status_done")}</span>`
+                          : device.lastDeployStatus === "fail"
+                          ? html`<span class="deploy-badge deploy-badge-fail">✗ ${i18n.t("deploy_status_fail")}</span>`
+                          : html`<span class="deploy-badge deploy-badge-none">${i18n.t("deploy_status_none")}</span>`}
+                      </td>
+                      <td class="deploy-date">
+                        ${device.lastDeployAt
+                          ? new Date(device.lastDeployAt + "Z").toLocaleString()
+                          : "—"}
+                      </td>
                       <td>
                         ${device.ip
                           ? html`<a

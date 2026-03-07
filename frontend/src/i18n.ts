@@ -89,6 +89,11 @@ const translations: { [lang: string]: Translations } = {
     select_function: "Select a function",
     select_target: "Select target (optional)",
     no_devices: "No devices yet. Add your first device!",
+    device_last_deploy_at: "Last Deploy",
+    device_last_deploy_status: "Deploy Status",
+    deploy_status_done: "Done",
+    deploy_status_fail: "Fail",
+    deploy_status_none: "Never",
 
     // Deploy
     deploy: "Deploy",
@@ -358,6 +363,11 @@ const translations: { [lang: string]: Translations } = {
     select_function: "Sélectionner une fonction",
     select_target: "Sélectionner la cible (optionnel)",
     no_devices: "Aucun équipement. Ajoutez votre premier équipement !",
+    device_last_deploy_at: "Dernier Déploiement",
+    device_last_deploy_status: "Statut Déploiement",
+    deploy_status_done: "Succès",
+    deploy_status_fail: "Échec",
+    deploy_status_none: "Jamais",
 
     // Deploy
     deploy: "Déployer",

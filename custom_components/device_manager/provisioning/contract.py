@@ -1,4 +1,5 @@
 # Field of device
+_FLD_ID = 'id'
 _FLD_MAC = 'mac'
 _FLD_STATE = 'state'
 _FLD_LEVEL = 'level'
