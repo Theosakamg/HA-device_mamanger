@@ -24,6 +24,7 @@ import "../shared/doc-block";
 interface DeviceColumn {
   key: string;
   label: string;
+  thClass?: string;
 }
 
 @localized
@@ -96,6 +97,17 @@ export class DmDeviceTable extends LitElement {
         font-size: 11px;
         color: var(--dm-text-secondary);
         white-space: nowrap;
+        width: 1%;
+      }
+      td.deploy-status {
+        white-space: nowrap;
+        width: 1%;
+      }
+      th.col-deploy-status,
+      th.col-deploy-date {
+        white-space: normal;
+        min-width: 0;
+        width: 1%;
       }
       th.sortable {
         cursor: pointer;
@@ -355,6 +367,15 @@ export class DmDeviceTable extends LitElement {
         color: var(--dm-success);
       }
 
+      .btn-select-mode {
+        border: 1px solid var(--dm-primary, #03a9f4);
+        color: var(--dm-primary, #03a9f4);
+        background: transparent;
+      }
+      .btn-select-mode.active {
+        background: var(--dm-primary, #03a9f4);
+        color: #fff;
+      }
       /* ── Batch selection ── */
       .checkbox-cell {
         width: 36px;
@@ -433,8 +454,8 @@ export class DmDeviceTable extends LitElement {
       { key: "refs.firmwareName", label: i18n.t("device_firmware") },
       { key: "refs.modelName", label: i18n.t("device_model") },
       { key: "refs.targetMac", label: i18n.t("device_target") },
-      { key: "lastDeployStatus", label: i18n.t("device_last_deploy_status") },
-      { key: "lastDeployAt", label: i18n.t("device_last_deploy_at") },
+      { key: "lastDeployStatus", label: i18n.t("device_last_deploy_status"), thClass: "col-deploy-status" },
+      { key: "lastDeployAt", label: i18n.t("device_last_deploy_at"), thClass: "col-deploy-date" },
     ];
   }
 
@@ -457,6 +478,7 @@ export class DmDeviceTable extends LitElement {
   @state() private _colFilterSearch: Record<string, string> = {};
   @state() private _linkCopied = false;
   @state() private _selectedIds = new Set<number>();
+  @state() private _batchMode = false;
   @state() private _batchDeploying = false;
   @state() private _batchResult: "success" | "error" | null = null;
 
@@ -942,6 +964,13 @@ export class DmDeviceTable extends LitElement {
             + ${i18n.t("add")}
           </button>
           <button
+            class="btn btn-select-mode ${this._batchMode ? "active" : ""}"
+            @click=${this._toggleBatchMode}
+            title=${this._batchMode ? i18n.t("batch_exit_select_mode") : i18n.t("batch_select_mode")}
+          >
+            ☑ ${this._batchMode ? i18n.t("batch_exit_select_mode") : i18n.t("batch_select_mode")}
+          </button>
+          <button
             class="btn btn-primary"
             @click=${() => {
               this._showDeploy = true;
@@ -971,6 +1000,7 @@ export class DmDeviceTable extends LitElement {
             <table>
               <thead>
                 <tr>
+                  ${this._batchMode ? html`
                   <th class="checkbox-cell">
                     <input
                       class="row-checkbox"
@@ -979,11 +1009,11 @@ export class DmDeviceTable extends LitElement {
                       .indeterminate=${this._someVisibleSelected && !this._allVisibleSelected}
                       @change=${this._toggleAllRows}
                     />
-                  </th>
+                  </th>` : nothing}
                   ${this._columns.map(
                     (col) => html`
                       <th
-                        class="sortable ${this._sort.key === col.key
+                        class="sortable ${col.thClass ?? ""} ${this._sort.key === col.key
                           ? "sort-active"
                           : ""} ${this._hasColFilter(col.key)
                           ? "col-filtered"
@@ -1019,6 +1049,7 @@ export class DmDeviceTable extends LitElement {
                 ${this._sortedDevices.map(
                   (device) => html`
                     <tr class="${device.id != null && this._selectedIds.has(device.id) ? "row-selected" : ""}">
+                      ${this._batchMode ? html`
                       <td class="checkbox-cell">
                         <input
                           class="row-checkbox"
@@ -1029,7 +1060,7 @@ export class DmDeviceTable extends LitElement {
                           }}
                           @click=${(e: Event) => e.stopPropagation()}
                         />
-                      </td>
+                      </td>` : nothing}
                       <td class="enabled-dot">
                         <span
                           class="status-dot ${device.enabled
@@ -1046,7 +1077,7 @@ export class DmDeviceTable extends LitElement {
                       <td>${device.refs?.firmwareName ?? "—"}</td>
                       <td>${device.refs?.modelName ?? "—"}</td>
                       <td class="mac">${device.refs?.targetMac ?? "—"}</td>
-                      <td>
+                      <td class="deploy-status">
                         ${device.lastDeployStatus === "done"
                           ? html`<span class="deploy-badge deploy-badge-done">✓ ${i18n.t("deploy_status_done")}</span>`
                           : device.lastDeployStatus === "fail"
@@ -1219,8 +1250,16 @@ export class DmDeviceTable extends LitElement {
     }
   }
 
+  private _toggleBatchMode() {
+    this._batchMode = !this._batchMode;
+    if (!this._batchMode) {
+      this._selectedIds = new Set();
+      this._batchResult = null;
+    }
+  }
+
   private _renderBatchToolbar() {
-    if (this._selectedIds.size === 0) return nothing;
+    if (!this._batchMode) return nothing;
     return html`
       <div class="batch-toolbar">
         <span class="batch-count">
