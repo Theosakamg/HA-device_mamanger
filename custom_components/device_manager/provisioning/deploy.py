@@ -1,46 +1,39 @@
+"""Device deployment operations.
+
+Handles deploying firmware configurations to devices.
+"""
+
 import asyncio
 import logging
-
-from .common import FirmwareFactory
-from .contract import _FLD_ID, _FLD_MAC
-from .discovery import GlobalManager
-from .utility import (Sanitizer, Initializer)
+from pathlib import Path
+from typing import List, Optional, Dict, Any
 
 from custom_components.device_manager.services.database_manager import DatabaseManager
 from custom_components.device_manager.repositories import DeviceRepository
+
+from .core.manager import ProvisioningManager
+from .core.firmware_factory import FirmwareFactory
+from .core.scanner import NetworkScanner
+from .utility import Initializer
+
+logger = logging.getLogger(__name__)
 
 _DEPLOY_DONE = "done"
 _DEPLOY_FAIL = "fail"
 
 
-def base_config(device, logger, ff):
-    Sanitizer.entity_sanity(device)
-
-    logger.info(f"\033[0;34mCheck Device: {device[_FLD_MAC]}\x1b[0m")
-
-    # Find if device.
-    success = False
-    fwm_count = 0
-    for fwm in ff.get_firmware_managers():
-        if device[_FLD_MAC] and fwm.is_found(device):
-            logger.info(f"Process Device with {fwm.__class__} Manager.")
-            fwm.process(device)
-            success = True
-            fwm_count += 1
-
-    if fwm_count == 0:
-        logger.warning('No Firmware found ! Firmware is supported or loaded ?')
-
-    return success
-
-
 def _persist_deploy_results(
-    db_path, results: dict[int, str], logger
+    db: DatabaseManager,
+    results: Dict[int, str]
 ) -> None:
-    """Persist per-device deploy status to the database (sync wrapper)."""
+    """Persist per-device deploy status to the database (sync wrapper).
+
+    Args:
+        db: DatabaseManager instance.
+        results: Dictionary mapping device IDs to deploy status.
+    """
 
     async def _update_all():
-        db = DatabaseManager(db_path)
         repo = DeviceRepository(db)
         try:
             for device_id, status in results.items():
@@ -50,8 +43,8 @@ def _persist_deploy_results(
                     logger.error(
                         f"Failed to persist deploy status for device {device_id}: {e}"
                     )
-        finally:
-            await db.close()
+        except Exception as e:
+            logger.error(f"Failed to persist deploy results: {e}")
 
     try:
         asyncio.run(_update_all())
@@ -59,87 +52,195 @@ def _persist_deploy_results(
         logger.error(f"Failed to persist deploy results: {e}")
 
 
-def deploy(db_path, firmware_types, mac_filter=None):
-    """Deploy devices with config file.
-    firmware_types is a list of firmware to deploy. Can be "tasmota", "zigbee", "wled".
-    mac_filter is an optional list of MAC addresses to restrict which devices are updated.
-    If mac_filter is empty or None, all devices are updated.
+def deploy(
+    db_path: Path,
+    firmware_types: Optional[List[str]] = None,
+    mac_filter: Optional[List[str]] = None
+) -> None:
+    """Deploy configurations to devices.
+
+    Args:
+        db_path: Path to database file.
+        firmware_types: Optional list of firmware types to filter devices by.
+                       If provided, only devices with these firmware types will be deployed.
+                       If None, all enabled devices are deployed.
+        mac_filter: Optional list of MAC addresses to filter devices.
+                   If None or empty, all enabled devices are deployed.
     """
-
     Initializer()
-    logger = logging.getLogger(__name__)
-    logger.info('Initialize Deploy...')
+    logger.info('Initializing deployment...')
 
-    gm = GlobalManager(db_path)
-    ff = FirmwareFactory(gm, firmware_types)
+    # Open database connection for the entire deployment
+    db = DatabaseManager(db_path)
 
-    count = 0
-    success = 0
-    error = 0
-    deploy_results: dict[int, str] = {}
+    async def _initialize_db():
+        await db.initialize()
 
-    mac_filter = [m.upper() for m in mac_filter] if mac_filter else []
-    if mac_filter:
-        logger.info(f'Filtering devices to MACs: {mac_filter}')
-    logger.info(f'Start deploy process for all devices for firmwares: {firmware_types}...')
+    asyncio.run(_initialize_db())
 
-    devices = gm.get_devices()
+    try:
+        # Create provisioning manager with shared DB connection
+        manager = ProvisioningManager(db)
 
-    for __dev in devices:
-        if mac_filter and __dev[_FLD_MAC].upper() not in mac_filter:
-            logger.debug(f'Skipping device (not in mac_filter): {__dev[_FLD_MAC]}')
-            continue
+        # Load deployable firmwares from database
+        deployable_firmwares = manager.load_deployable_firmwares_sync()
 
-        count += 1
-        device_id = __dev.get(_FLD_ID)
-        logger.debug(f'Process new device: {__dev[_FLD_MAC]}')
+        if not deployable_firmwares:
+            logger.error('No deployable firmwares found in database')
+            return
 
-        try:
-            matched = base_config(__dev, logger, ff)
-            if matched:
+        logger.info(f'Found {len(deployable_firmwares)} deployable firmwares: {deployable_firmwares}')
+
+        # Load devices from database
+        mac_filter_normalized = [m.upper() for m in mac_filter] if mac_filter else None
+        if mac_filter_normalized:
+            logger.info(f'Filtering devices to MACs: {mac_filter_normalized}')
+
+        devices = manager.load_devices_sync(mac_filter=mac_filter_normalized, enabled_only=True)
+
+        if not devices:
+            logger.warning('No devices found to deploy')
+            return
+
+        # Filter devices by firmware_types if provided
+        if firmware_types:
+            firmware_types_lower = [ft.lower() for ft in firmware_types]
+            initial_count = len(devices)
+            devices = [
+                d for d in devices
+                if d._refs.firmware_name.lower() in firmware_types_lower
+            ]
+            logger.info(
+                f'Filtered devices by firmware types {firmware_types}: '
+                f'{len(devices)}/{initial_count} devices match'
+            )
+
+        if not devices:
+            logger.warning('No devices match the firmware filter')
+            return
+
+        logger.info(f'Loaded {len(devices)} devices for deployment')
+
+        # Create firmware factory with deployable firmwares from DB
+        factory = FirmwareFactory(manager, deployable_firmwares)
+        adapters = factory.get_adapters()
+
+        if not adapters:
+            logger.error('No firmware adapters loaded')
+            return
+
+        logger.info(f'Loaded {len(adapters)} firmware adapters: {[a.get_firmware_type() for a in adapters]}')
+
+        # Deploy devices
+        count = 0
+        success = 0
+        error = 0
+        deploy_results: Dict[int, str] = {}
+
+        for device in devices:
+            count += 1
+            logger.info(f"Processing device {count}/{len(devices)}: {device.mac}")
+
+            try:
+                # Find compatible adapter
+                adapter = factory.get_adapter_for_device(device)
+
+                if not adapter:
+                    logger.warning(
+                        f"No adapter found for device {device.mac} "
+                        f"(firmware: {device._refs.firmware_name})"
+                    )
+                    continue
+
+                # Check if device can be deployed
+                if not adapter.can_deploy(device):
+                    logger.warning(f"Device {device.mac} cannot be deployed (no IP or not reachable)")
+                    continue
+
+                # Deploy device
+                logger.info(f"Deploying with {adapter.get_firmware_type()} adapter...")
+                adapter.process(device)
+
                 success += 1
-            if device_id is not None:
-                deploy_results[device_id] = _DEPLOY_DONE
-        except Exception as e:
-            logger.error(e)
-            error += 1
-            if device_id is not None:
-                deploy_results[device_id] = _DEPLOY_FAIL
+                if device.id is not None:
+                    deploy_results[device.id] = _DEPLOY_DONE
 
-    for fwm in ff.get_firmware_managers():
-        logger.debug(f"Post process for {fwm.__class__} Manager. For {len(devices)} devices...")
-        fwm.post_process(devices)
+            except Exception as e:
+                logger.error(f"Failed to deploy device {device.mac}: {e}")
+                error += 1
+                if device.id is not None:
+                    deploy_results[device.id] = _DEPLOY_FAIL
 
-    if deploy_results:
-        logger.info(f"Persisting deploy status for {len(deploy_results)} devices...")
-        _persist_deploy_results(db_path, deploy_results, logger)
+        # Post-process (e.g., Zigbee bridge restart)
+        logger.info("Running post-processing...")
+        for adapter in adapters:
+            try:
+                adapter.post_process(devices)
+            except Exception as e:
+                logger.error(f"Post-processing failed for {adapter.get_firmware_type()}: {e}")
 
-    logger.info(
-        f"Goodbye ! {count} Total Device"
-        f" process, but success: {success} - error: {error}."
-    )
+        # Persist deploy results
+        if deploy_results:
+            logger.info(f"Persisting deploy status for {len(deploy_results)} devices...")
+            _persist_deploy_results(db, deploy_results)
+
+        logger.info(
+            f"Deployment completed! Total: {count}, Success: {success}, Error: {error}"
+        )
+
+    finally:
+        # Close database connection
+        async def _close_db():
+            await db.close()
+        asyncio.run(_close_db())
 
 
-def scan(db_path) -> dict:
+def scan(db_path: Path) -> Dict[str, Any]:
+    """Scan network and update device IP addresses.
+
+    Args:
+        db_path: Path to database file.
+
+    Returns:
+        Statistics dictionary with scan results.
+    """
     Initializer()
-    logger = logging.getLogger(__name__)
-    logger.info('Initialize Scan...')
+    logger.info('Initializing network scan...')
 
-    gm = GlobalManager(db_path)
-    stats = gm.update_devices_ip()
+    # Open database connection for the entire scan
+    db = DatabaseManager(db_path)
 
-    logger.info("=" * 50)
-    logger.info("SCAN REPORT")
-    logger.info("=" * 50)
-    logger.info(f"  Total devices  : {stats['total']}")
-    logger.info(f"  Mapped (IP OK) : {stats['mapped']}")
-    logger.info(f"  Not found      : {stats['not_found']}")
-    logger.info(f"  Errors         : {stats['errors']}")
-    if stats.get("error_details"):
-        logger.info("  Error details:")
-        for detail in stats["error_details"]:
-            logger.error(f"    - {detail}")
-    logger.info("=" * 50)
+    async def _initialize_db():
+        await db.initialize()
 
-    return stats
+    asyncio.run(_initialize_db())
+
+    try:
+        # Create network scanner with shared DB connection
+        scanner = NetworkScanner(db)
+
+        # Run scan and update IPs
+        stats = scanner.scan_and_update()
+
+        # Log results
+        logger.info("=" * 50)
+        logger.info("SCAN REPORT")
+        logger.info("=" * 50)
+        logger.info(f"  Total devices  : {stats['total']}")
+        logger.info(f"  Mapped (IP OK) : {stats['mapped']}")
+        logger.info(f"  Not found      : {stats['not_found']}")
+        logger.info(f"  Errors         : {stats['errors']}")
+        if stats.get("error_details"):
+            logger.info("  Error details:")
+            for detail in stats["error_details"]:
+                logger.error(f"    - {detail}")
+        logger.info("=" * 50)
+
+        return stats
+
+    finally:
+        # Close database connection
+        async def _close_db():
+            await db.close()
+        asyncio.run(_close_db())
 

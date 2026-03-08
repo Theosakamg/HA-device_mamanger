@@ -26,10 +26,6 @@ class DeployAPIView(BaseView):
         body = {}
         try:
             body = await request.json()
-            if isinstance(body, dict):
-                raw_macs = body.get("macs")
-                if isinstance(raw_macs, list) and raw_macs:
-                    device_ids = [str(m) for m in raw_macs if isinstance(m, str)]
         except Exception:
             pass
 
