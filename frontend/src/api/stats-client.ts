@@ -17,6 +17,19 @@ export interface SettingsCounts {
   functions: number;
 }
 
+export interface DeploymentStats {
+  total: number;
+  success: number;
+  fail: number;
+}
+
+export interface DeploymentByGroup {
+  name: string;
+  total: number;
+  success: number;
+  fail: number;
+}
+
 export interface DashboardStats {
   buildings: number;
   floors: number;
@@ -25,6 +38,9 @@ export interface DashboardStats {
   byFirmware: StatEntry[];
   byModel: StatEntry[];
   settingsCounts: SettingsCounts;
+  deployment: DeploymentStats;
+  deploymentByFirmware: DeploymentByGroup[];
+  deploymentByModel: DeploymentByGroup[];
 }
 
 export class StatsClient extends BaseClient {

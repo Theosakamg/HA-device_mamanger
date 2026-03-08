@@ -6,13 +6,25 @@ import { customElement, state } from "lit/decorators.js";
 import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { StatsClient } from "../../api/stats-client";
-import type { StatEntry } from "../../api/stats-client";
+import type {
+  StatEntry,
+  DeploymentByGroup,
+} from "../../api/stats-client";
 
 interface StatItem {
   label: string;
   count: number;
   color: string;
   percentage: number;
+}
+
+interface DeploymentItem {
+  label: string;
+  total: number;
+  success: number;
+  fail: number;
+  successRate: number;
+  color: string;
 }
 
 @localized
@@ -319,6 +331,15 @@ export class DmDashboardView extends LitElement {
   @state() private _totalDevices = 0;
   @state() private _byFirmware: StatItem[] = [];
   @state() private _byModel: StatItem[] = [];
+  @state() private _deploymentTotal = 0;
+  @state() private _deploymentSuccess = 0;
+  @state() private _deploymentFail = 0;
+  @state() private _deploymentByFirmware: DeploymentItem[] = [];
+  @state() private _deploymentByModel: DeploymentItem[] = [];
+  @state() private _expandedFirmware = false;
+  @state() private _expandedModel = false;
+  @state() private _expandedDeployFirmware = false;
+  @state() private _expandedDeployModel = false;
 
   private _statsClient = new StatsClient();
 
@@ -337,6 +358,15 @@ export class DmDashboardView extends LitElement {
       this._totalDevices = stats.devices;
       this._byFirmware = this._toStatItems(stats.byFirmware);
       this._byModel = this._toStatItems(stats.byModel);
+      this._deploymentTotal = stats.deployment.total;
+      this._deploymentSuccess = stats.deployment.success;
+      this._deploymentFail = stats.deployment.fail;
+      this._deploymentByFirmware = this._toDeploymentItems(
+        stats.deploymentByFirmware
+      );
+      this._deploymentByModel = this._toDeploymentItems(
+        stats.deploymentByModel
+      );
     } catch (err) {
       console.error("Dashboard: failed to load stats", err);
     }
@@ -350,6 +380,18 @@ export class DmDashboardView extends LitElement {
       count: entry.count,
       color: `color-${i % 10}`,
       percentage: Math.round((entry.count / max) * 100),
+    }));
+  }
+
+  private _toDeploymentItems(entries: DeploymentByGroup[]): DeploymentItem[] {
+    return entries.map((entry, i) => ({
+      label: entry.name,
+      total: entry.total,
+      success: entry.success,
+      fail: entry.fail,
+      successRate:
+        entry.total > 0 ? Math.round((entry.success / entry.total) * 100) : 0,
+      color: `color-${i % 10}`,
     }));
   }
 
@@ -372,7 +414,16 @@ export class DmDashboardView extends LitElement {
     `;
   }
 
-  private _renderBarChart(title: string, icon: string, items: StatItem[]) {
+  private _renderBarChart(
+    title: string,
+    icon: string,
+    items: StatItem[],
+    expanded: boolean,
+    onToggle: () => void
+  ) {
+    const displayItems = expanded ? items : items.slice(0, 4);
+    const hasMore = items.length > 4;
+
     return html`
       <div class="chart-card">
         <div class="chart-title">${icon} ${title}</div>
@@ -389,7 +440,7 @@ export class DmDashboardView extends LitElement {
             ? html`<div class="empty-chart">${i18n.t("no_devices")}</div>`
             : html`
                 <div class="bar-list">
-                  ${items.map(
+                  ${displayItems.map(
                     (item) => html`
                       <div class="bar-row">
                         <span class="bar-label" title="${item.label}"
@@ -406,6 +457,84 @@ export class DmDashboardView extends LitElement {
                     `
                   )}
                 </div>
+                ${hasMore
+                  ? html`
+                      <button
+                        class="btn btn-secondary"
+                        style="width: 100%; margin-top: 12px; font-size: 13px;"
+                        @click=${onToggle}
+                      >
+                        ${expanded
+                          ? `▲ ${i18n.t("dashboard_show_less")}`
+                          : `▼ ${i18n.t("dashboard_show_more")} (${items.length - 4})`}
+                      </button>
+                    `
+                  : ""}
+              `}
+      </div>
+    `;
+  }
+
+  private _renderDeploymentChart(
+    title: string,
+    icon: string,
+    items: DeploymentItem[],
+    expanded: boolean,
+    onToggle: () => void
+  ) {
+    const displayItems = expanded ? items : items.slice(0, 4);
+    const hasMore = items.length > 4;
+
+    return html`
+      <div class="chart-card">
+        <div class="chart-title">${icon} ${title}</div>
+        ${this._loading
+          ? html`
+              <div class="loading-skeleton">
+                ${[80, 60, 45, 30].map(
+                  (w) =>
+                    html`<div class="skeleton-bar" style="width:${w}%"></div>`
+                )}
+              </div>
+            `
+          : items.length === 0
+            ? html`<div class="empty-chart">${i18n.t("no_devices")}</div>`
+            : html`
+                <div class="bar-list">
+                  ${displayItems.map(
+                    (item) => html`
+                      <div class="bar-row">
+                        <span
+                          class="bar-label"
+                          title="${item.label} - ${item.success}/${item.total} (${item.successRate}%)"
+                          >${item.label}</span
+                        >
+                        <div class="bar-track">
+                          <div
+                            class="bar-fill"
+                            style="width: ${item.successRate}%; background: #4caf50;"
+                          ></div>
+                        </div>
+                        <span class="bar-count"
+                          >${item.success}/${item.total} (${item.successRate}%)</span
+                        >
+                      </div>
+                    `
+                  )}
+                </div>
+                ${hasMore
+                  ? html`
+                      <button
+                        class="btn btn-secondary"
+                        style="width: 100%; margin-top: 12px; font-size: 13px;"
+                        @click=${onToggle}
+                      >
+                        ${expanded
+                          ? `▲ ${i18n.t("dashboard_show_less")}`
+                          : `▼ ${i18n.t("dashboard_show_more")} (${items.length - 4})`}
+                      </button>
+                    `
+                  : ""}
               `}
       </div>
     `;
@@ -446,13 +575,64 @@ export class DmDashboardView extends LitElement {
         ${this._renderBarChart(
           i18n.t("dashboard_by_firmware"),
           "💾",
-          this._byFirmware
+          this._byFirmware,
+          this._expandedFirmware,
+          () => (this._expandedFirmware = !this._expandedFirmware)
         )}
         ${this._renderBarChart(
           i18n.t("dashboard_by_hardware"),
           "🔧",
-          this._byModel
+          this._byModel,
+          this._expandedModel,
+          () => (this._expandedModel = !this._expandedModel)
         )}
+      </div>
+
+      <!-- Deployment Statistics -->
+      <div style="margin-top: 32px;">
+        <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px; color: var(--dm-text);">
+          🚀 ${i18n.t("dashboard_deployment_title")}
+        </h2>
+
+        <!-- Deployment KPI Cards -->
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+          ${this._renderKpi(
+            "📦",
+            this._deploymentTotal,
+            i18n.t("dashboard_deployment_total"),
+            "blue"
+          )}
+          ${this._renderKpi(
+            "✅",
+            this._deploymentSuccess,
+            i18n.t("dashboard_deployment_success"),
+            "teal"
+          )}
+          ${this._renderKpi(
+            "❌",
+            this._deploymentFail,
+            i18n.t("dashboard_deployment_fail"),
+            "purple"
+          )}
+        </div>
+
+        <!-- Deployment Charts -->
+        <div class="charts-grid" style="margin-top: 16px;">
+          ${this._renderDeploymentChart(
+            i18n.t("dashboard_deployment_by_firmware"),
+            "💾",
+            this._deploymentByFirmware,
+            this._expandedDeployFirmware,
+            () => (this._expandedDeployFirmware = !this._expandedDeployFirmware)
+          )}
+          ${this._renderDeploymentChart(
+            i18n.t("dashboard_deployment_by_hardware"),
+            "🔧",
+            this._deploymentByModel,
+            this._expandedDeployModel,
+            () => (this._expandedDeployModel = !this._expandedDeployModel)
+          )}
+        </div>
       </div>
 
       <p class="refresh-hint">

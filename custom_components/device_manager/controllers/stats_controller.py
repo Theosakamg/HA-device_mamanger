@@ -110,6 +110,74 @@ class StatsAPIView(BaseView):
             row = await cursor.fetchone()
             functions_count = int(row["n"]) if row else 0
 
+            # ── Deployment statistics (global) ────────────────────────────────
+            cursor = await conn.execute(
+                """
+                SELECT
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN last_deploy_status = 'done' THEN 1 ELSE 0 END) AS success,
+                    SUM(CASE WHEN last_deploy_status = 'fail' THEN 1 ELSE 0 END) AS fail
+                FROM dm_devices
+                WHERE last_deploy_status IS NOT NULL
+                """
+            )
+            row = await cursor.fetchone()
+            deploy_stats = {
+                "total": int(row["total"]) if row else 0,
+                "success": int(row["success"]) if row else 0,
+                "fail": int(row["fail"]) if row else 0,
+            }
+
+            # ── Deployment statistics by firmware ─────────────────────────────
+            cursor = await conn.execute(
+                """
+                SELECT
+                    COALESCE(df.name, 'Unknown') AS name,
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN d.last_deploy_status = 'done' THEN 1 ELSE 0 END) AS success,
+                    SUM(CASE WHEN d.last_deploy_status = 'fail' THEN 1 ELSE 0 END) AS fail
+                FROM dm_devices d
+                LEFT JOIN dm_device_firmwares df ON d.firmware_id = df.id
+                WHERE d.last_deploy_status IS NOT NULL
+                GROUP BY df.id
+                ORDER BY total DESC
+                """
+            )
+            deploy_by_firmware = [
+                {
+                    "name": row["name"],
+                    "total": int(row["total"]),
+                    "success": int(row["success"]),
+                    "fail": int(row["fail"]),
+                }
+                for row in await cursor.fetchall()
+            ]
+
+            # ── Deployment statistics by model ────────────────────────────────
+            cursor = await conn.execute(
+                """
+                SELECT
+                    COALESCE(dm.name, 'Unknown') AS name,
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN d.last_deploy_status = 'done' THEN 1 ELSE 0 END) AS success,
+                    SUM(CASE WHEN d.last_deploy_status = 'fail' THEN 1 ELSE 0 END) AS fail
+                FROM dm_devices d
+                LEFT JOIN dm_device_models dm ON d.model_id = dm.id
+                WHERE d.last_deploy_status IS NOT NULL
+                GROUP BY dm.id
+                ORDER BY total DESC
+                """
+            )
+            deploy_by_model = [
+                {
+                    "name": row["name"],
+                    "total": int(row["total"]),
+                    "success": int(row["success"]),
+                    "fail": int(row["fail"]),
+                }
+                for row in await cursor.fetchall()
+            ]
+
             return self.json({
                 "buildings": total_buildings,
                 "floors": total_floors,
@@ -122,6 +190,9 @@ class StatsAPIView(BaseView):
                     "firmwares": firmwares_count,
                     "functions": functions_count,
                 },
+                "deployment": deploy_stats,
+                "deploymentByFirmware": deploy_by_firmware,
+                "deploymentByModel": deploy_by_model,
             })
 
         except Exception as err:

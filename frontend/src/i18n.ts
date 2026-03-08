@@ -39,6 +39,14 @@ const translations: { [lang: string]: Translations } = {
     dashboard_by_hardware: "Devices by Hardware Model",
     dashboard_last_refresh: "Last refreshed at",
     dashboard_refresh: "Refresh",
+    dashboard_deployment_title: "Deployment Statistics",
+    dashboard_deployment_total: "Total Deployments",
+    dashboard_deployment_success: "Successful",
+    dashboard_deployment_fail: "Failed",
+    dashboard_deployment_by_firmware: "Deployment Success Rate by Firmware",
+    dashboard_deployment_by_hardware: "Deployment Success Rate by Hardware Model",
+    dashboard_show_more: "Show more",
+    dashboard_show_less: "Show less",
     unknown: "Unknown",
 
     // Hierarchy
@@ -350,6 +358,14 @@ const translations: { [lang: string]: Translations } = {
     dashboard_by_hardware: "Équipements par Modèle Matériel",
     dashboard_last_refresh: "Actualisé à",
     dashboard_refresh: "Actualiser",
+    dashboard_deployment_title: "Statistiques de Déploiement",
+    dashboard_deployment_total: "Déploiements Totaux",
+    dashboard_deployment_success: "Réussis",
+    dashboard_deployment_fail: "Échoués",
+    dashboard_deployment_by_firmware: "Taux de Réussite par Firmware",
+    dashboard_deployment_by_hardware: "Taux de Réussite par Modèle Matériel",
+    dashboard_show_more: "Voir plus",
+    dashboard_show_less: "Voir moins",
     unknown: "Inconnu",
 
     // Hierarchy
