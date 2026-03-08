@@ -16,6 +16,7 @@ import type {
   DeployFirmwareDetail,
 } from "../../types/device";
 import type { DmDeviceFirmware } from "../../types/device-firmware";
+import { deviceLabel } from "../../utils/computed-fields";
 
 @localized
 @customElement("dm-deploy-modal")
@@ -344,7 +345,6 @@ export class DmDeployModal extends LitElement {
                       <th>${i18n.t("deploy_firmware")}</th>
                       <th>${i18n.t("deploy_device_count")}</th>
                       <th>${i18n.t("deploy_device_mac")}</th>
-                      <th>${i18n.t("deploy_device_position")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -361,12 +361,10 @@ export class DmDeployModal extends LitElement {
                                     : ""}
                                 </td>
                                 <td>${idx === 0 ? detail.deviceCount : ""}</td>
-                                <td
-                                  style="font-family:monospace;font-size:12px;"
-                                >
-                                  ${dev.mac}
+                                <td>
+                                  <span style="display:block;font-size:13px;">${deviceLabel(dev)}</span>
+                                  <span style="display:block;font-family:monospace;font-size:11px;color:var(--dm-text-secondary);margin-top:2px;">${dev.mac}</span>
                                 </td>
-                                <td>${dev.positionName}</td>
                               </tr>
                             `
                           )
@@ -380,7 +378,6 @@ export class DmDeployModal extends LitElement {
                                 </td>
                                 <td>0</td>
                                 <td
-                                  colspan="2"
                                   style="color:var(--dm-text-secondary);font-style:italic;"
                                 >
                                   —

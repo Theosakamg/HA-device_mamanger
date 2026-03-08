@@ -68,6 +68,11 @@ export interface DmDevice {
   /** Deploy tracking */
   lastDeployAt?: string | null;
   lastDeployStatus?: "done" | "fail" | null;
+  /**
+   * Short human-readable label: "Building > Floor > Room > Function > Position".
+   * Computed server-side, present in full-detail API responses.
+   */
+  displayName?: string;
 }
 
 /**

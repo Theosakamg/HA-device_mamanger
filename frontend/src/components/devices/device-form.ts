@@ -8,6 +8,7 @@ import { i18n, localized } from "../../i18n";
 import { getSettings } from "../../api/settings-client";
 import type { DmDevice } from "../../types/device";
 import { isValidSlug } from "../../utils/validators";
+import { deviceLabel } from "../../utils/computed-fields";
 import type { DmRoom } from "../../types/room";
 import type { DmDeviceModel } from "../../types/device-model";
 import type { DmDeviceFirmware } from "../../types/device-firmware";
@@ -352,7 +353,7 @@ export class DmDeviceForm extends LitElement {
                         value=${d.id}
                         ?selected=${Number(this._form.targetId) === d.id}
                       >
-                        ${d.refs?.functionName ?? d.mac} / ${d.positionName}
+                        ${deviceLabel(d)} — ${d.mac}
                       </option>`
                   )}
               </select>

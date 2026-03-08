@@ -19,6 +19,7 @@ import { showToast } from "../../utils/toast";
 import { isValidSlug, isValidUrl } from "../../utils/validators";
 import { getDoc } from "../../utils/doc-registry";
 import { toSlug } from "../../utils/slug";
+import { deviceLabel } from "../../utils/computed-fields";
 import "../shared/doc-block";
 
 @localized
@@ -361,8 +362,6 @@ export class DmNodeDetail extends LitElement {
                       <thead>
                         <tr>
                           <th></th>
-                          <th>MAC</th>
-                          <th>${i18n.t("device_function")}</th>
                           <th>${i18n.t("device_position_name")}</th>
                         </tr>
                       </thead>
@@ -382,11 +381,10 @@ export class DmNodeDetail extends LitElement {
                                     : "status-disabled"}"
                                 ></span>
                               </td>
-                              <td style="font-family:monospace;font-size:12px">
-                                ${d.mac}
+                              <td>
+                                <span style="display:block;font-size:13px;">${deviceLabel(d)}</span>
+                                <span style="display:block;font-family:monospace;font-size:11px;color:var(--dm-text-secondary);margin-top:2px;">${d.mac}</span>
                               </td>
-                              <td>${d.refs?.functionName || "—"}</td>
-                              <td>${d.positionName}</td>
                             </tr>
                           `
                         )}

@@ -26,9 +26,9 @@ class DeployAPIView(BaseView):
         try:
             body = await request.json()
             if isinstance(body, dict):
-                raw_ids = body.get("device_ids")
-                if isinstance(raw_ids, list) and raw_ids:
-                    device_ids = [int(i) for i in raw_ids if isinstance(i, int)]
+                raw_macs = body.get("macs")
+                if isinstance(raw_macs, list) and raw_macs:
+                    device_ids = [str(m) for m in raw_macs if isinstance(m, str)]
         except Exception:
             pass
         await hass.async_add_executor_job(deploy, db_path, device_ids)

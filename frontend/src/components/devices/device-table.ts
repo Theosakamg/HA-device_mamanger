@@ -7,7 +7,7 @@ import { sharedStyles } from "../../styles/shared-styles";
 import { i18n, localized } from "../../i18n";
 import { DeviceClient } from "../../api/device-client";
 import type { DmDevice } from "../../types/device";
-import { buildHttpFromIp } from "../../utils/computed-fields";
+import { buildHttpFromIp, deviceLabel } from "../../utils/computed-fields";
 import "../shared/confirm-dialog";
 import "./deploy-modal";
 import "./device-form";
@@ -425,6 +425,7 @@ export class DmDeviceTable extends LitElement {
     return [
       { key: "enabled", label: i18n.t("device_enabled") },
       { key: "mac", label: "MAC" },
+      { key: "displayName", label: i18n.t("device_location") },
       { key: "floor.name", label: i18n.t("device_level") },
       { key: "room.name", label: i18n.t("device_room") },
       { key: "refs.functionName", label: i18n.t("device_function") },
@@ -1037,6 +1038,7 @@ export class DmDeviceTable extends LitElement {
                         ></span>
                       </td>
                       <td class="mac">${device.mac}</td>
+                      <td>${deviceLabel(device)}</td>
                       <td>${device.floor?.name ?? "—"}</td>
                       <td>${device.room?.name ?? "—"}</td>
                       <td>${device.refs?.functionName ?? "—"}</td>
@@ -1258,7 +1260,10 @@ export class DmDeviceTable extends LitElement {
     this._batchDeploying = true;
     this._batchResult = null;
     try {
-      await this._client.deployBatch([...this._selectedIds]);
+      const macs = this._devices
+        .filter((d) => d.id != null && this._selectedIds.has(d.id))
+        .map((d) => d.mac);
+      await this._client.deployBatch(macs);
       this._batchResult = "success";
       setTimeout(async () => {
         await this._load();

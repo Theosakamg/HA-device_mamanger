@@ -8,6 +8,7 @@ import type { HierarchyTree, DmDevice } from "../../types/device";
 import type { DmDeviceFirmware } from "../../types/device-firmware";
 import type { DmDeviceModel } from "../../types/device-model";
 import type { DmDeviceFunction } from "../../types/device-function";
+import { deviceLabel } from "../../utils/computed-fields";
 import {
   type GraphNode,
   type GraphEdge,
@@ -132,12 +133,12 @@ export function buildGraphData(
           const deviceId = `device-${dev.id}`;
           nodes.push({
             id: deviceId,
-            label: dev.positionName || dev.mac,
+            label: deviceLabel(dev),
             type: "device",
             color: COLORS.device,
             radius: NODE_RADIUS.device,
             position: new THREE.Vector3(dx, TIER_Y.device, dz),
-            meta: `${dev.mac}\n${dev.refs?.firmwareName ?? ""} / ${dev.refs?.modelName ?? ""} / ${dev.refs?.functionName ?? ""}`,
+            meta: `${dev.mac}\n${dev.refs?.firmwareName ?? ""} / ${dev.refs?.modelName ?? ""}`,  
             buildingId,
           });
           edges.push({

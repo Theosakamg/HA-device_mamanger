@@ -151,12 +151,34 @@ class DmDevice(SerializableMixin):
         data["mqttTopic"] = self.mqtt_topic(mqtt_prefix=mqtt_prefix)
         data["hostname"] = self.hostname()
         data["fqdn"] = self.fqdn(dns_suffix=dns_suffix)
+        data["displayName"] = self.display_name()
 
         return data
 
     # ------------------------------------------------------------------
     # Computed methods
     # ------------------------------------------------------------------
+
+    def display_name(self) -> str:
+        """Return a short human-readable label for this device.
+
+        Format: ``Building > Floor > Room > Function > Position``
+
+        Parts that are empty are omitted so the result is always non-empty.
+        Falls back to the MAC address when no hierarchy data is available.
+
+        Returns:
+            A ``>``-separated string identifying the device location and role.
+        """
+        parts = [
+            self._building.name,
+            self._floor.slug,
+            self._room.slug,
+            self._refs.function_name,
+            self.position_slug,
+        ]
+        label = " > ".join(p for p in parts if p)
+        return label or self.mac
 
     def link(self, ip_prefix: str = "192.168.0") -> Optional[str]:
         """Return the device URL based on its IP address.

@@ -18,8 +18,8 @@ export class DeviceClient extends CrudClient<DmDevice> {
     return super.getAll(query);
   }
 
-  /** Trigger deployment for a specific set of devices by ID. */
-  async deployBatch(deviceIds: number[]): Promise<{ result: string }> {
-    return this.post<{ result: string }>("/deploy", { deviceIds });
+  /** Trigger deployment for a specific set of devices by MAC. */
+  async deployBatch(macs: string[]): Promise<{ result: string }> {
+    return this.post<{ result: string }>("/deploy", { macs });
   }
 }

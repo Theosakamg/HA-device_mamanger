@@ -50,7 +50,7 @@ def _persist_deploy_results(
         logger.error(f"Failed to persist deploy results: {e}")
 
 
-def deploy(db_path, device_ids=None):
+def deploy(db_path, macs=None):
     Initializer()
     logger = logging.getLogger(__name__)
     logger.info('Initialize App...')
@@ -66,9 +66,9 @@ def deploy(db_path, device_ids=None):
     logger.info('Run App...')
 
     all_devices = gm.get_devices()
-    if device_ids:
-        id_set = set(device_ids)
-        devices_to_process = [d for d in all_devices if d.get(_FLD_ID) in id_set]
+    if macs:
+        mac_set = set(macs)
+        devices_to_process = [d for d in all_devices if d.get(_FLD_MAC) in mac_set]
         logger.info(f"Batch deploy: {len(devices_to_process)}/{len(all_devices)} devices targeted.")
     else:
         devices_to_process = all_devices

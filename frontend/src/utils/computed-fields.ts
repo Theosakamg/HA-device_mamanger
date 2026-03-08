@@ -89,3 +89,27 @@ export function computeDerivedFields(
 
   return { link, mqttTopic, hostname, fqdn, countTopic };
 }
+
+/**
+ * Return a short human-readable label for a device.
+ *
+ * Uses the server-computed `displayName` when available, otherwise builds the
+ * label client-side as "Building > Floor > Room > Function > Position".
+ * Falls back to the MAC address when no hierarchy data is present.
+ *
+ * @param device - The device object (may include transient joined fields).
+ * @returns A concise identifier string, never empty.
+ */
+export function deviceLabel(device: Partial<DmDevice>): string {
+  if (device.displayName) return device.displayName;
+
+  const parts = [
+    device.building?.name,
+    device.floor?.slug,
+    device.room?.slug,
+    device.refs?.functionName,
+    device.positionSlug,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" > ") : (device.mac ?? "—");
+}
