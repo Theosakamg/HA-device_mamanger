@@ -36,6 +36,7 @@ class DeviceFloorRef:
 class DeviceBuildingRef:
     """Transient building info joined alongside a device."""
     name: str = ""
+    slug: str = ""
 
 
 @dataclass
@@ -132,7 +133,10 @@ class DmDevice(SerializableMixin):
             "slug": self._floor.slug,
             "number": self._floor.number,
         }
-        data["building"] = {"name": self._building.name}
+        data["building"] = {
+            "name": self._building.name,
+            "slug": self._building.slug
+        }
         data["refs"] = {
             "modelName": self._refs.model_name,
             "firmwareName": self._refs.firmware_name,
@@ -254,6 +258,97 @@ class DmDevice(SerializableMixin):
         return f"{host}.{dns_suffix}"
 
     # ------------------------------------------------------------------
+    # Legacy slug methods (migrated from contract.py)
+    # ------------------------------------------------------------------
+
+    def slug_device_name(self, topic_base: str = "Home") -> str:
+        """Return a human-readable device name with hierarchy.
+
+        Format: ``{topic_base} > Level > Room > Function > Position``
+
+        Legacy method migrated from contract.py.
+
+        Args:
+            topic_base: Base prefix for the name.
+
+        Returns:
+            A ``>``-separated string with capitalized components.
+        """
+        return (
+            f"{topic_base.capitalize()}"
+            f" > {self._floor.name.capitalize()}"
+            f" > {self._room.slug.capitalize()}"
+            f" > {self._refs.function_name.capitalize()}"
+            f" > {self.position_slug.capitalize()}"
+        )
+
+    def slug_device_topic_location(self, topic_base: str = "home") -> str:
+        """Return the MQTT topic location part.
+
+        Format: ``{topic_base}/{floor}/{room}``
+
+        Legacy method migrated from contract.py.
+
+        Args:
+            topic_base: Base prefix for the topic.
+
+        Returns:
+            The location part of the MQTT topic.
+        """
+        return f"{topic_base}/{self._floor.slug}/{self._room.slug}".lower()
+
+    def slug_device_topic_device(self) -> str:
+        """Return the MQTT topic device part.
+
+        Format: ``/{function}/{position}``
+
+        Legacy method migrated from contract.py.
+
+        Returns:
+            The device part of the MQTT topic.
+        """
+        return f"/{self._refs.function_name}/{self.position_slug}".lower()
+
+    def slug_device_topic(self, topic_base: str = "home") -> str:
+        """Return the full MQTT topic.
+
+        Format: ``{topic_base}/{floor}/{room}/{function}/{position}``
+
+        Legacy method migrated from contract.py.
+
+        Args:
+            topic_base: Base prefix for the topic.
+
+        Returns:
+            The complete MQTT topic string.
+        """
+        return (
+            f"{self.slug_device_topic_location(topic_base)}"
+            f"{self.slug_device_topic_device()}"
+        )
+
+    def slug_device_id(self, topic_base: str = "home") -> str:
+        """Return a device ID with underscores.
+
+        Format: ``{topic_base}_{floor}_{room}_{function}_{position}``
+
+        Legacy method migrated from contract.py.
+
+        Args:
+            topic_base: Base prefix for the ID.
+
+        Returns:
+            The device ID string with underscore separators.
+        """
+        return (
+            f"{topic_base}"
+            f"_{self._floor.slug}"
+            f"_{self._room.slug}"
+            f"_{self._refs.function_name}"
+            f"_{self.position_slug}"
+        ).lower()
+
+    # ------------------------------------------------------------------
     # Factory
     # ------------------------------------------------------------------
 
@@ -310,6 +405,7 @@ class DmDevice(SerializableMixin):
             ),
             _building=DeviceBuildingRef(
                 name=normalized.get("building_name", ""),
+                slug=normalized.get("building_slug", ""),
             ),
             _refs=DeviceLinkedRefs(
                 model_name=normalized.get("model_name", ""),

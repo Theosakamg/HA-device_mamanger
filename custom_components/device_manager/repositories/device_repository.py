@@ -34,6 +34,7 @@ class DeviceRepository(BaseRepository[DmDevice]):
             l.name AS floor_name,
             l.slug AS floor_slug,
             h.name AS building_name,
+            h.slug AS building_slug,
             dm.name AS model_name,
             df.name AS firmware_name,
             dfn.name AS function_name,

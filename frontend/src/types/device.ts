@@ -20,6 +20,7 @@ export interface DeviceFloorRef {
  */
 export interface DeviceBuildingRef {
   name: string;
+  slug: string;
 }
 
 /**
