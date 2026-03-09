@@ -163,11 +163,11 @@ export const sharedStyles = css`
 
   th {
     text-align: left;
-    padding: 10px 12px;
+    padding: 8px 10px;
     font-weight: 600;
     color: var(--dm-text-secondary);
     border-bottom: 2px solid var(--dm-border);
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -176,6 +176,7 @@ export const sharedStyles = css`
     padding: 10px 12px;
     border-bottom: 1px solid var(--dm-border);
     vertical-align: middle;
+    height: 48px;
   }
 
   /* Action column: align icons to the right */
