@@ -20,6 +20,7 @@ _SETTING_VALIDATORS: dict[str, re.Pattern] = {
     "scan_ssh_user": re.compile(r"^[a-zA-Z0-9._-]*$"),
     "scan_ssh_host": re.compile(r"^[a-zA-Z0-9._:-]*$"),
     "scan_ssh_key_file": re.compile(r"^[a-zA-Z0-9._/-]*$"),
+    "scan_script_content": re.compile(r"^[\s\S]*$"),
     "bus_port": re.compile(r"^\d{1,5}$|^$"),
     "bus_host": re.compile(r"^[a-zA-Z0-9._:-]*$"),
     "bus_username": re.compile(r"^[a-zA-Z0-9.@_-]*$"),
@@ -29,6 +30,11 @@ _SETTING_VALIDATORS: dict[str, re.Pattern] = {
 
 # Maximum length for any setting value
 _MAX_SETTING_LENGTH = 255
+
+# Exceptions for settings that need larger limits
+_MAX_SETTING_LENGTH_EXCEPTIONS: dict[str, int] = {
+    "scan_script_content": 10000,  # Bash script can be several lines
+}
 
 
 class SettingsAPIView(BaseView):
@@ -82,7 +88,8 @@ class SettingsAPIView(BaseView):
 
         # Validate setting values
         for key, val in filtered.items():
-            if len(val) > _MAX_SETTING_LENGTH:
+            max_len = _MAX_SETTING_LENGTH_EXCEPTIONS.get(key, _MAX_SETTING_LENGTH)
+            if len(val) > max_len:
                 return self.json(
                     {"error": f"Setting '{key}' exceeds maximum length"},
                     status_code=400,

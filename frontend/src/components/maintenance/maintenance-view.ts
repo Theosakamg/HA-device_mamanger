@@ -244,6 +244,23 @@ export class DmMaintenanceView extends LitElement {
         border-color: var(--dm-primary, #03a9f4);
         box-shadow: 0 0 0 2px rgba(3, 169, 244, 0.15);
       }
+      .settings-field textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: monospace;
+        min-height: 200px;
+        resize: vertical;
+        white-space: pre;
+        box-sizing: border-box;
+      }
+      .settings-field textarea:focus {
+        outline: none;
+        border-color: var(--dm-primary, #03a9f4);
+        box-shadow: 0 0 0 2px rgba(3, 169, 244, 0.15);
+      }
       .settings-field .hint {
         font-size: 12px;
         color: #888;
@@ -825,6 +842,14 @@ export class DmMaintenanceView extends LitElement {
             @input=${(e: Event) => this._updateSetting("scan_ssh_host", e)}
           />
           <div class="hint">${i18n.t("config_scan_ssh_host_hint")}</div>
+        </div>
+        <div class="settings-field" style="grid-column: 1 / -1">
+          <label>${i18n.t("config_scan_script_content")}</label>
+          <textarea
+            .value=${f.scan_script_content || ""}
+            @input=${(e: Event) => this._updateSetting("scan_script_content", e)}
+          ></textarea>
+          <div class="hint">${i18n.t("config_scan_script_content_hint")}</div>
         </div>
       </div>
 

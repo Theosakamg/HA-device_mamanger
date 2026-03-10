@@ -218,6 +218,9 @@ const translations: { [lang: string]: Translations } = {
     config_scan_ssh_host: "SSH Host",
     config_scan_ssh_host_hint:
       "IP address or hostname of the router (e.g. 192.168.0.254)",
+    config_scan_script_content: "Network Scan Script",
+    config_scan_script_content_hint:
+      "Bash script to discover MAC-to-IP mappings. Must output YAML format: 'ip: mac'. Available variables: $SCAN_SCRIPT_SSH_USER, $SCAN_SCRIPT_SSH_HOST, $SCAN_SCRIPT_PRIVATE_KEY_FILE",
     config_device_section: "Device Access",
     config_device_pass: "Device Password",
     config_device_pass_hint:
@@ -539,6 +542,9 @@ const translations: { [lang: string]: Translations } = {
     config_scan_ssh_host: "Hôte SSH",
     config_scan_ssh_host_hint:
       "Adresse IP ou hostname du routeur (ex: 192.168.0.254)",
+    config_scan_script_content: "Script de scan réseau",
+    config_scan_script_content_hint:
+      "Script bash pour découvrir les correspondances MAC→IP. Doit retourner du YAML au format 'ip: mac'. Variables disponibles: $SCAN_SCRIPT_SSH_USER, $SCAN_SCRIPT_SSH_HOST, $SCAN_SCRIPT_PRIVATE_KEY_FILE",
     config_device_section: "Accès Appareil",
     config_device_pass: "Mot de passe appareil",
     config_device_pass_hint:

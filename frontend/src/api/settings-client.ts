@@ -14,6 +14,7 @@ export interface AppSettings {
   scan_ssh_key_file: string;
   scan_ssh_user: string;
   scan_ssh_host: string;
+  scan_script_content: string;
   // Provisioning: device access
   device_pass: string;
   // Provisioning: NTP
@@ -102,6 +103,7 @@ export function getSettings(): AppSettings {
       scan_ssh_key_file: "",
       scan_ssh_user: "root",
       scan_ssh_host: "",
+      scan_script_content: "",
       device_pass: "",
       ntp_server1: "pool.ntp.org",
       wifi1_ssid: "",

@@ -42,17 +42,13 @@ class NetworkScanner:
         Returns:
             Dictionary mapping MAC addresses (lowercase) to IP addresses.
         """
-        scan_script = get_config('SCAN_SCRIPT', None)
+        scan_script_content = get_config('SCAN_SCRIPT_CONTENT', '')
 
-        if not scan_script:
-            logger.error("SCAN_SCRIPT is not configured. Cannot perform network scan.")
+        if not scan_script_content:
+            logger.error("SCAN_SCRIPT_CONTENT is not configured. Cannot perform network scan.")
             return {}
 
-        if not os.path.isfile(scan_script):
-            logger.error(f"Scan script not found: {scan_script}")
-            return {}
-
-        logger.info(f"Running network scan script: {scan_script}")
+        logger.info("Executing scan script from database")
 
         # Prepare environment variables for the script
         env = os.environ.copy()
@@ -67,10 +63,10 @@ class NetworkScanner:
         if ssh_host:
             env['SCAN_SCRIPT_SSH_HOST'] = ssh_host
 
-        # Execute the script
+        # Execute the script content directly via bash -c
         try:
             result = subprocess.run(
-                ['bash', scan_script],
+                ['bash', '-c', scan_script_content],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env=env,

@@ -47,6 +47,7 @@ SETTING_DEFAULT_BUILDING = "default_building_name"
 SETTING_SCAN_SSH_KEY_FILE = "scan_ssh_key_file"
 SETTING_SCAN_SSH_USER = "scan_ssh_user"
 SETTING_SCAN_SSH_HOST = "scan_ssh_host"
+SETTING_SCAN_SCRIPT_CONTENT = "scan_script_content"
 
 # Provisioning: device access
 SETTING_DEVICE_PASS = "device_pass"
@@ -79,6 +80,27 @@ DEFAULT_SETTINGS: dict[str, str] = {
     SETTING_SCAN_SSH_KEY_FILE: "",
     SETTING_SCAN_SSH_USER: "root",
     SETTING_SCAN_SSH_HOST: "",
+    SETTING_SCAN_SCRIPT_CONTENT: (
+        r"""SSH_USER=$SCAN_SCRIPT_SSH_USER
+SSH_HOST=$SCAN_SCRIPT_SSH_HOST
+PRIVATE_KEY_FILE=$SCAN_SCRIPT_PRIVATE_KEY_FILE
+
+if [ -z "$PRIVATE_KEY_FILE" ]; then
+    echo "ERROR: SCAN_SCRIPT_PRIVATE_KEY_FILE is not set" >&2
+    exit 1
+fi
+
+if [ ! -f "$PRIVATE_KEY_FILE" ]; then
+    echo "ERROR: SSH key file not found: $PRIVATE_KEY_FILE" >&2
+    exit 1
+fi
+
+ssh -T -i "$PRIVATE_KEY_FILE" """
+        r"""-o BatchMode=yes -o LogLevel=ERROR -o StrictHostKeyChecking=no """
+        r""""$SSH_USER@$SSH_HOST" | """
+        r"""jq -r '.arguments.leases[] | "\(."ip-address"): \(."hw-address")"' """
+        r"""2>/dev/null"""
+    ),
     # Device access
     SETTING_DEVICE_PASS: "",
     # NTP

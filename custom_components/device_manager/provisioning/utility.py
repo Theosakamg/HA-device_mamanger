@@ -36,6 +36,7 @@ _DB_TO_ENV_KEY: dict[str, str] = {
     "scan_ssh_key_file": "SCAN_SCRIPT_PRIVATE_KEY_FILE",
     "scan_ssh_user": "SCAN_SCRIPT_SSH_USER",
     "scan_ssh_host": "SCAN_SCRIPT_SSH_HOST",
+    "scan_script_content": "SCAN_SCRIPT_CONTENT",
     "device_pass": "DEVICE_PASS",
     "ntp_server1": "NTP_SRV1",
     "wifi1_ssid": "WF1_SSID",
