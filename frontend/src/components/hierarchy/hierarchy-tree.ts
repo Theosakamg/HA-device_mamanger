@@ -263,10 +263,7 @@ export class DmHierarchyTreeComponent extends LitElement {
         >
           ✓
         </button>
-        <button
-          class="btn btn-secondary btn-sm"
-          @click=${this._cancelAdd}
-        >
+        <button class="btn btn-secondary btn-sm" @click=${this._cancelAdd}>
           ✕
         </button>
       </div>

@@ -7,10 +7,7 @@ import sharedStyles from "../../styles/shared-styles.css?lit";
 import dashboardStyles from "./dashboard-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { StatsClient } from "../../api/stats-client";
-import type {
-  StatEntry,
-  DeploymentByGroup,
-} from "../../api/stats-client";
+import type { StatEntry, DeploymentByGroup } from "../../api/stats-client";
 
 interface StatItem {
   label: string;
@@ -224,7 +221,8 @@ export class DmDashboardView extends LitElement {
                           ></div>
                         </div>
                         <span class="bar-count"
-                          >${item.success}/${item.total} (${item.successRate}%)</span
+                          >${item.success}/${item.total}
+                          (${item.successRate}%)</span
                         >
                       </div>
                     `

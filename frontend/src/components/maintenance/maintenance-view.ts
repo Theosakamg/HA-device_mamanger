@@ -168,25 +168,19 @@ export class DmMaintenanceView extends LitElement {
               ${this._scanResult.stats
                 ? html`<table class="scan-stats-table">
                       <tr>
-                        <td>
-                          ${i18n.t("maint_scan_stat_total")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_total")}</td>
                         <td>
                           <strong>${this._scanResult.stats.total}</strong>
                         </td>
                       </tr>
                       <tr class="text-success">
-                        <td>
-                          ${i18n.t("maint_scan_stat_mapped")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_mapped")}</td>
                         <td>
                           <strong>${this._scanResult.stats.mapped}</strong>
                         </td>
                       </tr>
                       <tr class="text-warning">
-                        <td>
-                          ${i18n.t("maint_scan_stat_not_found")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_not_found")}</td>
                         <td>
                           <strong>${this._scanResult.stats.not_found}</strong>
                         </td>
@@ -196,9 +190,7 @@ export class DmMaintenanceView extends LitElement {
                           ? "var(--dm-error)"
                           : "inherit"}"
                       >
-                        <td>
-                          ${i18n.t("maint_scan_stat_errors")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_errors")}</td>
                         <td>
                           <strong>${this._scanResult.stats.errors}</strong>
                         </td>
@@ -537,7 +529,8 @@ export class DmMaintenanceView extends LitElement {
           <label>${i18n.t("config_scan_script_content")}</label>
           <textarea
             .value=${f.scan_script_content || ""}
-            @input=${(e: Event) => this._updateSetting("scan_script_content", e)}
+            @input=${(e: Event) =>
+              this._updateSetting("scan_script_content", e)}
           ></textarea>
           <div class="hint">${i18n.t("config_scan_script_content_hint")}</div>
         </div>

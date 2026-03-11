@@ -41,9 +41,7 @@ export class DmImportView extends LitElement {
             >
               <p class="upload-icon">📁</p>
               <p>${i18n.t("import_file")}</p>
-              <p class="upload-hint">
-                CSV (UTF-8 or Latin-1)
-              </p>
+              <p class="upload-hint">CSV (UTF-8 or Latin-1)</p>
             </div>
 
             ${this._file

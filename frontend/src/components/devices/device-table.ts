@@ -696,7 +696,7 @@ export class DmDeviceTable extends LitElement {
                                 ? "🔴 " + i18n.t("state_out_of_order")
                                 : device.state === "deployed_hot"
                                   ? "🟠 " + i18n.t("state_deployed_hot")
-                                  : device.state ?? "—"}
+                                  : (device.state ?? "—")}
                         </span>
                       </td>
                       <td class="mac">${device.mac}</td>

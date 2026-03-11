@@ -7,7 +7,6 @@ from functools import wraps
 from typing import Any
 
 
-
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 

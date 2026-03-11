@@ -44,7 +44,8 @@ const translations: { [lang: string]: Translations } = {
     dashboard_deployment_success: "Successful",
     dashboard_deployment_fail: "Failed",
     dashboard_deployment_by_firmware: "Deployment Success Rate by Firmware",
-    dashboard_deployment_by_hardware: "Deployment Success Rate by Hardware Model",
+    dashboard_deployment_by_hardware:
+      "Deployment Success Rate by Hardware Model",
     dashboard_show_more: "Show more",
     dashboard_show_less: "Show less",
     unknown: "Unknown",

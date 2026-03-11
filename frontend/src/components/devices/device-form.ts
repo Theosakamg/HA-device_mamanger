@@ -122,10 +122,7 @@ export class DmDeviceForm extends LitElement {
     const isEdit = this.device !== null;
     return html`
       <div class="modal-overlay" @click=${this._cancel}>
-        <div
-          class="modal"
-          @click=${(e: Event) => e.stopPropagation()}
-        >
+        <div class="modal" @click=${(e: Event) => e.stopPropagation()}>
           <div class="modal-header">
             <h2>${isEdit ? i18n.t("edit_device") : i18n.t("add_device")}</h2>
             <button class="btn-icon" @click=${this._cancel}>✕</button>
@@ -241,16 +238,28 @@ export class DmDeviceForm extends LitElement {
                     (e.target as HTMLSelectElement).value
                   )}
               >
-                <option value="deployed" ?selected=${this._form.state === "deployed"}>
+                <option
+                  value="deployed"
+                  ?selected=${this._form.state === "deployed"}
+                >
                   ${i18n.t("state_deployed")}
                 </option>
-                <option value="parking" ?selected=${this._form.state === "parking"}>
+                <option
+                  value="parking"
+                  ?selected=${this._form.state === "parking"}
+                >
                   ${i18n.t("state_parking")}
                 </option>
-                <option value="out_of_order" ?selected=${this._form.state === "out_of_order"}>
+                <option
+                  value="out_of_order"
+                  ?selected=${this._form.state === "out_of_order"}
+                >
                   ${i18n.t("state_out_of_order")}
                 </option>
-                <option value="deployed_hot" ?selected=${this._form.state === "deployed_hot"}>
+                <option
+                  value="deployed_hot"
+                  ?selected=${this._form.state === "deployed_hot"}
+                >
                   ${i18n.t("state_deployed_hot")}
                 </option>
               </select>

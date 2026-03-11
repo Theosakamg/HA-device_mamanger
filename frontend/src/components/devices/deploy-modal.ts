@@ -291,9 +291,7 @@ export class DmDeployModal extends LitElement {
                                   <span class="fw-name"
                                     >${deviceLabel(dev)}</span
                                   >
-                                  <span class="mac-label"
-                                    >${dev.mac}</span
-                                  >
+                                  <span class="mac-label">${dev.mac}</span>
                                 </td>
                               </tr>
                             `
@@ -307,10 +305,7 @@ export class DmDeployModal extends LitElement {
                                   >
                                 </td>
                                 <td>0</td>
-                                <td class="fw-empty-text"
-                                >
-                                  —
-                                </td>
+                                <td class="fw-empty-text">—</td>
                               </tr>
                             `,
                           ]

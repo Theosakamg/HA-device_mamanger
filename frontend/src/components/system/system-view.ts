@@ -266,9 +266,7 @@ export class DmSystemView extends LitElement {
                 placeholder="/config/dm/keys/…"
                 class="ssh-key-path"
               />
-              <label
-                class="btn btn-secondary label-btn-file"
-              >
+              <label class="btn btn-secondary label-btn-file">
                 🔑
                 ${this._sshKeyUploading
                   ? i18n.t("config_scan_ssh_key_uploading")
@@ -318,7 +316,8 @@ export class DmSystemView extends LitElement {
             </div>
             <textarea
               .value=${f.scan_script_content || ""}
-              @input=${(e: Event) => this._updateSetting("scan_script_content", e)}
+              @input=${(e: Event) =>
+                this._updateSetting("scan_script_content", e)}
             ></textarea>
             <div class="hint">${i18n.t("config_scan_script_content_hint")}</div>
           </div>
@@ -550,25 +549,19 @@ export class DmSystemView extends LitElement {
               ${this._scanResult.stats
                 ? html`<table class="scan-stats-table">
                       <tr>
-                        <td>
-                          ${i18n.t("maint_scan_stat_total")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_total")}</td>
                         <td>
                           <strong>${this._scanResult.stats.total}</strong>
                         </td>
                       </tr>
                       <tr class="text-success">
-                        <td>
-                          ${i18n.t("maint_scan_stat_mapped")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_mapped")}</td>
                         <td>
                           <strong>${this._scanResult.stats.mapped}</strong>
                         </td>
                       </tr>
                       <tr class="text-warning">
-                        <td>
-                          ${i18n.t("maint_scan_stat_not_found")}
-                        </td>
+                        <td>${i18n.t("maint_scan_stat_not_found")}</td>
                         <td>
                           <strong>${this._scanResult.stats.not_found}</strong>
                         </td>

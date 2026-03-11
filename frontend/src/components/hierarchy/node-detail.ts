@@ -180,9 +180,7 @@ export class DmNodeDetail extends LitElement {
                       >${this._roomDetails?.login || "—"}</span
                     >
                     <span class="info-label">${i18n.t("room_password")}</span>
-                    <span
-                      class="info-value info-value-flex"
-                    >
+                    <span class="info-value info-value-flex">
                       ${this._roomDetails?.password
                         ? this._showPassword
                           ? this._roomDetails.password
@@ -297,9 +295,7 @@ export class DmNodeDetail extends LitElement {
                                 <span class="device-name-label"
                                   >${deviceLabel(d)}</span
                                 >
-                                <span class="mac-label"
-                                  >${d.mac}</span
-                                >
+                                <span class="mac-label">${d.mac}</span>
                               </td>
                             </tr>
                           `
@@ -315,8 +311,7 @@ export class DmNodeDetail extends LitElement {
   private _renderInlineChildAdd() {
     const childType = this.node?.type === "building" ? "floor" : "room";
     return html`
-      <div class="inline-add-row"
-      >
+      <div class="inline-add-row">
         <input
           type="text"
           class="inline-text-input"
