@@ -17,10 +17,10 @@
     "ha_device_class": null,
     "extra": null,
     "expected": {
-      "hostname": "l0_office_button_lunch",
+      "hostname": "l0_office_btn_lunch",
       "mqtt_topic": "home/l0/office/button/lunch",
       "link": "http://192.168.0.77",
-      "dns": "l0_office_button_lunch.domo.local",
+      "dns": "l0_office_btn_lunch.domo.local",
       "count_topic": 22,
       "enabled": true
     }
@@ -43,10 +43,10 @@
     "ha_device_class": null,
     "extra": null,
     "expected": {
-      "hostname": "l0_office_door_lake",
+      "hostname": "l0_office_dr_lake",
       "mqtt_topic": "home/l0/office/door/lake",
       "link": null,
-      "dns": "l0_office_door_lake.domo.local",
+      "dns": "l0_office_dr_lake.domo.local",
       "count_topic": 19,
       "enabled": true
     }

@@ -101,6 +101,16 @@ class SettingsAPIView(BaseView):
                     status_code=400,
                 )
 
+        # Security audit logging for scan_script_content changes
+        if "scan_script_content" in filtered:
+            import hashlib
+            script_hash = hashlib.sha256(filtered["scan_script_content"].encode()).hexdigest()
+            _LOGGER.warning(
+                "SECURITY: scan_script_content modified (length: %d, hash: %s)",
+                len(filtered["scan_script_content"]),
+                script_hash[:16]
+            )
+
         try:
             repo = get_repos(request)["settings"]
             result = await repo.set_many(filtered)
