@@ -1,9 +1,10 @@
 /**
  * App shell component - main layout with navigation and routing.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../styles/shared-styles";
+import sharedStyles from "../styles/shared-styles.css?lit";
+import appShellStyles from "./app-shell-styles.css?lit";
 import { i18n, localized } from "../i18n";
 import { loadSettings } from "../api/settings-client";
 import "./dashboard/dashboard-view";
@@ -26,84 +27,7 @@ type AppRoute =
 @localized
 @customElement("dm-app-shell")
 export class DmAppShell extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-        min-height: 100vh;
-        background: var(--dm-bg);
-      }
-      .app-header {
-        background: white;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        padding: 0 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 56px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-      .app-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--dm-text);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .app-nav {
-        display: flex;
-        gap: 4px;
-      }
-      .nav-btn {
-        padding: 8px 16px;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        font-size: 14px;
-        border-radius: 4px;
-        color: var(--dm-text-secondary);
-        transition: all 0.15s;
-      }
-      .nav-btn:hover {
-        background: rgba(0, 0, 0, 0.04);
-        color: var(--dm-text);
-      }
-      .nav-btn.active {
-        background: rgba(3, 169, 244, 0.1);
-        color: var(--dm-primary);
-        font-weight: 500;
-      }
-      .lang-toggle {
-        padding: 4px 8px;
-        border: 1px solid var(--dm-border);
-        border-radius: 4px;
-        background: transparent;
-        cursor: pointer;
-        font-size: 12px;
-      }
-      .app-content {
-        padding: 24px;
-      }
-      @media (max-width: 768px) {
-        .app-header {
-          flex-wrap: wrap;
-          height: auto;
-          padding: 12px;
-        }
-        .app-nav {
-          width: 100%;
-          overflow-x: auto;
-        }
-        .app-content {
-          padding: 12px;
-        }
-      }
-    `,
-  ];
+  static styles = [sharedStyles, appShellStyles];
 
   @state() private _route: AppRoute = "dashboard";
   @state() private _lang: string = i18n.getCurrentLanguage();

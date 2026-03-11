@@ -2,7 +2,7 @@
 
 import logging
 
-from .base import BaseView, get_repos, get_db_path
+from .base import BaseView, get_repos, get_db_path, rate_limit, csrf_protect
 from ..provisioning.deploy import deploy, scan
 from ..provisioning.utility import update_runtime_configs
 
@@ -14,8 +14,9 @@ class DeployAPIView(BaseView):
 
     url = "/api/device_manager/deploy"
     name = "api:device_manager:deploy"
-    requires_auth = False  # Set to True in production
 
+    @rate_limit(requests=5, window=60)
+    @csrf_protect
     async def post(self, request):
         """Trigger device deployment."""
         hass = request.app["hass"]

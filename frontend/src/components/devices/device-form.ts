@@ -1,9 +1,10 @@
 /**
  * Device form component - modal form with FK select dropdowns.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import deviceFormStyles from "./device-form-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { getSettings } from "../../api/settings-client";
 import type { DmDevice } from "../../types/device";
@@ -23,24 +24,7 @@ import { DeviceClient } from "../../api/device-client";
 @localized
 @customElement("dm-device-form")
 export class DmDeviceForm extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-      .form-full {
-        grid-column: 1 / -1;
-      }
-      @media (max-width: 600px) {
-        .form-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    `,
-  ];
+  static styles = [sharedStyles, deviceFormStyles];
 
   @property({ type: Object }) device: DmDevice | null = null;
   @property({ type: Number }) presetRoomId: number | null = null;
@@ -141,7 +125,6 @@ export class DmDeviceForm extends LitElement {
         <div
           class="modal"
           @click=${(e: Event) => e.stopPropagation()}
-          style="max-width: 700px;"
         >
           <div class="modal-header">
             <h2>${isEdit ? i18n.t("edit_device") : i18n.t("add_device")}</h2>
@@ -399,9 +382,7 @@ export class DmDeviceForm extends LitElement {
 
           <div class="modal-actions">
             ${this._validationError
-              ? html`<div
-                  style="color:#f44336;font-size:13px;margin-bottom:4px"
-                >
+              ? html`<div class="validation-error">
                   ${this._validationError}
                 </div>`
               : ""}

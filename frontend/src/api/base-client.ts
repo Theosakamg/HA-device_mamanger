@@ -158,7 +158,9 @@ export class BaseClient {
    * allowing HA to fall back to cookie/session auth in iframe context.
    */
   protected buildHeaders(contentType?: string): Record<string, string> {
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      "X-Requested-With": "XMLHttpRequest",
+    };
     const token = this.getAuthToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;

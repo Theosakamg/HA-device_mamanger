@@ -1,9 +1,11 @@
 /**
  * System view — tabbed interface for import/export, provisioning config, and maintenance.
  */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import systemStyles from "../../styles/system-styles.css?lit";
+import systemViewStyles from "./system-view-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { MaintenanceClient } from "../../api/maintenance-client";
 import type {
@@ -38,385 +40,7 @@ const TABS: { id: SystemTab; icon: string; labelKey: string }[] = [
 @localized
 @customElement("dm-system-view")
 export class DmSystemView extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-        max-width: 960px;
-        margin: 0 auto;
-      }
-
-      /* ── Tab bar ── */
-      .tab-bar {
-        display: flex;
-        gap: 2px;
-        background: white;
-        border-radius: 10px;
-        padding: 6px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-      }
-      .tab-btn {
-        flex: 1;
-        min-width: 100px;
-        padding: 10px 14px;
-        border: none;
-        border-radius: 6px;
-        background: transparent;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--dm-text-secondary, #666);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        transition:
-          background 0.15s,
-          color 0.15s;
-        white-space: nowrap;
-      }
-      .tab-btn:hover {
-        background: rgba(3, 169, 244, 0.06);
-        color: var(--dm-text, #1a1a1a);
-      }
-      .tab-btn.active {
-        background: var(--dm-primary, #03a9f4);
-        color: white;
-        font-weight: 600;
-      }
-      .tab-btn .tab-icon {
-        font-size: 16px;
-      }
-
-      /* ── Content card ── */
-      .card {
-        background: white;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      }
-      .card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-      }
-      .card-header h3 {
-        margin: 0;
-        font-size: 16px;
-      }
-      .card-icon {
-        font-size: 22px;
-      }
-      .section-title {
-        font-size: 13px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--dm-text-secondary, #888);
-        margin: 24px 0 10px;
-        border-bottom: 1px solid var(--dm-border, #e8e8e8);
-        padding-bottom: 6px;
-      }
-      .section-title:first-child {
-        margin-top: 0;
-      }
-
-      /* ── Settings grid ── */
-      .settings-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-      }
-      @media (max-width: 600px) {
-        .settings-grid {
-          grid-template-columns: 1fr;
-        }
-        .tab-btn {
-          font-size: 12px;
-          padding: 8px 8px;
-        }
-      }
-      .settings-field label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 4px;
-        font-size: 14px;
-      }
-      .settings-field input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
-        box-sizing: border-box;
-      }
-      .settings-field input:focus {
-        outline: none;
-        border-color: var(--dm-primary, #03a9f4);
-        box-shadow: 0 0 0 2px rgba(3, 169, 244, 0.15);
-      }
-      .settings-field textarea {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
-        font-family: monospace;
-        min-height: 200px;
-        resize: vertical;
-        white-space: pre;
-        box-sizing: border-box;
-      }
-      .settings-field textarea:focus {
-        outline: none;
-        border-color: var(--dm-primary, #03a9f4);
-        box-shadow: 0 0 0 2px rgba(3, 169, 244, 0.15);
-      }
-      .hint {
-        font-size: 12px;
-        color: #888;
-        margin-top: 4px;
-      }
-      .settings-actions {
-        margin-top: 20px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-      .settings-toast {
-        font-size: 13px;
-        padding: 6px 12px;
-        border-radius: 4px;
-      }
-      .settings-toast.success {
-        background: #e8f5e9;
-        color: #2e7d32;
-      }
-      .settings-toast.error {
-        background: #fce4ec;
-        color: #c62828;
-      }
-
-      /* ── Export ── */
-      .export-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        align-items: center;
-      }
-      .btn-export {
-        padding: 10px 20px;
-        border: 2px solid var(--dm-primary, #03a9f4);
-        border-radius: 6px;
-        background: white;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-        color: var(--dm-primary, #03a9f4);
-        transition: all 0.15s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .btn-export:hover {
-        background: var(--dm-primary, #03a9f4);
-        color: white;
-      }
-      .btn-export:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      /* ── Scan ── */
-      .btn-scan {
-        padding: 10px 24px;
-        border: none;
-        border-radius: 6px;
-        background: #0288d1;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-        transition: background 0.15s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .btn-scan:hover {
-        background: #0277bd;
-      }
-      .btn-scan:disabled {
-        background: #e0e0e0;
-        color: #999;
-        cursor: not-allowed;
-      }
-      .scan-progress {
-        margin-top: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #0288d1;
-        font-size: 14px;
-        font-weight: 600;
-      }
-      .scan-spinner {
-        width: 20px;
-        height: 20px;
-        border: 3px solid #bbdefb;
-        border-top-color: #0288d1;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        flex-shrink: 0;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* ── Result panels ── */
-      .result-panel {
-        margin-top: 16px;
-        padding: 16px;
-        border-radius: 8px;
-        background: #e8f5e9;
-        border: 1px solid #a5d6a7;
-      }
-      .result-panel.error {
-        background: #fce4ec;
-        border-color: #ef9a9a;
-      }
-      .result-panel h4 {
-        margin: 0 0 8px 0;
-      }
-      .result-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 13px;
-      }
-      .result-list li {
-        padding: 4px 0;
-        font-family: monospace;
-      }
-
-      /* ── Danger zone ── */
-      .danger-zone {
-        border: 2px solid #e57373;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 0;
-      }
-      .danger-zone h3 {
-        color: #c62828;
-        margin: 0 0 8px 0;
-      }
-      .danger-action {
-        display: flex;
-        align-items: flex-start;
-        gap: 16px;
-        padding: 16px;
-        background: #fff8f8;
-        border-radius: 8px;
-        border: 1px solid #ffcdd2;
-        margin-top: 12px;
-      }
-      .danger-action-info {
-        flex: 1;
-      }
-      .danger-action-info h4 {
-        margin: 0 0 4px 0;
-        color: #b71c1c;
-      }
-      .danger-action-info p {
-        margin: 0;
-        font-size: 13px;
-        color: #666;
-      }
-      .btn-danger {
-        padding: 8px 20px;
-        border: none;
-        border-radius: 4px;
-        background: #c62828;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
-        white-space: nowrap;
-        transition: background 0.15s;
-      }
-      .btn-danger:hover {
-        background: #b71c1c;
-      }
-      .btn-danger:disabled {
-        background: #e0e0e0;
-        cursor: not-allowed;
-        color: #999;
-      }
-
-      /* ── Confirm overlay ── */
-      .confirm-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      .confirm-dialog {
-        background: white;
-        border-radius: 12px;
-        padding: 32px;
-        max-width: 440px;
-        width: 90%;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      }
-      .confirm-dialog h3 {
-        color: #c62828;
-        margin: 0 0 12px 0;
-      }
-      .confirm-dialog p {
-        color: #666;
-        font-size: 14px;
-        margin: 0 0 16px 0;
-      }
-      .phrase-hint {
-        background: #fce4ec;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-family: monospace;
-        font-weight: bold;
-        color: #c62828;
-        text-align: center;
-        margin-bottom: 12px;
-        font-size: 16px;
-      }
-      .confirm-dialog input {
-        width: 100%;
-        padding: 10px 12px;
-        border: 2px solid #e0e0e0;
-        border-radius: 4px;
-        font-size: 14px;
-        box-sizing: border-box;
-        margin-bottom: 16px;
-        font-family: monospace;
-      }
-      .confirm-dialog input:focus {
-        outline: none;
-        border-color: #c62828;
-      }
-      .confirm-dialog .actions {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, systemStyles, systemViewStyles];
 
   // ── Active tab ──
   @state() private _activeTab: SystemTab = "common";
@@ -632,21 +256,18 @@ export class DmSystemView extends LitElement {
 
         <p class="section-title">${i18n.t("config_scan_section")}</p>
         <div class="settings-grid">
-          <div class="settings-field" style="grid-column: span 2">
+          <div class="settings-field settings-field--full">
             <label>${i18n.t("config_scan_ssh_key_upload")}</label>
-            <div
-              style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"
-            >
+            <div class="ssh-key-field">
               <input
                 type="text"
                 readonly
                 .value=${f.scan_ssh_key_file || ""}
                 placeholder="/config/dm/keys/…"
-                style="flex:1;min-width:200px;background:#f5f5f5;cursor:default"
+                class="ssh-key-path"
               />
               <label
-                class="btn btn-secondary"
-                style="cursor:pointer;white-space:nowrap"
+                class="btn btn-secondary label-btn-file"
               >
                 🔑
                 ${this._sshKeyUploading
@@ -690,8 +311,11 @@ export class DmSystemView extends LitElement {
             />
             <div class="hint">${i18n.t("config_scan_ssh_host_hint")}</div>
           </div>
-          <div class="settings-field" style="grid-column: 1 / -1">
+          <div class="settings-field settings-field--full">
             <label>${i18n.t("config_scan_script_content")}</label>
+            <div class="security-warning">
+              ⚠️ ${i18n.t("config_scan_script_security_warning")}
+            </div>
             <textarea
               .value=${f.scan_script_content || ""}
               @input=${(e: Event) => this._updateSetting("scan_script_content", e)}
@@ -924,27 +548,25 @@ export class DmSystemView extends LitElement {
           ? html`<div class="result-panel" style="margin-top:16px">
               <h4>✅ ${i18n.t("maint_scan_triggered")}</h4>
               ${this._scanResult.stats
-                ? html`<table
-                      style="margin-top:8px;border-collapse:collapse;font-size:13px;font-family:monospace;width:100%"
-                    >
+                ? html`<table class="scan-stats-table">
                       <tr>
-                        <td style="padding:2px 8px 2px 0">
+                        <td>
                           ${i18n.t("maint_scan_stat_total")}
                         </td>
                         <td>
                           <strong>${this._scanResult.stats.total}</strong>
                         </td>
                       </tr>
-                      <tr style="color:var(--success-color,#4caf50)">
-                        <td style="padding:2px 8px 2px 0">
+                      <tr class="text-success">
+                        <td>
                           ${i18n.t("maint_scan_stat_mapped")}
                         </td>
                         <td>
                           <strong>${this._scanResult.stats.mapped}</strong>
                         </td>
                       </tr>
-                      <tr style="color:var(--warning-color,#ff9800)">
-                        <td style="padding:2px 8px 2px 0">
+                      <tr class="text-warning">
+                        <td>
                           ${i18n.t("maint_scan_stat_not_found")}
                         </td>
                         <td>
@@ -953,7 +575,7 @@ export class DmSystemView extends LitElement {
                       </tr>
                       <tr
                         style="color:${this._scanResult.stats.errors > 0
-                          ? "var(--error-color,#f44336)"
+                          ? "var(--dm-error)"
                           : "inherit"}"
                       >
                         <td style="padding:2px 8px 2px 0">

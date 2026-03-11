@@ -7,7 +7,7 @@ from pathlib import Path
 
 from aiohttp import web
 
-from .base import BaseView, get_repos
+from .base import BaseView, get_repos, rate_limit, csrf_protect
 from ..const import SETTING_SCAN_SSH_KEY_FILE
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,6 +33,8 @@ class SSHKeyUploadAPIView(BaseView):
     name = "api:device_manager:ssh_key_upload"
     requires_auth = True
 
+    @rate_limit(requests=5, window=60)
+    @csrf_protect
     async def post(self, request: web.Request) -> web.Response:
         """Handle multipart file upload."""
         hass = request.app["hass"]

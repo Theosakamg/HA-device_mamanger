@@ -1,9 +1,10 @@
 /**
  * Node detail panel - shows info and children for the selected hierarchy node.
  */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import nodeDetailStyles from "./node-detail-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import type {
   HierarchyNode,
@@ -25,102 +26,7 @@ import "../shared/doc-block";
 @localized
 @customElement("dm-node-detail")
 export class DmNodeDetail extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-      }
-      .info-grid {
-        display: grid;
-        grid-template-columns: 120px 1fr;
-        gap: 8px;
-        margin-bottom: 16px;
-      }
-      .info-label {
-        font-weight: 500;
-        color: var(--dm-text-secondary);
-        font-size: 13px;
-      }
-      .info-value {
-        font-size: 14px;
-      }
-      .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 16px 0 8px;
-      }
-      .children-list {
-        display: grid;
-        gap: 8px;
-      }
-      .child-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 14px;
-        border: 1px solid var(--dm-border);
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .child-card:hover {
-        background: rgba(0, 0, 0, 0.02);
-      }
-      .child-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .device-row {
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--dm-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .edit-form {
-        margin: 16px 0;
-        padding: 16px;
-        border: 1px solid var(--dm-border);
-        border-radius: 6px;
-      }
-      .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex-wrap: wrap;
-        font-size: 13px;
-        color: var(--dm-text-secondary);
-        margin-bottom: 4px;
-      }
-      .breadcrumb-sep {
-        opacity: 0.5;
-      }
-      .breadcrumb-item {
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        color: var(--dm-text-secondary);
-        font-size: 13px;
-        text-decoration: underline;
-      }
-      .breadcrumb-item:hover {
-        color: var(--dm-primary);
-      }
-      .breadcrumb-current {
-        font-weight: 600;
-        color: var(--dm-text);
-      }
-      .validation-error {
-        color: #f44336;
-        font-size: 13px;
-        margin-bottom: 8px;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, nodeDetailStyles];
 
   @property({ type: Object }) node: HierarchyNode | null = null;
   @property({ type: Object }) tree: HierarchyTree | null = null;
@@ -228,7 +134,7 @@ export class DmNodeDetail extends LitElement {
                 )}
               </nav>`
             : nothing}
-          <h2 style="margin:0">${typeLabel}: ${this.node.name}</h2>
+          <h2>${typeLabel}: ${this.node.name}</h2>
         </div>
         <div>
           <button
@@ -275,8 +181,7 @@ export class DmNodeDetail extends LitElement {
                     >
                     <span class="info-label">${i18n.t("room_password")}</span>
                     <span
-                      class="info-value"
-                      style="display:flex; align-items:center; gap:6px;"
+                      class="info-value info-value-flex"
                     >
                       ${this._roomDetails?.password
                         ? this._showPassword
@@ -308,10 +213,9 @@ export class DmNodeDetail extends LitElement {
       this.node.type === "floor"
         ? html`
             <div class="section-header">
-              <h3 style="margin:0">${this._childLabel()}</h3>
+              <h3>${this._childLabel()}</h3>
               <button
-                class="btn btn-primary"
-                style="padding: 4px 10px; font-size: 12px;"
+                class="btn btn-primary btn-sm"
                 @click=${() => {
                   this._addingChild = true;
                   this._newChildName = "";
@@ -347,8 +251,7 @@ export class DmNodeDetail extends LitElement {
             <div class="section-header">
               <h3>${i18n.t("devices")} (${this._devices.length})</h3>
               <button
-                class="btn btn-primary"
-                style="padding: 4px 10px; font-size: 12px;"
+                class="btn btn-primary btn-sm"
                 @click=${() => {
                   window.location.hash = `#devices?create=room:${this.node!.id}`;
                 }}
@@ -378,7 +281,7 @@ export class DmNodeDetail extends LitElement {
                         ${this._devices.map(
                           (d) => html`
                             <tr
-                              style="cursor:pointer"
+                              class="row-clickable"
                               @click=${() => {
                                 window.location.hash = `#devices?filter=${encodeURIComponent(d.mac)}`;
                               }}
@@ -391,11 +294,10 @@ export class DmNodeDetail extends LitElement {
                                 ></span>
                               </td>
                               <td>
-                                <span style="display:block;font-size:13px;"
+                                <span class="device-name-label"
                                   >${deviceLabel(d)}</span
                                 >
-                                <span
-                                  style="display:block;font-family:monospace;font-size:11px;color:var(--dm-text-secondary);margin-top:2px;"
+                                <span class="mac-label"
                                   >${d.mac}</span
                                 >
                               </td>
@@ -413,12 +315,11 @@ export class DmNodeDetail extends LitElement {
   private _renderInlineChildAdd() {
     const childType = this.node?.type === "building" ? "floor" : "room";
     return html`
-      <div
-        style="display:flex; gap:6px; align-items:center; margin: 8px 0; padding: 8px 12px; border: 1px solid var(--dm-border); border-radius: 6px;"
+      <div class="inline-add-row"
       >
         <input
           type="text"
-          style="padding: 4px 8px; font-size: 13px; border: 1px solid var(--dm-border); border-radius: 4px; flex: 1;"
+          class="inline-text-input"
           placeholder="${i18n.t("name")}"
           .value=${this._newChildName}
           @input=${(e: Event) => {
@@ -430,15 +331,13 @@ export class DmNodeDetail extends LitElement {
           }}
         />
         <button
-          class="btn btn-primary"
-          style="padding: 4px 8px; font-size: 12px;"
+          class="btn btn-primary btn-sm"
           @click=${() => this._confirmAddChild(childType)}
         >
           ✓
         </button>
         <button
-          class="btn btn-secondary"
-          style="padding: 4px 8px; font-size: 12px;"
+          class="btn btn-secondary btn-sm"
           @click=${() => {
             this._addingChild = false;
           }}
@@ -526,7 +425,7 @@ export class DmNodeDetail extends LitElement {
         </div>
         ${this.node?.type === "room"
           ? html`
-              <div class="form-row" style="margin-top:8px;">
+              <div class="form-row form-row--mt">
                 <div class="form-group">
                   <label>${i18n.t("room_login")}</label>
                   <input
@@ -539,7 +438,7 @@ export class DmNodeDetail extends LitElement {
                 </div>
                 <div class="form-group">
                   <label>${i18n.t("room_password")}</label>
-                  <div style="display:flex; align-items:center; gap:6px;">
+                  <div class="info-value-flex">
                     <input
                       type=${this._showPassword ? "text" : "password"}
                       .value=${this._editPassword}
@@ -569,7 +468,7 @@ export class DmNodeDetail extends LitElement {
         ${this._validationError
           ? html`<div class="validation-error">${this._validationError}</div>`
           : nothing}
-        <div style="display:flex; gap:8px; margin-top:8px;">
+        <div class="form-actions">
           <button class="btn btn-primary" @click=${this._saveEdit}>
             ${i18n.t("save")}
           </button>

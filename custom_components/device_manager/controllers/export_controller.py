@@ -7,7 +7,7 @@ import logging
 
 from aiohttp import web
 
-from .base import BaseView, get_repos
+from .base import BaseView, get_repos, rate_limit
 from ..models.device import DmDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -162,6 +162,7 @@ class ExportAPIView(BaseView):
     name = "api:device_manager:export"
     requires_auth = True
 
+    @rate_limit(requests=20, window=60)
     async def get(self, request: web.Request) -> web.Response:
         """Export all devices.
 

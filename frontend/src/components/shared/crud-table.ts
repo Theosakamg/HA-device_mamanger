@@ -1,13 +1,15 @@
 /**
  * Generic CRUD table component with inline editing and column sorting.
  */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { type DocContent } from "../../utils/frontmatter";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import tabDescriptionStyles from "../../styles/tab-description-styles.css?lit";
+import crudTableStyles from "./crud-table-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import {
   SortState,
@@ -41,153 +43,7 @@ export interface CrudConfig {
 @localized
 @customElement("dm-crud-table")
 export class DmCrudTable extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-      }
-      .toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .toolbar h3 {
-        margin: 0;
-      }
-      .toolbar-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .search-input {
-        padding: 6px 10px;
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 4px;
-        font-size: 13px;
-        outline: none;
-        min-width: 180px;
-        transition: border-color 0.15s;
-      }
-      .search-input:focus {
-        border-color: var(--primary-color, #03a9f4);
-      }
-      .search-input::placeholder {
-        color: var(--secondary-text-color, #999);
-      }
-      .item-count {
-        font-size: 12px;
-        color: var(--secondary-text-color, #888);
-        white-space: nowrap;
-      }
-      .enabled-cell {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .btn-filter {
-        opacity: 0.5;
-        transition: opacity 0.15s;
-      }
-      .btn-filter:hover {
-        opacity: 1;
-      }
-      th.sortable {
-        cursor: pointer;
-        user-select: none;
-        white-space: nowrap;
-      }
-      th.sortable:hover {
-        background: rgba(0, 0, 0, 0.04);
-      }
-      .tab-description-wrapper {
-        margin: 0 0 16px 0;
-        background: var(--secondary-background-color, #f5f5f5);
-        border-left: 3px solid var(--primary-color, #03a9f4);
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .tab-description-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 16px;
-        cursor: pointer;
-        user-select: none;
-      }
-      .tab-description-header:hover {
-        background: rgba(0, 0, 0, 0.03);
-      }
-      .tab-description-summary {
-        color: var(--secondary-text-color, #666);
-        font-size: 13px;
-        line-height: 1.4;
-        margin: 0;
-        flex: 1;
-      }
-      .tab-description-toggle {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
-        padding: 0 0 0 12px;
-        color: var(--secondary-text-color, #888);
-        transition: transform 0.2s;
-        line-height: 1;
-      }
-      .tab-description-toggle.expanded {
-        transform: rotate(180deg);
-      }
-      .tab-description-body {
-        color: var(--secondary-text-color, #666);
-        font-size: 13px;
-        line-height: 1.6;
-        padding: 0 16px 12px 16px;
-        border-top: 1px solid var(--divider-color, #e0e0e0);
-      }
-      .tab-description-body p {
-        margin: 8px 0;
-      }
-      .tab-description-body p:first-child {
-        margin-top: 8px;
-      }
-      .tab-description-body p:last-child {
-        margin-bottom: 0;
-      }
-      .tab-description-body strong {
-        color: var(--primary-text-color, #333);
-      }
-      .tab-description-body em {
-        font-style: italic;
-      }
-      .tab-description-body code {
-        background: var(--divider-color, #e0e0e0);
-        padding: 1px 5px;
-        border-radius: 3px;
-        font-size: 12px;
-        font-family: monospace;
-      }
-      .tab-description-body ul {
-        margin: 6px 0;
-        padding-left: 20px;
-      }
-      .tab-description-body li {
-        margin-bottom: 3px;
-      }
-      .sort-indicator {
-        display: inline-block;
-        margin-left: 4px;
-        font-size: 10px;
-        opacity: 0.4;
-      }
-      th.sortable.sort-active .sort-indicator {
-        opacity: 1;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, tabDescriptionStyles, crudTableStyles];
 
   @property({ type: Array }) items: Record<string, unknown>[] = [];
   @property({ type: Object }) config!: CrudConfig;

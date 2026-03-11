@@ -1,5 +1,4 @@
-/**
- * Shared CSS styles for Device Manager components.
+` block in each component
  */
 import { css } from "lit";
 
@@ -10,16 +9,19 @@ export const sharedStyles = css`
       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
       Arial, sans-serif;
     color: var(--primary-text-color, #212121);
-    --dm-primary: #03a9f4;
+
+    /* Bootstrap HA theme tokens → --dm-* so we pick up the active theme
+       while keeping hardcoded fallbacks for standalone usage. */
+    --dm-primary: var(--primary-color, #03a9f4);
     --dm-primary-dark: #0288d1;
-    --dm-accent: #ff9800;
-    --dm-error: #f44336;
-    --dm-success: #4caf50;
-    --dm-bg: #f5f5f5;
-    --dm-card-bg: #ffffff;
-    --dm-border: #e0e0e0;
-    --dm-text: #212121;
-    --dm-text-secondary: #757575;
+    --dm-accent: var(--accent-color, #ff9800);
+    --dm-error: var(--error-color, #f44336);
+    --dm-success: var(--success-color, #4caf50);
+    --dm-bg: var(--secondary-background-color, #f5f5f5);
+    --dm-card-bg: var(--card-background-color, #ffffff);
+    --dm-border: var(--divider-color, #e0e0e0);
+    --dm-text: var(--primary-text-color, #212121);
+    --dm-text-secondary: var(--secondary-text-color, #757575);
     --dm-radius: 8px;
     --dm-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
@@ -31,6 +33,12 @@ export const sharedStyles = css`
     box-shadow: var(--dm-shadow);
     padding: 16px;
     margin-bottom: 16px;
+  }
+
+  /* Large card variant — dashboard KPI / chart cards (radius 12px, padding 20px). */
+  .card--lg {
+    border-radius: 12px;
+    padding: 20px;
   }
 
   .card-header {
@@ -113,6 +121,12 @@ export const sharedStyles = css`
     background: rgba(0, 0, 0, 0.08);
   }
 
+  /* Small button variant — inline actions in tree / detail panels. */
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
   /* Form styles */
   .form-group {
     margin-bottom: 12px;
@@ -188,6 +202,16 @@ export const sharedStyles = css`
 
   tr:hover {
     background: rgba(0, 0, 0, 0.02);
+  }
+
+  /* Sortable column headers — shared by device-table and crud-table. */
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th.sortable:hover {
+    background: rgba(0, 0, 0, 0.04);
   }
 
   /* Badge */
@@ -363,6 +387,40 @@ export const sharedStyles = css`
     color: var(--dm-text-secondary);
   }
 
+  /* Toolbar — table / list page header row with title + actions. */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Monospace identifier — MAC address, firmware hash, etc. */
+  .mac-label {
+    display: block;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--dm-text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Semantic text colors for inline status indicators. */
+  .text-success {
+    color: var(--dm-success);
+  }
+  .text-warning {
+    color: var(--dm-accent);
+  }
+
+  /* Spin animation — used by scan-spinner (.scan-spinner references @keyframes spin). */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   /* Result/stats panel – shared by import-view & deploy-modal */
   .stats {
     display: grid;
@@ -471,4 +529,3 @@ export const sharedStyles = css`
       padding: 16px;
     }
   }
-`;

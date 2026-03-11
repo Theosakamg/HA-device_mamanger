@@ -1,9 +1,10 @@
 /**
  * Import view - CSV file upload and processing.
  */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import importViewStyles from "./import-view-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { ImportClient } from "../../api/import-client";
 import type { ImportResult } from "../../types/device";
@@ -11,71 +12,7 @@ import type { ImportResult } from "../../types/device";
 @localized
 @customElement("dm-import-view")
 export class DmImportView extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-        max-width: 800px;
-        margin: 0 auto;
-      }
-      .upload-zone {
-        border: 2px dashed var(--dm-border);
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        cursor: pointer;
-        transition: border-color 0.2s;
-        margin-bottom: 24px;
-      }
-      .upload-zone:hover {
-        border-color: var(--dm-primary);
-      }
-      .upload-zone.dragging {
-        border-color: var(--dm-primary);
-        background: rgba(3, 169, 244, 0.05);
-      }
-      .file-info {
-        margin: 16px 0;
-        padding: 12px;
-        background: #f5f5f5;
-        border-radius: 4px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .result-card {
-        margin-top: 24px;
-      }
-      .log-status {
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 500;
-      }
-      .log-status-created {
-        background: #e8f5e9;
-        color: #2e7d32;
-      }
-      .log-status-updated {
-        background: #e3f2fd;
-        color: #1565c0;
-      }
-      .log-status-skipped {
-        background: #fff3e0;
-        color: #ef6c00;
-      }
-      .log-status-error {
-        background: #fce4ec;
-        color: #c62828;
-      }
-      .error-row-num {
-        font-weight: bold;
-        margin-right: 8px;
-        color: #c62828;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, importViewStyles];
 
   @state() private _file: File | null = null;
   @state() private _dragging = false;
@@ -102,9 +39,9 @@ export class DmImportView extends LitElement {
               @dragleave=${this._onDragLeave}
               @drop=${this._onDrop}
             >
-              <p style="font-size: 36px; margin: 0;">📁</p>
+              <p class="upload-icon">📁</p>
               <p>${i18n.t("import_file")}</p>
-              <p style="font-size: 12px; color: var(--dm-text-secondary);">
+              <p class="upload-hint">
                 CSV (UTF-8 or Latin-1)
               </p>
             </div>
@@ -242,7 +179,7 @@ export class DmImportView extends LitElement {
             `
           : nothing}
 
-        <div style="margin-top: 16px;">
+        <div class="import-actions">
           <button class="btn btn-secondary" @click=${this._reset}>
             ${i18n.t("import_csv")}
           </button>

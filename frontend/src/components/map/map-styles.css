@@ -1,6 +1,3 @@
-import { css } from "lit";
-
-export const mapStyles = css`
   :host {
     display: block;
   }
@@ -322,4 +319,3 @@ export const mapStyles = css`
     width: 100px !important;
     height: 100px !important;
   }
-`;

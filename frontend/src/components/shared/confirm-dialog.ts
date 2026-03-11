@@ -1,24 +1,16 @@
 /**
  * Confirmation dialog component.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import confirmDialogStyles from "./confirm-dialog-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 
 @localized
 @customElement("dm-confirm-dialog")
 export class DmConfirmDialog extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      .message {
-        margin: 16px 0;
-        font-size: 16px;
-        line-height: 1.5;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, confirmDialogStyles];
 
   @property({ type: Boolean }) open = false;
   @property({ type: String }) message = "";

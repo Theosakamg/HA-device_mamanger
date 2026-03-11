@@ -4,7 +4,7 @@ import logging
 
 from aiohttp import web
 
-from .base import BaseView, get_repos
+from .base import BaseView, get_repos, rate_limit, csrf_protect
 from ..services.csv_import_service import CSVImportService
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,6 +20,8 @@ class CSVImportAPIView(BaseView):
     name = "api:device_manager:import"
     requires_auth = True
 
+    @rate_limit(requests=10, window=60)
+    @csrf_protect
     async def post(self, request: web.Request) -> web.Response:
         """Import devices from an uploaded CSV file.
 

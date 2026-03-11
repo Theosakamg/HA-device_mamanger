@@ -1,9 +1,10 @@
 /**
  * Settings view with tabs for managing reference entities.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import settingsViewStyles from "./settings-view-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { getDoc } from "../../utils/doc-registry";
 import { DeviceModelClient } from "../../api/device-model-client";
@@ -36,36 +37,7 @@ const _statsClient = new StatsClient();
 @localized
 @customElement("dm-settings-view")
 export class DmSettingsView extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-      }
-      .settings-container {
-        max-width: 1000px;
-        margin: 0 auto;
-      }
-      .tab-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        border-radius: 9px;
-        font-size: 11px;
-        font-weight: 600;
-        background: rgba(0, 0, 0, 0.12);
-        color: var(--secondary-text-color, #666);
-        margin-left: 6px;
-      }
-      .tab.active .tab-badge {
-        background: var(--primary-color, #03a9f4);
-        color: #fff;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, settingsViewStyles];
 
   @state() private _activeTab: SettingsTab = "models";
   @state() private _modelCount = 0;

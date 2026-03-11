@@ -1,46 +1,14 @@
 /**
  * Toast notification component.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import toastNotificationStyles from "./toast-notification-styles.css?lit";
 
 @customElement("dm-toast")
 export class DmToast extends LitElement {
-  static styles = css`
-    :host {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 2000;
-    }
-    .toast {
-      padding: 12px 24px;
-      border-radius: 4px;
-      color: white;
-      font-size: 14px;
-      animation: slideIn 0.3s ease-out;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    .success {
-      background: #4caf50;
-    }
-    .error {
-      background: #f44336;
-    }
-    .info {
-      background: #03a9f4;
-    }
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-  `;
+  static styles = [sharedStyles, toastNotificationStyles];
 
   @property({ type: String }) message = "";
   @property({ type: String }) type: "success" | "error" | "info" = "info";

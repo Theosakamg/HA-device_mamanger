@@ -76,7 +76,10 @@ class StaticView(BaseView):
             return web.Response(
                 body=content,
                 content_type=content_type,
-                headers={"Cache-Control": "no-cache"},
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Content-Type-Options": "nosniff",
+                },
             )
         except Exception as err:
             _LOGGER.error("Failed to serve static file %s: %s", filename, err)

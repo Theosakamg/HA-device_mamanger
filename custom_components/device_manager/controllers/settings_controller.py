@@ -5,7 +5,7 @@ import re
 
 from aiohttp import web
 
-from .base import BaseView, get_repos
+from .base import BaseView, get_repos, csrf_protect
 from ..const import DEFAULT_SETTINGS
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,7 +42,6 @@ class SettingsAPIView(BaseView):
 
     url = "/api/device_manager/settings"
     name = "api:device_manager:settings"
-    requires_auth = True
 
     async def get(self, request: web.Request) -> web.Response:
         """Return all settings as a JSON object.
@@ -60,6 +59,7 @@ class SettingsAPIView(BaseView):
                 status_code=500,
             )
 
+    @csrf_protect
     async def put(self, request: web.Request) -> web.Response:
         """Update one or more settings.
 

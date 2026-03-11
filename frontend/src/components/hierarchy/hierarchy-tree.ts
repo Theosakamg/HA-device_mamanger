@@ -1,9 +1,10 @@
 /**
  * Hierarchy tree component - collapsible tree of Building > Floor > Room.
  */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import hierarchyTreeStyles from "./hierarchy-tree-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import type { HierarchyTree, HierarchyNode } from "../../types/device";
 import { BuildingClient } from "../../api/building-client";
@@ -15,75 +16,7 @@ import "../shared/confirm-dialog";
 @localized
 @customElement("dm-hierarchy-tree")
 export class DmHierarchyTreeComponent extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-      }
-      .tree-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-      }
-      .tree-header h3 {
-        margin: 0;
-        font-size: 16px;
-      }
-      .tree-node {
-        cursor: pointer;
-        padding: 6px 8px;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 14px;
-        transition: background 0.15s;
-      }
-      .tree-node:hover {
-        background: rgba(0, 0, 0, 0.04);
-      }
-      .tree-node.selected {
-        background: rgba(3, 169, 244, 0.1);
-        color: var(--dm-primary);
-        font-weight: 500;
-      }
-      .tree-children {
-        padding-left: 20px;
-      }
-      .toggle {
-        width: 16px;
-        text-align: center;
-        font-size: 10px;
-        color: var(--dm-text-secondary);
-      }
-      .node-name {
-        flex: 1;
-      }
-      .node-actions {
-        display: flex;
-        gap: 2px;
-      }
-      .node-actions button {
-        padding: 2px 4px;
-        font-size: 11px;
-      }
-      .inline-form {
-        display: flex;
-        gap: 4px;
-        padding: 4px 8px;
-        align-items: center;
-      }
-      .inline-form input {
-        padding: 4px 8px;
-        font-size: 13px;
-        border: 1px solid var(--dm-border);
-        border-radius: 4px;
-        flex: 1;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, hierarchyTreeStyles];
 
   @property({ type: Object }) tree: HierarchyTree | null = null;
   @property({ type: Object }) selectedNode: HierarchyNode | null = null;
@@ -138,8 +71,7 @@ export class DmHierarchyTreeComponent extends LitElement {
       <div class="tree-header">
         <h3>${i18n.t("hierarchy_title")}</h3>
         <button
-          class="btn btn-primary"
-          style="padding: 4px 10px; font-size: 12px;"
+          class="btn btn-primary btn-sm"
           @click=${() => this._startAdd("building", 0)}
         >
           + ${i18n.t("building")}
@@ -326,15 +258,13 @@ export class DmHierarchyTreeComponent extends LitElement {
           }}
         />
         <button
-          class="btn btn-primary"
-          style="padding: 4px 8px; font-size: 12px;"
+          class="btn btn-primary btn-sm"
           @click=${() => this._confirmAdd(type)}
         >
           ✓
         </button>
         <button
-          class="btn btn-secondary"
-          style="padding: 4px 8px; font-size: 12px;"
+          class="btn btn-secondary btn-sm"
           @click=${this._cancelAdd}
         >
           ✕

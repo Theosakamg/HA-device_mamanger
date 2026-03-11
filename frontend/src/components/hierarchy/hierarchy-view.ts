@@ -1,9 +1,10 @@
 /**
  * Hierarchy view - combined tree + detail panel.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import hierarchyViewStyles from "./hierarchy-view-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import type { HierarchyNode, HierarchyTree } from "../../types/device";
 import { HierarchyClient } from "../../api/hierarchy-client";
@@ -14,47 +15,7 @@ import "./node-detail";
 @localized
 @customElement("dm-hierarchy-view")
 export class DmHierarchyView extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-        height: 100%;
-      }
-      .container {
-        display: flex;
-        gap: 16px;
-        height: 100%;
-        min-height: calc(100vh - 100px);
-      }
-      .tree-panel {
-        width: 30%;
-        min-width: 250px;
-        overflow-y: auto;
-        background: var(--dm-card-bg);
-        border-radius: var(--dm-radius);
-        box-shadow: var(--dm-shadow);
-        padding: 16px;
-      }
-      .detail-panel {
-        flex: 1;
-        overflow-y: auto;
-        background: var(--dm-card-bg);
-        border-radius: var(--dm-radius);
-        box-shadow: var(--dm-shadow);
-        padding: 16px;
-      }
-      @media (max-width: 768px) {
-        .container {
-          flex-direction: column;
-        }
-        .tree-panel {
-          width: 100%;
-          min-height: auto;
-        }
-      }
-    `,
-  ];
+  static styles = [sharedStyles, hierarchyViewStyles];
 
   @state() private _tree: HierarchyTree | null = null;
   @state() private _selectedNode: HierarchyNode | null = null;

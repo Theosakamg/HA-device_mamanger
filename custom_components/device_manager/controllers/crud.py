@@ -10,7 +10,7 @@ from typing import Any, Callable, Optional
 
 from aiohttp import web
 
-from .base import BaseView, get_repos
+from .base import BaseView, get_repos, csrf_protect
 from ..models.base import SerializableMixin
 from ..utils.case_convert import to_snake_case_dict
 
@@ -144,7 +144,6 @@ class CrudListView(BaseView):
         * ``_serialize_entity`` – override to customise serialization output.
     """
 
-    requires_auth = True
     repo_key: str = ""
     entity_name: str = ""
     normalize_data: Optional[Callable[[dict], dict]] = None
@@ -185,6 +184,7 @@ class CrudListView(BaseView):
         return self.json([self._serialize_entity(i) for i in items])
 
     @_handle_errors("entity")
+    @csrf_protect
     async def post(self, request: web.Request) -> web.Response:
         """Create a new entity from the JSON body."""
         repos = get_repos(request)
@@ -223,7 +223,6 @@ class CrudDetailView(BaseView):
         * ``_serialize_entity`` – override to customise serialization output.
     """
 
-    requires_auth = True
     repo_key: str = ""
     entity_name: str = ""
     normalize_data: Optional[Callable[[dict], dict]] = None
@@ -254,6 +253,7 @@ class CrudDetailView(BaseView):
         return self.json(self._serialize_entity(result))
 
     @_handle_errors("entity")
+    @csrf_protect
     async def put(self, request: web.Request, entity_id: str) -> web.Response:
         """Update an entity by ID."""
         repos = get_repos(request)
@@ -284,6 +284,7 @@ class CrudDetailView(BaseView):
         return self.json(self._serialize_entity(updated))
 
     @_handle_errors("entity")
+    @csrf_protect
     async def delete(self, request: web.Request, entity_id: str) -> web.Response:
         """Delete an entity by ID."""
         repos = get_repos(request)

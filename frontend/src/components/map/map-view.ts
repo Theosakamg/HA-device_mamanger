@@ -7,7 +7,7 @@
  */
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -27,7 +27,7 @@ import {
   COLORS,
   REF_EDGE_COLORS,
 } from "./map-constants";
-import { mapStyles } from "./map-styles";
+import mapStyles from "./map-styles.css?lit";
 import { buildGraphData, renderGraphToScene, addStarField } from "./map-graph";
 
 /* ------------------------------------------------------------------ */
@@ -827,7 +827,8 @@ export class DmMapView extends LitElement {
       }
       if (tooltip && node) {
         tooltip.classList.add("visible");
-        tooltip.innerHTML = `<strong>${node.label}</strong><br/><em style="opacity:0.7">${node.type}</em><br/>${node.meta.replace(/\n/g, "<br/>")}`;
+        // Security: Use textContent to prevent XSS from user-controlled data
+        tooltip.textContent = `${node.label} (${node.type}) - ${node.meta.replace(/\n/g, " | ")}`;
       }
     } else {
       if (this._hoveredNode?.mesh && this._hoveredNode !== this._focusedNode)

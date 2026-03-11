@@ -5,9 +5,10 @@
  * then shows a result panel (stats + detail table) following the same
  * visual pattern as the import-view component.
  */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import deployModalStyles from "./deploy-modal-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { DeviceFirmwareClient } from "../../api/device-firmware-client";
 import type {
@@ -21,82 +22,7 @@ import { deviceLabel } from "../../utils/computed-fields";
 @localized
 @customElement("dm-deploy-modal")
 export class DmDeployModal extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      .modal {
-        max-width: 650px;
-        width: 90vw;
-      }
-      .modal-body {
-        padding: 16px 24px;
-        max-height: 65vh;
-        overflow-y: auto;
-      }
-
-      /* Firmware selection list */
-      .firmware-list {
-        max-height: 300px;
-        overflow-y: auto;
-        margin: 12px 0;
-      }
-      .firmware-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--dm-border);
-        transition: background 0.15s;
-      }
-      .firmware-item:hover {
-        background: rgba(0, 0, 0, 0.03);
-      }
-      .firmware-item:last-child {
-        border-bottom: none;
-      }
-      .firmware-item input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        accent-color: var(--dm-primary);
-      }
-      .firmware-item label {
-        flex: 1;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      .select-actions {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-      .select-actions button {
-        font-size: 12px;
-      }
-
-      /* Detail table */
-      .detail-section {
-        margin-top: 16px;
-      }
-      .detail-section h4 {
-        margin: 0 0 8px;
-      }
-      .fw-badge {
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 500;
-        background: #e0e0e0;
-        color: var(--dm-text-secondary);
-      }
-
-      .empty-fw {
-        text-align: center;
-        padding: 24px;
-        color: var(--dm-text-secondary);
-      }
-    `,
-  ];
+  static styles = [sharedStyles, deployModalStyles];
 
   /** All devices passed from the parent table. */
   @property({ type: Array }) devices: DmDevice[] = [];
@@ -362,11 +288,10 @@ export class DmDeployModal extends LitElement {
                                 </td>
                                 <td>${idx === 0 ? detail.deviceCount : ""}</td>
                                 <td>
-                                  <span style="display:block;font-size:13px;"
+                                  <span class="fw-name"
                                     >${deviceLabel(dev)}</span
                                   >
-                                  <span
-                                    style="display:block;font-family:monospace;font-size:11px;color:var(--dm-text-secondary);margin-top:2px;"
+                                  <span class="mac-label"
                                     >${dev.mac}</span
                                   >
                                 </td>
@@ -382,8 +307,7 @@ export class DmDeployModal extends LitElement {
                                   >
                                 </td>
                                 <td>0</td>
-                                <td
-                                  style="color:var(--dm-text-secondary);font-style:italic;"
+                                <td class="fw-empty-text"
                                 >
                                   —
                                 </td>

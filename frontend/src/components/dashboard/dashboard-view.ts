@@ -1,9 +1,10 @@
 /**
  * Dashboard view - overview with global statistics and charts.
  */
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { sharedStyles } from "../../styles/shared-styles";
+import sharedStyles from "../../styles/shared-styles.css?lit";
+import dashboardStyles from "./dashboard-styles.css?lit";
 import { i18n, localized } from "../../i18n";
 import { StatsClient } from "../../api/stats-client";
 import type {
@@ -30,299 +31,7 @@ interface DeploymentItem {
 @localized
 @customElement("dm-dashboard-view")
 export class DmDashboardView extends LitElement {
-  static styles = [
-    sharedStyles,
-    css`
-      :host {
-        display: block;
-      }
-
-      /* ── Page header ── */
-      .page-header {
-        margin-bottom: 28px;
-      }
-      .page-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--dm-text);
-        margin: 0 0 4px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .page-subtitle {
-        color: var(--dm-text-secondary);
-        font-size: 14px;
-        margin: 0;
-      }
-
-      /* ── KPI cards row ── */
-      .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 28px;
-      }
-      @media (max-width: 900px) {
-        .kpi-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      @media (max-width: 480px) {
-        .kpi-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .kpi-card {
-        background: var(--dm-card-bg);
-        border-radius: 12px;
-        box-shadow: var(--dm-shadow);
-        padding: 20px 24px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        transition:
-          transform 0.15s,
-          box-shadow 0.15s;
-        border-top: 4px solid transparent;
-        position: relative;
-        overflow: hidden;
-      }
-      .kpi-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        opacity: 0.06;
-        transform: translate(20px, -20px);
-      }
-      .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-      }
-      .kpi-card.blue {
-        border-top-color: #03a9f4;
-      }
-      .kpi-card.blue::before {
-        background: #03a9f4;
-      }
-      .kpi-card.teal {
-        border-top-color: #009688;
-      }
-      .kpi-card.teal::before {
-        background: #009688;
-      }
-      .kpi-card.purple {
-        border-top-color: #9c27b0;
-      }
-      .kpi-card.purple::before {
-        background: #9c27b0;
-      }
-      .kpi-card.orange {
-        border-top-color: #ff9800;
-      }
-      .kpi-card.orange::before {
-        background: #ff9800;
-      }
-
-      .kpi-icon {
-        font-size: 32px;
-        line-height: 1;
-        flex-shrink: 0;
-      }
-      .kpi-body {
-        min-width: 0;
-      }
-      .kpi-value {
-        font-size: 36px;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--dm-text);
-      }
-      .kpi-card.blue .kpi-value {
-        color: #03a9f4;
-      }
-      .kpi-card.teal .kpi-value {
-        color: #009688;
-      }
-      .kpi-card.purple .kpi-value {
-        color: #9c27b0;
-      }
-      .kpi-card.orange .kpi-value {
-        color: #ff9800;
-      }
-      .kpi-label {
-        font-size: 13px;
-        color: var(--dm-text-secondary);
-        margin-top: 4px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      /* ── Charts row ── */
-      .charts-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 28px;
-      }
-      @media (max-width: 768px) {
-        .charts-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .chart-card {
-        background: var(--dm-card-bg);
-        border-radius: 12px;
-        box-shadow: var(--dm-shadow);
-        padding: 20px 24px;
-      }
-      .chart-title {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--dm-text);
-        margin: 0 0 18px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--dm-border);
-      }
-
-      /* ── Bar chart ── */
-      .bar-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .bar-row {
-        display: grid;
-        grid-template-columns: 130px 1fr 40px;
-        align-items: center;
-        gap: 10px;
-      }
-      .bar-label {
-        font-size: 13px;
-        color: var(--dm-text);
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .bar-track {
-        height: 10px;
-        background: var(--dm-bg);
-        border-radius: 99px;
-        overflow: hidden;
-      }
-      .bar-fill {
-        height: 100%;
-        border-radius: 99px;
-        transition: width 0.5s ease;
-        min-width: 4px;
-      }
-      .bar-count {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--dm-text-secondary);
-        text-align: right;
-      }
-
-      /* ── Color palette for bars ── */
-      .color-0 {
-        background: #03a9f4;
-      }
-      .color-1 {
-        background: #9c27b0;
-      }
-      .color-2 {
-        background: #4caf50;
-      }
-      .color-3 {
-        background: #ff9800;
-      }
-      .color-4 {
-        background: #f44336;
-      }
-      .color-5 {
-        background: #009688;
-      }
-      .color-6 {
-        background: #3f51b5;
-      }
-      .color-7 {
-        background: #e91e63;
-      }
-      .color-8 {
-        background: #795548;
-      }
-      .color-9 {
-        background: #607d8b;
-      }
-
-      /* ── Empty / loading states ── */
-      .empty-chart {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 80px;
-        color: var(--dm-text-secondary);
-        font-size: 14px;
-      }
-      .loading-skeleton {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .skeleton-bar {
-        height: 10px;
-        background: linear-gradient(
-          90deg,
-          #eeeeee 25%,
-          #f5f5f5 50%,
-          #eeeeee 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-        border-radius: 99px;
-      }
-      .skeleton-kpi {
-        height: 36px;
-        width: 80px;
-        background: linear-gradient(
-          90deg,
-          #eeeeee 25%,
-          #f5f5f5 50%,
-          #eeeeee 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-        border-radius: 4px;
-      }
-      @keyframes shimmer {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
-      }
-
-      /* ── Footer note ── */
-      .refresh-hint {
-        text-align: right;
-        font-size: 12px;
-        color: var(--dm-text-secondary);
-        margin-top: -4px;
-      }
-    `,
-  ];
+  static styles = [sharedStyles, dashboardStyles];
 
   @state() private _loading = true;
   @state() private _totalBuildings = 0;
@@ -460,8 +169,7 @@ export class DmDashboardView extends LitElement {
                 ${hasMore
                   ? html`
                       <button
-                        class="btn btn-secondary"
-                        style="width: 100%; margin-top: 12px; font-size: 13px;"
+                        class="btn btn-secondary btn-show-more"
                         @click=${onToggle}
                       >
                         ${expanded
@@ -525,8 +233,7 @@ export class DmDashboardView extends LitElement {
                 ${hasMore
                   ? html`
                       <button
-                        class="btn btn-secondary"
-                        style="width: 100%; margin-top: 12px; font-size: 13px;"
+                        class="btn btn-secondary btn-show-more"
                         @click=${onToggle}
                       >
                         ${expanded
@@ -589,13 +296,13 @@ export class DmDashboardView extends LitElement {
       </div>
 
       <!-- Deployment Statistics -->
-      <div style="margin-top: 32px;">
-        <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px; color: var(--dm-text);">
+      <div class="deploy-section">
+        <h2 class="deploy-section-title">
           🚀 ${i18n.t("dashboard_deployment_title")}
         </h2>
 
         <!-- Deployment KPI Cards -->
-        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-grid kpi-grid--3">
           ${this._renderKpi(
             "📦",
             this._deploymentTotal,
@@ -617,7 +324,7 @@ export class DmDashboardView extends LitElement {
         </div>
 
         <!-- Deployment Charts -->
-        <div class="charts-grid" style="margin-top: 16px;">
+        <div class="charts-grid charts-grid--mt">
           ${this._renderDeploymentChart(
             i18n.t("dashboard_deployment_by_firmware"),
             "💾",
@@ -638,8 +345,7 @@ export class DmDashboardView extends LitElement {
       <p class="refresh-hint">
         ${i18n.t("dashboard_last_refresh")} ${now}
         <button
-          class="btn btn-secondary"
-          style="margin-left:8px;padding:4px 10px;font-size:12px;"
+          class="btn btn-secondary btn-refresh btn-sm"
           @click=${this._loadData}
         >
           ↻ ${i18n.t("dashboard_refresh")}

@@ -4,7 +4,7 @@ import logging
 
 from aiohttp import web
 
-from .base import BaseView
+from .base import BaseView, rate_limit, csrf_protect
 from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,8 +27,9 @@ class MaintenanceCleanDBAPIView(BaseView):
 
     url = "/api/device_manager/maintenance/clean-db"
     name = "api:device_manager:maintenance:clean_db"
-    requires_auth = True
 
+    @rate_limit(requests=3, window=60)
+    @csrf_protect
     async def post(self, request: web.Request) -> web.Response:
         """Delete all data from every managed table.
 
@@ -92,8 +93,9 @@ class MaintenanceClearIPCacheAPIView(BaseView):
 
     url = "/api/device_manager/maintenance/clear-ip-cache"
     name = "api:device_manager:maintenance:clear_ip_cache"
-    requires_auth = True
 
+    @rate_limit(requests=10, window=60)
+    @csrf_protect
     async def post(self, request: web.Request) -> web.Response:
         """Set ip = NULL for every row in dm_devices.
 
