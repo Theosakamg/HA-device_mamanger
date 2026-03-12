@@ -1,0 +1,37 @@
+name: Frontend Quality Check
+description: TypeScript quality checks (type-check, ESLint, Prettier) and build
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+        cache: "npm"
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Run TypeScript check
+      shell: bash
+      working-directory: ./frontend
+      run: npm run type-check
+
+    - name: Run ESLint
+      shell: bash
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: Run Prettier check
+      shell: bash
+      working-directory: ./frontend
+      run: npm run format:check
+
+    - name: Build
+      shell: bash
+      working-directory: ./frontend
+      run: npm run build

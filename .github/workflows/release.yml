@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Quality Gates ─────────────────────────────────────────────────────────
+
+  quality-backend:
+    name: Backend Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/quality-backend
+
+  quality-frontend:
+    name: Frontend Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/quality-frontend
+
+  # ── HACS Validation ────────────────────────────────────────────────────────
+
+  validate-hacs:
+    name: Validate HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+
+  # ── Build & Release ────────────────────────────────────────────────────────
+
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+    needs: [quality-backend, quality-frontend, validate-hacs]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Update manifest.json version
+        run: |
+          python3 - <<'EOF'
+          import json, pathlib
+          p = pathlib.Path("custom_components/device_manager/manifest.json")
+          data = json.loads(p.read_text())
+          data["version"] = "${{ steps.version.outputs.VERSION }}"
+          p.write_text(json.dumps(data, indent=2) + "\n")
+          EOF
+
+      - name: Update pyproject.toml version
+        run: |
+          sed -i 's/^version = ".*"/version = "${{ steps.version.outputs.VERSION }}"/' pyproject.toml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Copy compiled frontend into component
+        run: |
+          mkdir -p custom_components/device_manager/frontend/dist
+          cp frontend/dist/device-manager.js custom_components/device_manager/frontend/dist/
+
+      - name: Package release zip
+        run: |
+          cd custom_components
+          zip -r ../device_manager.zip device_manager/ \
+            --exclude "*/tests/*" \
+            --exclude "*/tests" \
+            --exclude "*/__pycache__/*" \
+            --exclude "*/__pycache__" \
+            --exclude "*.pyc" \
+            --exclude "*/run_tests.py" \
+            --exclude "*/.pytest_cache/*"
+
+      - name: Verify zip contents
+        run: |
+          echo "=== Zip contents ==="
+          unzip -l device_manager.zip
+          echo ""
+          echo "=== Frontend bundle present ==="
+          unzip -l device_manager.zip | grep device-manager.js
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            device_manager.zip \
+            --title "Release ${{ steps.version.outputs.VERSION }}" \
+            --generate-notes \
+            $( [[ "$GITHUB_REF_NAME" == *"-"* ]] && echo "--prerelease" || true )

@@ -1,0 +1,35 @@
+name: Backend Quality Check
+description: Python quality checks (Black, Ruff, MyPy) and test suite
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: "pip"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install black ruff mypy pytest pytest-asyncio pytest-cov aiosqlite
+
+    - name: Run Black
+      shell: bash
+      continue-on-error: true
+      run: black --check custom_components/
+
+    - name: Run Ruff
+      shell: bash
+      continue-on-error: true
+      run: ruff check custom_components/
+
+    - name: Run MyPy
+      shell: bash
+      run: python3 -m mypy custom_components/ --ignore-missing-imports
+
+    - name: Run Tests
+      shell: bash
+      run: python3 custom_components/device_manager/run_tests.py
