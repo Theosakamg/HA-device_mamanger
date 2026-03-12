@@ -12,8 +12,11 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 
 import yaml  # type: ignore[import-untyped]
+import threading
+import subprocess
+
+import paho.mqtt.client as mqtt_client
 from paho.mqtt.publish import single as mqtt_single
-from paho.mqtt.subscribe import simple as mqtt_simple
 
 from ..core.firmware_base import FirmwareAdapter
 from ..utility import get_config
@@ -103,33 +106,59 @@ class ZigbeeAdapter(FirmwareAdapter):
             raise
 
     def _mqtt_get(self, topic: str, timeout: int = 5):
-        """Subscribe to MQTT topic and get message.
+        """Subscribe to MQTT topic and get first message, with a real timeout.
 
         Args:
             topic: MQTT topic.
             timeout: Timeout in seconds.
 
         Returns:
-            Parsed JSON message or original message.
+            Parsed JSON message, raw string, or None on timeout/error.
         """
+        result = [None]
+        event = threading.Event()
+
+        def on_connect(client, userdata, flags, rc):
+            if rc == 0:
+                client.subscribe(topic)
+            else:
+                logger.error(f"MQTT connect failed (rc={rc}) for topic: {topic}")
+                event.set()
+
+        def on_message(client, userdata, message):
+            try:
+                result[0] = message.payload.decode('utf-8')
+            except Exception as decode_err:
+                logger.warning(f"Failed to decode MQTT payload: {decode_err}")
+            event.set()
+
         try:
             mqtt_params = self._get_mqtt_params()
-            message = mqtt_simple(
-                topic,
-                hostname=mqtt_params['hostname'],
-                port=mqtt_params['port'],
-                auth=mqtt_params['auth'],
-                msg_count=1,
-                keepalive=timeout
+            client = mqtt_client.Client()
+            client.username_pw_set(
+                mqtt_params['auth']['username'],
+                mqtt_params['auth']['password'],
             )
+            client.on_connect = on_connect
+            client.on_message = on_message
+            client.connect(
+                mqtt_params['hostname'],
+                mqtt_params['port'],
+                keepalive=60,
+            )
+            client.loop_start()
+            received = event.wait(timeout=timeout)
+            client.loop_stop()
+            client.disconnect()
 
-            payload = message.payload.decode('utf-8')
+            if not received or result[0] is None:
+                logger.warning(f"Timeout waiting for MQTT message on: {topic}")
+                return None
 
-            # Try to parse as JSON
             try:
-                return json.loads(payload)
+                return json.loads(result[0])
             except json.JSONDecodeError:
-                return payload
+                return result[0]
 
         except Exception as e:
             logger.error(f"Failed to receive MQTT message from {topic}: {e}")
@@ -143,6 +172,10 @@ class ZigbeeAdapter(FirmwareAdapter):
         """
         mqtt_prefix = self.manager.get_setting('mqtt_topic_prefix', 'home')
         state = self._mqtt_get(f"{mqtt_prefix}/bridge/state")
+
+        # Z2M v1 publishes a plain string; v2 publishes {"state": "online"}
+        if isinstance(state, dict):
+            return bool(state.get('state') == 'online')
         return bool(state == "online")
 
     def _get_zigbee_devices(self) -> Dict[str, Dict]:
@@ -306,25 +339,42 @@ class ZigbeeAdapter(FirmwareAdapter):
     def _upload_config_to_bridge(self) -> None:
         """Upload device configuration to Zigbee2MQTT bridge."""
         bridge_config_path = get_config('BRIDGE_DEVICES_CONFIG_PATH', None)
+        bridge_host = get_config('BRIDGE_HOST', None)
 
         if not bridge_config_path:
             logger.warning("BRIDGE_DEVICES_CONFIG_PATH not configured, skipping upload")
             return
 
-        try:
-            import shutil
-            shutil.copy(ZIGBEE_CONFIG_FILE, bridge_config_path)
-            logger.info(f"Uploaded configuration to bridge: {bridge_config_path}")
-        except Exception as e:
-            logger.error(f"Failed to upload configuration to bridge: {e}")
-            raise
+        if not bridge_host:
+            logger.warning("BRIDGE_HOST not configured, skipping upload")
+            return
+
+        ssh_key = get_config('SCAN_SCRIPT_PRIVATE_KEY_FILE', '')
+
+        cmd = ['scp']
+        if ssh_key:
+            cmd += ['-i', ssh_key]
+        cmd += ['-o', 'LogLevel=ERROR', '-o', 'StrictHostKeyChecking=no', '-o', 'UserKnownHostsFile=/dev/null']
+        cmd += [ZIGBEE_CONFIG_FILE, f'{bridge_host}:{bridge_config_path}']
+
+        result = subprocess.run(
+            ['bash', '-c', ' '.join(cmd)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        if result.returncode != 0:
+            stderr_output = result.stderr.decode('utf-8').strip()
+            logger.error(f"Failed to push config file (exit {result.returncode}): {stderr_output}")
+        else:
+            logger.info("Config file pushed successfully.")
 
     def _restart_bridge(self) -> None:
         """Restart Zigbee2MQTT bridge to apply configuration."""
         mqtt_prefix = self.manager.get_setting('mqtt_topic_prefix', 'home')
 
         try:
-            self._mqtt_publish(f"{mqtt_prefix}/bridge/request/restart", "")
+            self._mqtt_publish(f"{mqtt_prefix}/bridge/request/restart", "{}")
             logger.info("Sent restart request to Zigbee2MQTT bridge")
         except Exception as e:
             logger.error(f"Failed to restart bridge: {e}")
