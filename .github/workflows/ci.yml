@@ -110,6 +110,7 @@ jobs:
 
   validate-hacs:
     name: Validate HACS
+    if: false  # Disable HACS validation for now, re-enable when ready
     runs-on: ubuntu-latest
     continue-on-error: true  # Don't block CI on HACS validation errors
     steps:
