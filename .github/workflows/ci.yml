@@ -12,62 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install black ruff mypy pytest pytest-asyncio pytest-cov aiosqlite
-
-      - name: Run Black
-        continue-on-error: true
-        run: black --check custom_components/
-
-      - name: Run Ruff
-        continue-on-error: true
-        run: ruff check custom_components/
-
-      - name: Run MyPy
-        run: python3 -m mypy custom_components/ --ignore-missing-imports
-
-      - name: Run Tests
-        run: python3 custom_components/device_manager/run_tests.py
+      - uses: ./.github/actions/quality-backend
 
   quality-frontend:
     name: Frontend Quality Check
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run TypeScript check
-        run: npm run type-check
-
-      - name: Run ESLint
-        run: npm run lint
-
-      - name: Run Prettier check
-        run: npm run format:check
-
-      - name: Build
-        run: npm run build
+      - uses: ./.github/actions/quality-frontend
 
   build:
     name: Build Component
@@ -110,9 +62,8 @@ jobs:
 
   validate-hacs:
     name: Validate HACS
-    if: false  # Disable HACS validation for now, re-enable when ready
     runs-on: ubuntu-latest
-    continue-on-error: true  # Don't block CI on HACS validation errors
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
