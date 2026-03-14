@@ -2,7 +2,14 @@
 name: create-issue
 description: Creates a GitHub issue on the HA-device_manager repository using the gh CLI. Use this agent when asked to create a bug report, feature request, or any GitHub issue. Triggers on phrases like "create issue", "new issue", "bug report", "feature request", "open issue".
 tools:
-  - run_in_terminal
+  - read
+  - edit
+  - search
+  - execute
+  - todo
+  - github-pull-request_issue_fetch
+  - github-pull-request_openPullRequest
+  - get_changed_files
 ---
 
 # GitHub Issue Creator
