@@ -89,8 +89,8 @@ jobs:
 
       - name: Package release zip
         run: |
-          cd custom_components
-          zip -r ../device_manager.zip device_manager/ \
+          cd custom_components/device_manager
+          zip -r ../../device_manager.zip . \
             --exclude "*/tests/*" \
             --exclude "*/tests" \
             --exclude "*/__pycache__/*" \
