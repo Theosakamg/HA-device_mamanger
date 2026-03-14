@@ -66,7 +66,10 @@ export class DmSystemView extends LitElement {
   @state() private _dbExporting = false;
   @state() private _dbExportError: string | null = null;
   @state() private _dbImporting = false;
-  @state() private _dbImportResult: { success: boolean; backup: string } | null = null;
+  @state() private _dbImportResult: {
+    success: boolean;
+    backup: string;
+  } | null = null;
   @state() private _dbImportError: string | null = null;
 
   // ── Settings state ──
@@ -215,7 +218,9 @@ export class DmSystemView extends LitElement {
             ?disabled=${this._dbExporting}
             @click=${this._exportDatabase}
           >
-            ${this._dbExporting ? i18n.t("db_exporting") : i18n.t("db_export_btn")}
+            ${this._dbExporting
+              ? i18n.t("db_exporting")
+              : i18n.t("db_export_btn")}
           </button>
 
           <!-- Import button (triggers hidden file input) -->
@@ -224,7 +229,9 @@ export class DmSystemView extends LitElement {
             ?disabled=${this._dbImporting}
             @click=${this._openDBFilePicker}
           >
-            ${this._dbImporting ? i18n.t("db_importing") : i18n.t("db_import_btn")}
+            ${this._dbImporting
+              ? i18n.t("db_importing")
+              : i18n.t("db_import_btn")}
           </button>
 
           <input
@@ -241,14 +248,12 @@ export class DmSystemView extends LitElement {
               <p>❌ ${this._dbExportError}</p>
             </div>`
           : nothing}
-
         ${this._dbImportResult
           ? html`<div class="result-panel success" style="margin-top:12px">
               <p>✅ ${i18n.t("db_import_success")}</p>
               <code>${this._dbImportResult.backup}</code>
             </div>`
           : nothing}
-
         ${this._dbImportError
           ? html`<div class="result-panel error" style="margin-top:12px">
               <p>❌ ${i18n.t("db_import_error")} ${this._dbImportError}</p>
@@ -936,8 +941,6 @@ export class DmSystemView extends LitElement {
     this._dbImporting = false;
     input.value = "";
   }
-
-
 
   private async _loadSettings() {
     try {

@@ -108,7 +108,12 @@ export class MaintenanceClient extends BaseClient {
   }
 
   /** Replace the database with an uploaded SQLite file. */
-  async importDatabase(file: File): Promise<{ success: boolean; backup: string }> {
-    return this.upload<{ success: boolean; backup: string }>("/import/db", file);
+  async importDatabase(
+    file: File
+  ): Promise<{ success: boolean; backup: string }> {
+    return this.upload<{ success: boolean; backup: string }>(
+      "/import/db",
+      file
+    );
   }
 }
