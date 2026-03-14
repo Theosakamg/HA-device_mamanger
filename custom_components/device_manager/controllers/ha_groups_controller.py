@@ -262,10 +262,14 @@ class HaGroupsGenerateAPIView(BaseView):
             buildings = await repos["building"].find_all()
             _LOGGER.info("[phase1] %d building(s) found", len(buildings))
 
+            settings_all = await repos["settings"].get_all()
+            allow_empty = settings_all.get("ha_groups_empty_groups", "false") == "true"
+            _LOGGER.debug("[phase1] allow_empty=%s", allow_empty)
+
             # Phase 1: collect all group definitions using HA registries
             all_groups: list[dict] = []
             for building in buildings:
-                await self._collect_building(hass, repos, building.id, all_groups)
+                await self._collect_building(hass, repos, building.id, all_groups, allow_empty)
             _LOGGER.info("[phase1] %d group(s) collected total", len(all_groups))
 
             # Phase 2: remove all existing typed group config entries (clean slate)
@@ -339,7 +343,7 @@ class HaGroupsGenerateAPIView(BaseView):
     # Collection helpers — build all_groups list without creating entities yet
     # ------------------------------------------------------------------
 
-    async def _collect_room(self, hass: Any, repos: dict, room_id: int, all_groups: list[dict]) -> list[dict]:
+    async def _collect_room(self, hass: Any, repos: dict, room_id: int, all_groups: list[dict], allow_empty: bool = False) -> list[dict]:
         """Collect room-level group definitions.
 
         Member entity IDs are resolved from the HA registries (by device MAC)
@@ -383,8 +387,10 @@ class HaGroupsGenerateAPIView(BaseView):
                     )
 
             if not members:
-                _LOGGER.debug("[room:%s] fn=%s → skipped (no members resolved)", room.slug, fn_name)
-                continue
+                if not allow_empty:
+                    _LOGGER.debug("[room:%s] fn=%s → skipped (no members resolved)", room.slug, fn_name)
+                    continue
+                _LOGGER.debug("[room:%s] fn=%s → creating empty group (allow_empty=True)", room.slug, fn_name)
 
             object_id = _group_object_id(building_slug, floor_slug, room.slug, plural)
             pretty_name = f"{building_name} > {floor_name} > {room.name} > {plural.capitalize()}"
@@ -409,7 +415,7 @@ class HaGroupsGenerateAPIView(BaseView):
 
         return added
 
-    async def _collect_floor(self, hass: Any, repos: dict, floor_id: int, all_groups: list[dict]) -> list[dict]:
+    async def _collect_floor(self, hass: Any, repos: dict, floor_id: int, all_groups: list[dict], allow_empty: bool = False) -> list[dict]:
         floor = await repos["floor"].find_by_id(floor_id)
         if floor is None:
             return []
@@ -417,7 +423,7 @@ class HaGroupsGenerateAPIView(BaseView):
         rooms = await repos["room"].find_by_floor(floor_id)
         room_entries: list[dict] = []
         for room in rooms:
-            room_entries.extend(await self._collect_room(hass, repos, room.id, all_groups))
+            room_entries.extend(await self._collect_room(hass, repos, room.id, all_groups, allow_empty))
 
         # Group room entries by (domain, plural)
         fn_to_rooms: dict[tuple, list[str]] = {}
@@ -453,7 +459,7 @@ class HaGroupsGenerateAPIView(BaseView):
 
         return added
 
-    async def _collect_building(self, hass: Any, repos: dict, building_id: int, all_groups: list[dict]) -> list[dict]:
+    async def _collect_building(self, hass: Any, repos: dict, building_id: int, all_groups: list[dict], allow_empty: bool = False) -> list[dict]:
         building = await repos["building"].find_by_id(building_id)
         if building is None:
             return []
@@ -461,7 +467,7 @@ class HaGroupsGenerateAPIView(BaseView):
         floors = await repos["floor"].find_by_building(building_id)
         floor_entries: list[dict] = []
         for floor in floors:
-            floor_entries.extend(await self._collect_floor(hass, repos, floor.id, all_groups))
+            floor_entries.extend(await self._collect_floor(hass, repos, floor.id, all_groups, allow_empty))
 
         fn_to_floors: dict[tuple, list[str]] = {}
         for g in floor_entries:
