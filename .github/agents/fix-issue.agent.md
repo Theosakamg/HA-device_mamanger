@@ -2,11 +2,20 @@
 name: fix-issue
 description: "Full issue-to-PR workflow agent. Use when asked to fix, implement, or resolve a GitHub issue by number. Triggers on: 'fix issue', 'resolve issue #N', 'implement issue', 'work on issue'."
 tools:
-  - run_in_terminal
   - read
   - edit
   - search
   - todo
+  - read
+  - edit
+  - search
+  - execute
+  - todo
+  - vscode/runCommand
+  - run_vscode_command
+  - github-pull-request_issue_fetch
+  - github-pull-request_openPullRequest
+  - get_changed_files
 argument-hint: "Issue number (e.g. 42)"
 ---
 
