@@ -6,6 +6,7 @@ Entity-specific controllers only declare configuration attributes.
 """
 
 import logging
+import re
 from typing import Any, Callable, Optional
 
 from aiohttp import web
@@ -24,6 +25,14 @@ _LOG_SENSITIVE_FIELDS = frozenset({"password", "login"})
 
 # Automatic timestamp fields that are never meaningful in diffs.
 _LOG_SKIP_FIELDS = frozenset({"created_at", "updated_at"})
+
+# Characters that have special meaning in Markdown and must be escaped in
+# user-supplied strings before they are embedded in log messages.
+_MD_ESCAPE_RE = re.compile(r'([\\`*_{}\[\]()#+\-\.!|"<>])')
+def _escape_md(text: str) -> str:
+    """Escape Markdown special characters in *text* to prevent formatting issues."""
+    return _MD_ESCAPE_RE.sub(r'\\\1', text)
+
 
 # Map FK field names → repository key used to resolve the referenced entity.
 _FK_REPO_MAP: dict[str, str] = {
@@ -63,7 +72,9 @@ async def _resolve_fk_label(field: str, raw_id: Any, repos: dict) -> str:
             or getattr(entity, "slug", None)
             or str(raw_id)
         )
-    return f'"{name}" ({raw_id})'
+    # Escape Markdown metacharacters to prevent formatting breakage or injection.
+    safe_name = _escape_md(str(name))
+    return f'"{safe_name}" ({raw_id})'
 
 
 async def _entity_label_for_log(repo_key: str, entity: Any, repos: dict) -> str:
@@ -123,7 +134,7 @@ async def _build_update_diff(
 
     Compares *before* vs *after* (both snake_case dicts) and lists every
     changed field as ``- **field**: `old` → `new```.  Sensitive fields are
-    masked.  FK fields (ending with ``_id``) are resolved to their entity
+    masked.  FK fields listed in ``_FK_REPO_MAP`` are resolved to their entity
     display name alongside the raw ID.  Returns the header line alone when
     nothing changed.
     """

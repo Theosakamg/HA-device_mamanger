@@ -317,6 +317,7 @@ def run():
         ("resolve FK: entity found (name)", _fk_inst.test_entity_found_with_name),
         ("resolve FK: entity found (display_name)", _fk_inst.test_entity_found_with_display_name),
         ("resolve FK: repo raises", _fk_inst.test_repo_raises_returns_raw),
+        ("resolve FK: markdown chars escaped", _fk_inst.test_entity_name_with_markdown_chars_is_escaped),
         ("diff FK field shows entity names", _diff_inst.test_fk_field_shows_entity_names),
         ("diff non-FK field shows raw", _diff_inst.test_non_fk_field_shows_raw),
         ("diff sensitive field masked", _diff_inst.test_sensitive_field_is_masked),

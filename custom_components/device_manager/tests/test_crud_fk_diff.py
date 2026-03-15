@@ -92,6 +92,7 @@ spec.loader.exec_module(crud_mod)  # type: ignore[union-attr]
 
 _build_update_diff = crud_mod._build_update_diff
 _resolve_fk_label = crud_mod._resolve_fk_label
+_escape_md = crud_mod._escape_md
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +175,20 @@ class TestResolveFkLabel:
         repos = {"room": types.SimpleNamespace(find_by_id=_broken)}
         result = run(_resolve_fk_label("room_id", 3, repos))
         assert result == "`3`"
+
+    def test_entity_name_with_markdown_chars_is_escaped(self):
+        room = _make_room(7, "Living*Room_[Main]")
+
+        async def _find(eid):
+            return room if eid == 7 else None
+
+        repos = {"room": types.SimpleNamespace(find_by_id=_find)}
+        result = run(_resolve_fk_label("room_id", 7, repos))
+        # The name portion (between the outer quotes) must have escaped metacharacters
+        safe_name = result.split('"')[1]
+        assert "\\*" in safe_name, "asterisk must be escaped"
+        assert "\\_" in safe_name, "underscore must be escaped"
+        assert "(7)" in result, "raw_id must be preserved unescaped"
 
 
 # ---------------------------------------------------------------------------
