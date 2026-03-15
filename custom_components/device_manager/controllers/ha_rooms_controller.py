@@ -2,10 +2,16 @@
 
 Synchronizes Device Manager rooms to the Home Assistant native area registry.
 
-Each DmRoom becomes an HA area with:
-- name      = "{building.name} - {floor.name} - {room.name}"
-- floor_id  = the HA floor that was previously synced for the parent DmFloor
-              (looked up by name "{building.name} - {floor.name}")
+For each DmRoom, an HA area is created or updated with:
+- area.id   = slugified full path "{building} - {floor} - {room}" (stable,
+              collision-free; derived via HA slugify when available, regex
+              fallback otherwise).
+- area.name = room.name only (unique rooms) or "{room} - {floor}" when the
+              same room name appears in multiple floors, to satisfy HA's
+              global display-name uniqueness constraint.
+- floor_id  = HA floor ID previously synced for the parent DmFloor
+              (looked up by name "{building} - {floor}"). Omitted when the
+              HA floor has not been synced yet — run "Sync HA Floors" first.
 
 The synchronization is atomic: if any area fails, all previously applied
 changes are rolled back before returning an error.
@@ -19,6 +25,7 @@ Prerequisites:
 
 import logging
 import re
+from collections import Counter
 from typing import Any
 
 from aiohttp import web
@@ -28,15 +35,32 @@ from .base import BaseView, get_repos, csrf_protect
 _LOGGER = logging.getLogger(__name__)
 
 
+def _slugify(text: str) -> str:
+    """Slugify a string using HA's own utility when available, regex fallback.
+
+    HA's ``homeassistant.util.slugify`` handles non-ASCII characters (accents,
+    etc.) via ``unicodedata.normalize`` before slugifying, which is required to
+    match the area IDs that HA generates internally.  The regex fallback is
+    kept for environments where HA utilities cannot be imported (e.g. tests).
+    """
+    try:
+        from homeassistant.util import slugify  # type: ignore[import]
+        return str(slugify(text, separator="_"))
+    except Exception:
+        return re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+
+
 def _compute_area_id(building_name: str, floor_name: str, room_name: str) -> str:
     """Compute the stable HA area ID from the full hierarchy path.
 
-    Mirrors HA's internal ``_generate_id`` / ``util.slugify`` logic so that the
-    area ID is predictable and stable across re-syncs even after the display
-    name has been updated to just the room name.
+    Uses HA's own slugify (with regex fallback) so that the area ID matches
+    what HA generates internally, including correct handling of non-ASCII
+    characters (accents, etc.).  The ID is derived from the full path
+    ``{building} - {floor} - {room}`` to be globally unique and stable across
+    re-syncs, even after the display name has been updated.
     """
     full_name = f"{building_name} - {floor_name} - {room_name}"
-    return re.sub(r"[^a-z0-9]+", "_", full_name.lower()).strip("_")
+    return _slugify(full_name)
 
 
 async def _get_area_registry(hass: Any) -> Any | None:
@@ -112,9 +136,11 @@ class HaRoomsSyncAPIView(BaseView):
                     all_room_names.extend(r.name for r in rooms)
                 building_data.append((building, floor_data))
 
-            # Room names that appear more than once across the full dataset
+            # Room names that appear more than once across the full dataset.
+            # Use Counter for O(n) detection instead of O(n²) list.count().
+            name_counts: Counter[str] = Counter(all_room_names)
             duplicate_names: set[str] = {
-                name for name in all_room_names if all_room_names.count(name) > 1
+                name for name, count in name_counts.items() if count > 1
             }
             if duplicate_names:
                 _LOGGER.info(
@@ -171,11 +197,12 @@ class HaRoomsSyncAPIView(BaseView):
 
                             if existing is not None:
                                 ha_area_id = existing.id
-                                area_reg.async_update(
-                                    ha_area_id,
-                                    name=ha_friendly_name,
-                                    floor_id=ha_floor_id,
-                                )
+                                # Only pass floor_id when resolved — passing None
+                                # would clear an existing floor assignment.
+                                update_kwargs: dict[str, Any] = {"name": ha_friendly_name}
+                                if ha_floor_id is not None:
+                                    update_kwargs["floor_id"] = ha_floor_id
+                                area_reg.async_update(ha_area_id, **update_kwargs)
                                 applied.append(("update", ha_area_id, existing))
                                 _LOGGER.info(
                                     "[ha_rooms] ✓ updated '%s' (id=%s floor_id=%s)",
@@ -185,9 +212,12 @@ class HaRoomsSyncAPIView(BaseView):
                                 # Create with unique full-path name to generate a
                                 # stable, collision-free area ID, then immediately
                                 # update the display name.
+                                create_kwargs: dict[str, Any] = {}
+                                if ha_floor_id is not None:
+                                    create_kwargs["floor_id"] = ha_floor_id
                                 entry = area_reg.async_create(
                                     ha_area_full_name,
-                                    floor_id=ha_floor_id,
+                                    **create_kwargs,
                                 )
                                 ha_area_id = entry.id
                                 # Track create before the name-update so rollback

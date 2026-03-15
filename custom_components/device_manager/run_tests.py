@@ -280,6 +280,7 @@ def run():
         ("rollback skips update without original", test_ha_rooms.test_rollback_skips_update_without_original),
         ("rollback multiple rooms reversed", test_ha_rooms.test_rollback_multiple_rooms_reversed),
         ("compute_area_id basic", test_ha_rooms.test_compute_area_id_basic),
+        ("slugify fallback ascii", test_ha_rooms.test_slugify_fallback_ascii),
         ("compute_area_id special chars", test_ha_rooms.test_compute_area_id_special_chars),
         ("registry create then update name keeps id", test_ha_rooms.test_registry_create_then_update_name_keeps_id),
         ("compute_area_id matches registry create id", test_ha_rooms.test_compute_area_id_matches_registry_create_id),

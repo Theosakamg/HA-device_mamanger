@@ -733,7 +733,8 @@ const translations: { [lang: string]: Translations } = {
     ha_floors_sync_success:
       "{count} étage(s) synchronisé(s) dans Home Assistant",
     ha_floors_sync_none: "Aucun étage à synchroniser",
-    ha_floors_sync_error: "Impossible de synchroniser les étages HA", // HA Rooms
+    ha_floors_sync_error: "Impossible de synchroniser les étages HA",
+    // HA Rooms
     ha_rooms_sync: "Synchroniser les pièces HA",
     ha_rooms_syncing: "Synchronisation des pièces\u2026",
     ha_rooms_sync_success:
