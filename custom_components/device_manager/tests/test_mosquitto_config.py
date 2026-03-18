@@ -38,6 +38,7 @@ _base_stub.emit_activity_log = lambda *a, **kw: None  # type: ignore[attr-define
 
 _const_stub = types.ModuleType("custom_components.device_manager.const")
 _const_stub.DOMAIN = "device_manager"  # type: ignore[attr-defined]
+_const_stub.DATA_KEY_DB = "db"  # type: ignore[attr-defined]
 _const_stub.SETTING_MQTT_PREFIX = "mqtt_topic_prefix"  # type: ignore[attr-defined]
 _const_stub.SETTING_BUS_USERNAME = "bus_username"  # type: ignore[attr-defined]
 _const_stub.SETTING_BUS_PASSWORD = "bus_password"  # type: ignore[attr-defined]

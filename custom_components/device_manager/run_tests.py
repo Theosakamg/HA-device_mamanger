@@ -33,6 +33,7 @@ test_ha_floors = load_test_module('test_ha_floors')
 test_ha_rooms = load_test_module('test_ha_rooms')
 test_crud_fk_diff = load_test_module('test_crud_fk_diff')
 test_mosquitto_config = load_test_module('test_mosquitto_config')
+test_init_unload = load_test_module('test_init_unload')
 
 # Import test functions from test_device
 test_compute_derived_fields_from_fixtures = (
@@ -361,6 +362,32 @@ def run():
     for test_name, test_func in mosquitto_tests:
         total_tests += 1
         try:
+            test_func()
+            print(f'  ✓ {test_name}')
+        except AssertionError as e:
+            failures += 1
+            print(f'  ✗ {test_name}')
+            print(f'    {e}')
+        except Exception as e:
+            failures += 1
+            print(f'  ✗ {test_name} (ERROR)')
+            print(f'    {type(e).__name__}: {e}')
+
+    # __init__.py unload tests
+    print("\n🔌 Integration Unload Tests")
+    _unload_inst = test_init_unload.TestAsyncUnloadEntry()
+    _unload_inst.setUp()
+    init_unload_tests = [
+        ("async_remove_panel called on unload", _unload_inst.test_async_remove_panel_called_on_unload),
+        ("db closed on unload", _unload_inst.test_db_closed_on_unload),
+        ("hass.data cleared on unload", _unload_inst.test_hass_data_cleared_on_unload),
+        ("unload returns True", _unload_inst.test_unload_returns_true),
+    ]
+
+    for test_name, test_func in init_unload_tests:
+        total_tests += 1
+        try:
+            _unload_inst.setUp()
             test_func()
             print(f'  ✓ {test_name}')
         except AssertionError as e:

@@ -9,7 +9,7 @@ from aiohttp import web
 from aiohttp.web_request import FileField
 
 from .base import BaseView, rate_limit, csrf_protect
-from ..const import DOMAIN
+from ..const import DATA_KEY_DB, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class SQLiteExportAPIView(BaseView):
         """
         try:
             hass = request.app["hass"]
-            db_manager = hass.data[DOMAIN]["db"]
+            db_manager = hass.data[DOMAIN][DATA_KEY_DB]
             db_path = db_manager.db_path
 
             # Flush all pending WAL frames to the main file so the snapshot is
@@ -98,7 +98,7 @@ class SQLiteImportAPIView(BaseView):
         """
         try:
             hass = request.app["hass"]
-            db_manager = hass.data[DOMAIN]["db"]
+            db_manager = hass.data[DOMAIN][DATA_KEY_DB]
             db_path = db_manager.db_path
 
             post = await request.post()
@@ -160,7 +160,7 @@ class SQLiteImportAPIView(BaseView):
             # Best-effort: try to re-initialize the connection if it was closed.
             try:
                 hass = request.app["hass"]
-                await hass.data[DOMAIN]["db"].initialize()
+                await hass.data[DOMAIN][DATA_KEY_DB].initialize()
             except Exception:
                 pass
             return self.json(
