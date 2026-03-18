@@ -5,6 +5,7 @@ from pathlib import Path
 
 from aiohttp import web
 
+from ..const import STATIC_URL_BASE
 from .base import BaseView
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ _DIST_DIR = (_COMPONENT_PATH / "frontend" / "dist").resolve()
 class StaticView(BaseView):
     """Serve static frontend files from the dist directory."""
 
-    url = "/device_manager_static/{filename}"
+    url = STATIC_URL_BASE + "/{filename}"
     name = "api:device_manager:static"
     requires_auth = False
 

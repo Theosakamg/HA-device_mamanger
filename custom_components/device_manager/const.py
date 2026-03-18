@@ -3,6 +3,18 @@
 DOMAIN = "device_manager"
 DB_NAME = "dm/device_manager.db"
 
+# Keys used in hass.data[DOMAIN]
+DATA_KEY_DB = "db"
+DATA_KEY_REPOS = "repos"
+
+# Frontend / static assets
+STATIC_URL_BASE = "/device_manager_static"
+FRONTEND_JS_FILENAME = "device-manager.js"
+PANEL_COMPONENT_NAME = "dm-app-shell"
+
+# Encryption key file stored in the dm/ subfolder
+CRYPTO_KEY_FILENAME = "dm/.device_manager.key"
+
 # Table names
 TABLE_BUILDINGS = "dm_buildings"
 TABLE_FLOORS = "dm_floors"

@@ -10,7 +10,7 @@ from typing import Any
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 
-from ..const import DOMAIN
+from ..const import DATA_KEY_DB, DATA_KEY_REPOS, DOMAIN
 from ..utils.case_convert import to_camel_case_dict, to_snake_case_dict
 
 _LOGGER = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def get_repos(request: web.Request) -> dict[str, Any]:
     ``hass.data[DOMAIN]`` directly.
     """
     hass = request.app["hass"]
-    repos: dict[str, Any] = hass.data[DOMAIN]["repos"]
+    repos: dict[str, Any] = hass.data[DOMAIN][DATA_KEY_REPOS]
     return repos
 
 
@@ -130,7 +130,7 @@ def get_db_path(request: web.Request):
     any dependency on the HA event loop or the shared DatabaseManager.
     """
     hass = request.app["hass"]
-    return hass.data[DOMAIN]["db"].db_path
+    return hass.data[DOMAIN][DATA_KEY_DB].db_path
 
 
 def get_request_user(request: web.Request) -> str:

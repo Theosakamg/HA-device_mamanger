@@ -8,7 +8,16 @@ from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DB_NAME, DOMAIN
+from .const import (
+    CRYPTO_KEY_FILENAME,
+    DATA_KEY_DB,
+    DATA_KEY_REPOS,
+    DB_NAME,
+    DOMAIN,
+    FRONTEND_JS_FILENAME,
+    PANEL_COMPONENT_NAME,
+    STATIC_URL_BASE,
+)
 from .controllers import ALL_VIEWS
 from .repositories import (
     BuildingRepository,
@@ -70,10 +79,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     db_path = Path(hass.config.config_dir) / DB_NAME
     db_manager = DatabaseManager(db_path)
     await db_manager.initialize()
-    hass.data[DOMAIN]["db"] = db_manager
+    hass.data[DOMAIN][DATA_KEY_DB] = db_manager
 
     # Load or generate symmetric encryption key (stored next to the DB)
-    key_path = Path(hass.config.config_dir) / ".device_manager.key"
+    key_path = Path(hass.config.config_dir) / CRYPTO_KEY_FILENAME
     crypto_key = await hass.async_add_executor_job(_load_or_create_key, key_path)
     _LOGGER.debug("Encryption key ready (path: %s)", key_path)
 
@@ -89,7 +98,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "settings": SettingsRepository(db_manager),
         "activity_log": ActivityLogRepository(db_manager),
     }
-    hass.data[DOMAIN]["repos"] = repos
+    hass.data[DOMAIN][DATA_KEY_REPOS] = repos
 
     # Register all API views
     for view_class in ALL_VIEWS:
@@ -104,8 +113,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         frontend_url_path="device_manager",
         config={
             "_panel_custom": {
-                "name": "dm-app-shell",
-                "module_url": "/device_manager_static/device-manager.js",
+                "name": PANEL_COMPONENT_NAME,
+                "module_url": f"{STATIC_URL_BASE}/{FRONTEND_JS_FILENAME}",
             }
         },
         require_admin=False,
@@ -118,8 +127,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.info("Unloading Device Manager config entry")
+    # Remove the sidebar panel so it can be re-registered on reload
+    frontend.async_remove_panel(hass, "device_manager")
     # Close database connection
-    db_manager = hass.data.get(DOMAIN, {}).get("db")
+    db_manager = hass.data.get(DOMAIN, {}).get(DATA_KEY_DB)
     if db_manager:
         await db_manager.close()
     hass.data.pop(DOMAIN, None)

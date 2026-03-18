@@ -49,7 +49,7 @@ When asked to create a GitHub issue:
 <logs, version, environment info if relevant>
 ```
 
-Labels: `bug`, `triage`
+Labels: `bug`
 
 ### Feature Request
 

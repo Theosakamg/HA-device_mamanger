@@ -7,7 +7,7 @@ import zipfile
 from aiohttp import web
 
 from .base import BaseView, rate_limit, csrf_protect, get_repos, emit_activity_log
-from ..const import DOMAIN, SETTING_MQTT_PREFIX, SETTING_BUS_USERNAME, SETTING_BUS_PASSWORD
+from ..const import DATA_KEY_DB, DOMAIN, SETTING_MQTT_PREFIX, SETTING_BUS_USERNAME, SETTING_BUS_PASSWORD
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ class MaintenanceCleanDBAPIView(BaseView):
 
         try:
             hass = request.app["hass"]
-            db_mgr = hass.data[DOMAIN]["db"]
+            db_mgr = hass.data[DOMAIN][DATA_KEY_DB]
             conn = await db_mgr.get_connection()
 
             # Delete in order respecting FK constraints
@@ -180,7 +180,7 @@ class MaintenanceClearIPCacheAPIView(BaseView):
         """
         try:
             hass = request.app["hass"]
-            db_mgr = hass.data[DOMAIN]["db"]
+            db_mgr = hass.data[DOMAIN][DATA_KEY_DB]
             conn = await db_mgr.get_connection()
 
             cursor = await conn.execute(
