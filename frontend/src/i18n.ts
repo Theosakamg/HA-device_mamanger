@@ -310,6 +310,7 @@ const translations: { [lang: string]: Translations } = {
       "Generate Mosquitto broker configuration files (passwd, acl, mosquitto.conf) based on the current hierarchy.",
     maint_mqtt_config_generating: "Generating...",
     maint_mqtt_config_success: "Mosquitto config generated and downloaded",
+    maint_mqtt_config_save_first: "Save settings before generating the config.",
 
     // Common
     name: "Name",
@@ -718,6 +719,8 @@ const translations: { [lang: string]: Translations } = {
       "Génère les fichiers de configuration Mosquitto (passwd, acl, mosquitto.conf) basés sur la hiérarchie actuelle.",
     maint_mqtt_config_generating: "Génération en cours...",
     maint_mqtt_config_success: "Config Mosquitto générée et téléchargée",
+    maint_mqtt_config_save_first:
+      "Enregistrez les paramètres avant de générer la config.",
 
     // Common
     name: "Nom",

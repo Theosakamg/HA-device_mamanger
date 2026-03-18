@@ -1,94 +1,65 @@
-"""Tests for the Mosquitto config generation logic."""
+"""Tests for the Mosquitto config generation logic.
 
-import asyncio
+These tests import ``generate_mosquitto_files`` directly from the
+production controller so they exercise the real code path instead of
+a local copy.
+"""
+
 import importlib.util
 import io
 import sys
 import types
 import zipfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 # ---------------------------------------------------------------------------
-# Bootstrap: load modules without importing the full HA package
+# Bootstrap: load maintenance_controller without importing the full HA package
 # ---------------------------------------------------------------------------
 
 base_dir = Path(__file__).resolve().parents[1]
 
-# Minimal stub for homeassistant so controllers can be imported
-ha_stub = types.ModuleType("homeassistant")
-ha_components = types.ModuleType("homeassistant.components")
-ha_http = types.ModuleType("homeassistant.components.http")
-ha_http.HomeAssistantView = object  # type: ignore[attr-defined]
-sys.modules.setdefault("homeassistant", ha_stub)
-sys.modules.setdefault("homeassistant.components", ha_components)
-sys.modules.setdefault("homeassistant.components.http", ha_http)
+_ha_http = types.ModuleType("homeassistant.components.http")
+_ha_http.HomeAssistantView = object  # type: ignore[attr-defined]
+for _mod_name, _mod in [
+    ("homeassistant", types.ModuleType("homeassistant")),
+    ("homeassistant.components", types.ModuleType("homeassistant.components")),
+    ("homeassistant.components.http", _ha_http),
+    ("aiohttp", types.ModuleType("aiohttp")),
+    ("aiohttp.web", types.ModuleType("aiohttp.web")),
+]:
+    sys.modules.setdefault(_mod_name, _mod)  # type: ignore[arg-type]
 
-# Minimal stubs for aiohttp
-aiohttp_stub = types.ModuleType("aiohttp")
-aiohttp_web_stub = types.ModuleType("aiohttp.web")
+_base_stub = types.ModuleType("custom_components.device_manager.controllers.base")
+_base_stub.BaseView = object  # type: ignore[attr-defined]
+_base_stub.rate_limit = lambda **_kw: (lambda f: f)  # type: ignore[attr-defined]
+_base_stub.csrf_protect = lambda f: f  # type: ignore[attr-defined]
+_base_stub.get_repos = lambda r: {}  # type: ignore[attr-defined]
+_base_stub.emit_activity_log = lambda *a, **kw: None  # type: ignore[attr-defined]
 
+_const_stub = types.ModuleType("custom_components.device_manager.const")
+_const_stub.DOMAIN = "device_manager"  # type: ignore[attr-defined]
+_const_stub.SETTING_MQTT_PREFIX = "mqtt_topic_prefix"  # type: ignore[attr-defined]
+_const_stub.SETTING_BUS_USERNAME = "bus_username"  # type: ignore[attr-defined]
+_const_stub.SETTING_BUS_PASSWORD = "bus_password"  # type: ignore[attr-defined]
 
-class _FakeRequest:
-    """Minimal aiohttp Request stub."""
+for _mod_name, _mod in [
+    ("custom_components", types.ModuleType("custom_components")),
+    ("custom_components.device_manager", types.ModuleType("custom_components.device_manager")),
+    ("custom_components.device_manager.controllers", types.ModuleType("custom_components.device_manager.controllers")),
+    ("custom_components.device_manager.controllers.base", _base_stub),
+    ("custom_components.device_manager.const", _const_stub),
+]:
+    sys.modules.setdefault(_mod_name, _mod)  # type: ignore[arg-type]
 
-    def __init__(self, hass_data: dict):
-        self.app = {"hass": MagicMock(data=hass_data)}
-        self.remote = "127.0.0.1"
-        self.headers: dict[str, str] = {}
+_ctrl_path = base_dir / "controllers" / "maintenance_controller.py"
+_spec = importlib.util.spec_from_file_location("maintenance_controller", str(_ctrl_path))
+assert _spec and _spec.loader
+_ctrl_module = importlib.util.module_from_spec(_spec)
+_ctrl_module.__package__ = "custom_components.device_manager.controllers"
+_spec.loader.exec_module(_ctrl_module)  # type: ignore[union-attr]
 
-
-aiohttp_stub.web = aiohttp_web_stub  # type: ignore[attr-defined]
-sys.modules.setdefault("aiohttp", aiohttp_stub)
-sys.modules.setdefault("aiohttp.web", aiohttp_web_stub)
-
-
-# ---------------------------------------------------------------------------
-# Pure logic helpers extracted from the controller (tested in isolation)
-# ---------------------------------------------------------------------------
-
-def _build_mosquitto_files(
-    buildings_floors_rooms: list,
-    mqtt_prefix: str,
-    admin_user: str,
-    admin_pass: str,
-) -> tuple[str, str, str]:
-    """Replicate the generation logic from the controller.
-
-    Args:
-        buildings_floors_rooms: list of (building_slug, floor_slug, room_login,
-            room_password, room_slug) tuples.
-        mqtt_prefix: MQTT topic prefix.
-        admin_user: Admin login.
-        admin_pass: Admin password.
-
-    Returns:
-        (passwd_content, acl_content, mosquitto_conf)
-    """
-    passwd_lines: list[str] = []
-    acl_blocks: list[str] = []
-
-    for b_slug, f_slug, login, password, r_slug in buildings_floors_rooms:
-        if not (login and password):
-            continue
-        topic = f"{mqtt_prefix}/{b_slug}/{f_slug}/{r_slug}"
-        passwd_lines.append(f"{login}:{password}")
-        acl_blocks.append(f"user {login}\ntopic readwrite {topic}/#\n")
-
-    if admin_user:
-        passwd_lines.append(f"{admin_user}:{admin_pass}")
-        acl_blocks.append(f"user {admin_user}\ntopic readwrite #\n")
-
-    passwd_content = "\n".join(passwd_lines) + "\n" if passwd_lines else ""
-    acl_content = "\n".join(acl_blocks)
-    mosquitto_conf = (
-        "# Generated by Device Manager\n"
-        "listener 1883\n"
-        "allow_anonymous false\n"
-        "password_file /mosquitto/config/passwd\n"
-        "acl_file /mosquitto/config/acl\n"
-    )
-    return passwd_content, acl_content, mosquitto_conf
+# The real production function under test
+generate_mosquitto_files = _ctrl_module.generate_mosquitto_files  # type: ignore[attr-defined]
 
 
 # ---------------------------------------------------------------------------
@@ -101,39 +72,39 @@ def test_passwd_contains_room_credentials():
         ("home", "ground", "living_user", "s3cr3t", "living"),
         ("home", "ground", "kitchen_user", "p@ss", "kitchen"),
     ]
-    passwd, _, _ = _build_mosquitto_files(data, "myprefix", "admin", "adminpass")
+    passwd, _, _ = generate_mosquitto_files(data, "myprefix", "admin", "adminpass")
     assert "living_user:s3cr3t" in passwd
     assert "kitchen_user:p@ss" in passwd
 
 
 def test_passwd_contains_admin():
-    """Admin credentials always appear in the passwd file."""
-    passwd, _, _ = _build_mosquitto_files([], "home", "admin", "secret123")
+    """Admin credentials appear in passwd when both user and password are set."""
+    passwd, _, _ = generate_mosquitto_files([], "home", "admin", "secret123")
     assert "admin:secret123" in passwd
 
 
 def test_acl_room_topic_format():
     """ACL entry for a room uses the correct hierarchical topic."""
     data = [("bldg", "floor1", "user1", "pw", "room1")]
-    _, acl, _ = _build_mosquitto_files(data, "home", "admin", "")
+    _, acl, _ = generate_mosquitto_files(data, "home", "admin", "")
     assert "user user1" in acl
     assert "topic readwrite home/bldg/floor1/room1/#" in acl
 
 
 def test_acl_admin_full_access():
-    """Admin user gets 'topic readwrite #'."""
-    _, acl, _ = _build_mosquitto_files([], "home", "admin", "pw")
+    """Admin user gets 'topic readwrite #' when password is set."""
+    _, acl, _ = generate_mosquitto_files([], "home", "admin", "pw")
     assert "user admin\ntopic readwrite #" in acl
 
 
 def test_room_without_credentials_skipped():
     """Rooms without login or password are not included."""
     data = [
-        ("bldg", "f1", "", "pw", "room1"),   # no login
+        ("bldg", "f1", "", "pw", "room1"),    # no login
         ("bldg", "f1", "user2", "", "room2"),  # no password
         ("bldg", "f1", None, None, "room3"),   # None
     ]
-    passwd, acl, _ = _build_mosquitto_files(data, "home", "admin", "")
+    passwd, acl, _ = generate_mosquitto_files(data, "home", "admin", "")
     assert "room1" not in passwd
     assert "room2" not in passwd
     assert "room3" not in passwd
@@ -142,7 +113,7 @@ def test_room_without_credentials_skipped():
 
 def test_mosquitto_conf_references_correct_paths():
     """mosquitto.conf references /mosquitto/config/passwd and acl."""
-    _, _, conf = _build_mosquitto_files([], "home", "admin", "")
+    _, _, conf = generate_mosquitto_files([], "home", "admin", "")
     assert "password_file /mosquitto/config/passwd" in conf
     assert "acl_file /mosquitto/config/acl" in conf
 
@@ -150,7 +121,7 @@ def test_mosquitto_conf_references_correct_paths():
 def test_zip_contains_three_files():
     """The ZIP archive must contain exactly passwd, acl, mosquitto.conf."""
     data = [("bldg", "f1", "user1", "pw1", "room1")]
-    passwd, acl, conf = _build_mosquitto_files(data, "home", "admin", "adminpw")
+    passwd, acl, conf = generate_mosquitto_files(data, "home", "admin", "adminpw")
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
@@ -165,28 +136,36 @@ def test_zip_contains_three_files():
 
 
 def test_mqtt_prefix_leading_slash_stripped():
-    """Leading slashes in mqtt_prefix should be stripped in topic path."""
-    prefix = "home"  # no leading slash (controller strips it)
+    """Leading/trailing slashes in mqtt_prefix are stripped."""
     data = [("b", "f", "u", "p", "r")]
-    _, acl, _ = _build_mosquitto_files(data, prefix, "admin", "")
-    # Should NOT produce double slash
-    assert "//b/f/r" not in acl
-    assert f"topic readwrite {prefix}/b/f/r/#" in acl
+    _, acl, _ = generate_mosquitto_files(data, "/home/", "admin", "")
+    assert "topic readwrite home/b/f/r/#" in acl
 
 
 def test_empty_hierarchy_only_admin():
-    """With no rooms, only admin appears in passwd."""
-    passwd, acl, _ = _build_mosquitto_files([], "home", "superadmin", "securepass")
-    lines = [l for l in passwd.split("\n") if l]
+    """With no rooms, only admin appears in passwd when password is set."""
+    passwd, acl, _ = generate_mosquitto_files([], "home", "superadmin", "securepass")
+    lines = [line for line in passwd.split("\n") if line]
     assert lines == ["superadmin:securepass"]
     assert "user superadmin\ntopic readwrite #" in acl
 
 
-def test_no_admin_user_empty_admin_entry():
-    """When admin_user is empty string, no admin entry is added."""
+def test_no_admin_password_skips_admin_entry():
+    """Admin entry is skipped when password is empty (security: no empty-pass admin)."""
     data = [("b", "f", "u", "p", "r")]
-    passwd, acl, _ = _build_mosquitto_files(data, "home", "", "")
-    # Only the room credential, no admin
-    lines = [l for l in passwd.split("\n") if l]
+    passwd, acl, _ = generate_mosquitto_files(data, "home", "admin", "")
+    lines = [line for line in passwd.split("\n") if line]
     assert lines == ["u:p"]
     assert "topic readwrite #" not in acl
+
+
+def test_room_with_none_password_skipped():
+    """Rooms whose password is None (decryption failure) are skipped."""
+    data = [
+        ("b", "f", "user_ok", "pass_ok", "room_ok"),
+        ("b", "f", "user_bad", None, "room_bad"),  # decryption failure
+    ]
+    passwd, acl, _ = generate_mosquitto_files(data, "home", "admin", "adminpw")
+    assert "user_ok:pass_ok" in passwd
+    assert "user_bad" not in passwd
+    assert "room_bad" not in acl

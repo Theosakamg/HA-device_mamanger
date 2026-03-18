@@ -354,7 +354,8 @@ def run():
         ("zip contains three files", test_mosquitto_config.test_zip_contains_three_files),
         ("mqtt prefix leading slash stripped", test_mosquitto_config.test_mqtt_prefix_leading_slash_stripped),
         ("empty hierarchy only admin", test_mosquitto_config.test_empty_hierarchy_only_admin),
-        ("no admin user no admin entry", test_mosquitto_config.test_no_admin_user_empty_admin_entry),
+        ("no admin password skips admin entry", test_mosquitto_config.test_no_admin_password_skips_admin_entry),
+        ("room with None password skipped", test_mosquitto_config.test_room_with_none_password_skipped),
     ]
 
     for test_name, test_func in mosquitto_tests:

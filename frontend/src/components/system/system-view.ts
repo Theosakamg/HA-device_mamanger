@@ -75,6 +75,7 @@ export class DmSystemView extends LitElement {
   // ── Settings state ──
   @state() private _settingsForm: AppSettings | null = null;
   @state() private _settingsSaving = false;
+  @state() private _settingsDirty = false;
   @state() private _settingsToast: { msg: string; ok: boolean } | null = null;
 
   // ── SSH key upload state ──
@@ -508,9 +509,14 @@ export class DmSystemView extends LitElement {
 
         <p class="section-title">${i18n.t("maint_mqtt_config")}</p>
         <p class="hint">${i18n.t("maint_mqtt_config_desc")}</p>
+        ${this._settingsDirty
+          ? html`<p class="hint" style="color:var(--warning-color,#f57c00)">
+              ⚠️ ${i18n.t("maint_mqtt_config_save_first")}
+            </p>`
+          : nothing}
         <button
           class="btn btn-secondary"
-          ?disabled=${this._mqttConfigGenerating}
+          ?disabled=${this._mqttConfigGenerating || this._settingsDirty}
           @click=${this._generateMosquittoConfig}
         >
           ${this._mqttConfigGenerating
@@ -1008,6 +1014,7 @@ export class DmSystemView extends LitElement {
       ...this._settingsForm,
       [key]: (e.target as HTMLInputElement).value,
     };
+    this._settingsDirty = true;
   }
 
   private async _onSshKeyFileChange(e: Event) {
@@ -1060,6 +1067,7 @@ export class DmSystemView extends LitElement {
       };
     }
     this._settingsSaving = false;
+    this._settingsDirty = false;
     setTimeout(() => {
       this._settingsToast = null;
     }, 4000);
