@@ -84,8 +84,12 @@ class NetworkScanner:
             logger.error(msg)
             raise NetworkScanError(msg) from e
 
-        # Check for errors
-        stderr_output = result.stderr.decode('utf-8').strip()
+        # Check for errors — decode with errors="replace" to avoid UnicodeDecodeError
+        try:
+            stderr_output = result.stderr.decode('utf-8', errors='replace').strip()
+        except Exception as e:
+            stderr_output = f"<undecodable stderr: {e}>"
+
         if result.returncode != 0:
             msg = f"Scan script error (exit {result.returncode}): {stderr_output}"
             logger.error(msg)
@@ -95,7 +99,7 @@ class NetworkScanner:
 
         # Parse output (expected format: YAML with "ip: mac")
         try:
-            raw_output = result.stdout.decode('utf-8')
+            raw_output = result.stdout.decode('utf-8', errors='replace')
             scan_result = yaml.safe_load(raw_output)
 
             if not isinstance(scan_result, dict):
@@ -115,8 +119,14 @@ class NetworkScanner:
             logger.info(f"Scan completed: found {len(self._scan_results)} devices")
             return self._scan_results
 
+        except NetworkScanError:
+            raise
         except yaml.YAMLError as e:
             msg = f"Failed to parse scan script output: {e}"
+            logger.error(msg)
+            raise NetworkScanError(msg) from e
+        except Exception as e:
+            msg = f"Failed to process scan script output: {e}"
             logger.error(msg)
             raise NetworkScanError(msg) from e
 

@@ -4,7 +4,7 @@ import logging
 
 from .base import BaseView, get_repos, get_db_path, rate_limit, csrf_protect, emit_activity_log, fmt_entity_label
 from ..provisioning.deploy import deploy, scan
-from ..provisioning.core.scanner import NetworkScanError
+from ..provisioning.core import NetworkScanError
 from ..provisioning.utility import update_runtime_configs
 
 _LOGGER = logging.getLogger(__name__)

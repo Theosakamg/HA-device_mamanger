@@ -6,13 +6,32 @@ returning an empty dict, so callers can handle errors explicitly.
 
 import asyncio
 import importlib.util
+import re
 import subprocess
 import sys
 import types
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
+
+@contextmanager
+def assert_raises(expected_exc, match: str = ""):
+    """Stdlib-only replacement for pytest.raises with optional message match."""
+    try:
+        yield
+    except expected_exc as exc:  # type: ignore[misc]
+        if match and not re.search(match, str(exc)):
+            raise AssertionError(
+                f"{expected_exc.__name__} raised but message {str(exc)!r} "
+                f"did not match pattern {match!r}"
+            ) from exc
+        return
+    except Exception as exc:
+        raise AssertionError(
+            f"Expected {expected_exc.__name__}, got {type(exc).__name__}: {exc}"
+        ) from exc
+    raise AssertionError(f"{expected_exc.__name__} was not raised")
 
 # ---------------------------------------------------------------------------
 # Bootstrap: load scanner module without importing the full HA package
@@ -89,7 +108,7 @@ def test_missing_scan_script_raises():
     """NetworkScanError raised when SCAN_SCRIPT_CONTENT is not configured."""
     scanner = _make_scanner()
     with patch.object(_scanner_module, "get_config", return_value=""):
-        with pytest.raises(NetworkScanError, match="SCAN_SCRIPT_CONTENT is not configured"):
+        with assert_raises(NetworkScanError, match="SCAN_SCRIPT_CONTENT is not configured"):
             scanner.run_network_scan()
 
 
@@ -98,7 +117,7 @@ def test_timeout_raises():
     scanner = _make_scanner()
     with patch.object(_scanner_module, "get_config", return_value="#!/bin/bash\nsleep 999"):
         with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="bash", timeout=300)):
-            with pytest.raises(NetworkScanError, match="timed out"):
+            with assert_raises(NetworkScanError, match="timed out"):
                 scanner.run_network_scan()
 
 
@@ -107,7 +126,7 @@ def test_subprocess_exception_raises():
     scanner = _make_scanner()
     with patch.object(_scanner_module, "get_config", return_value="#!/bin/bash\necho ok"):
         with patch("subprocess.run", side_effect=OSError("no such file")):
-            with pytest.raises(NetworkScanError, match="Failed to execute scan script"):
+            with assert_raises(NetworkScanError, match="Failed to execute scan script"):
                 scanner.run_network_scan()
 
 
@@ -121,7 +140,7 @@ def test_nonzero_exit_raises():
 
     with patch.object(_scanner_module, "get_config", return_value="#!/bin/bash\nexit 1"):
         with patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(NetworkScanError, match="exit 1"):
+            with assert_raises(NetworkScanError, match="exit 1"):
                 scanner.run_network_scan()
 
 
@@ -138,7 +157,7 @@ def test_invalid_yaml_raises():
             with patch.object(_scanner_module, "yaml") as mock_yaml:
                 mock_yaml.safe_load = MagicMock(side_effect=_YAMLError("bad yaml"))
                 mock_yaml.YAMLError = _YAMLError
-                with pytest.raises(NetworkScanError, match="Failed to parse scan script output"):
+                with assert_raises(NetworkScanError, match="Failed to parse scan script output"):
                     scanner.run_network_scan()
 
 
@@ -155,7 +174,7 @@ def test_non_dict_output_raises():
             with patch.object(_scanner_module, "yaml") as mock_yaml:
                 mock_yaml.safe_load = MagicMock(return_value=["item1", "item2"])
                 mock_yaml.YAMLError = _YAMLError
-                with pytest.raises(NetworkScanError, match="Unexpected scan output format"):
+                with assert_raises(NetworkScanError, match="Unexpected scan output format"):
                     scanner.run_network_scan()
 
 
